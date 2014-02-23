@@ -1,0 +1,158 @@
+#!/bin/bash
+
+source ~/.FVErc
+
+function printHelp() {
+	echo -e "usage: `basename $0` [--stdout]
+ Opts:
+  * --help|-h  -- Print this help message
+  * --stdout   -- Will not update webpage, but print just output to stdout
+"
+exit 0
+}
+
+function getFileFromFVE() {
+	curl -u $1:$2 http://stridac > "$TMPDIR"/FVE.$$.html 2>/dev/null 
+	if [ $? != 0 ]; then
+		echo "Stridac neni dostupny"
+		return 1
+	else
+		return 0
+	fi
+}
+
+function cleanLine() {
+	LINE=$1
+	echo $LINE | sed 's/<\/td>//g' | sed 's/&nbsp//g' | tr -d ' ' | \
+	sed 's/xxx/0/g' | tr -dc '[:print:]'
+}
+
+function getCurrent() {
+	iCURRENT=`cat "$TMPDIR"/FVE.$$.html | grep -A2 'aktu[.]*'|grep ln -A2 | tail -1 `
+	echo `cleanLine "$iCURRENT"`
+}
+
+function getToday() {
+	iTODAY=`cat "$TMPDIR"/FVE.$$.html | grep -A2 'denn[.]*'|grep energie -A2 | tail -1`
+	echo `cleanLine "$iTODAY"`
+}
+
+function cleanFile() {
+	rm -f "$TMPDIR"/FVE.$$.html
+	rm -f "$TMPDIR"/FVE.gn
+	rm -f "$TMPDIR"/fved.png
+	rm -f "$TMPDIR"/fvem.png
+	rm -f "$TMPDIR"/fvep.png
+	rm -f "$TMPDIR"/d`date +%Y%m%d`.png
+	rm -f "$TMPDIR"/m`date +%Y%m`.png
+	rm -f "$TMPDIR"/p`date +%Y%m`.png
+	rm -f "$TMPDIR"/.fveread
+}
+
+function checkRunningStatus() {
+	if [ -e "$TMPDIR"/.fveread ]; then
+		echo "Already running, quiting."
+		echo $$ >> "$TMPDIR"/.fveDebug
+		exit 0
+	fi
+	echo $$ > "$TMPDIR"/.fveread
+}
+
+
+function genProductionFiles() {
+	#usage: genProductionFiles 
+	
+	DATE=`date +%Y%m%d`
+
+	sed -i /"$DATE"/d $PRODUCTIONFILE
+	echo "$DATE $TODAY" >> $PRODUCTIONFILE
+	
+	return 0
+}
+ 
+function uploadDataFTP() {
+	#usage: uploadDataFTP
+	
+	lftp -u petos@petos.cz,$FTPPASSWD -e "put -O tmp $TMPDIR/fvem.png $TMPDIR/fved.png /$TMPDIR/fvep.png $HTMLPOWERFILE $HTMLOPTFILE $HTMLFILE && bye" petos.cz
+	mv "$TMPDIR"/fved.png "$TMPDIR"/d`date +%Y%m%d`.png
+	mv "$TMPDIR"/fvem.png "$TMPDIR"/m`date +%Y%m`.png
+	mv "$TMPDIR"/fvep.png "$TMPDIR"/p`date +%Y%m`.png
+	lftp -u petos@petos.cz,$FTPPASSWD -e "mput -O tmp/fve.hist/ $TMPDIR/m*.png $TMPDIR/p*.png $TMPDIR/d*.png && bye" petos.cz
+	return 0
+}
+
+function printDataStdout() {
+	#usage: #printDataStdout 
+
+	echo "My FV: `date`:"
+	echo "Current production [kW]  = $CURRENT"
+	echo "Today was produced [kWh] = $TODAY"
+	return 0
+}
+
+
+function getData() {
+	getFileFromFVE $FVEUSERNAME $FVEPWD
+	if [ $? = 1 ]; then
+		CURRENT="-0"
+		TODAY="-0"
+		FVESTATUS="Down/stopped"
+	else
+		CURRENT="`getCurrent`"
+		TODAY="`getToday`"
+		FVESTATUS="Running"
+	fi
+}
+
+function genFiles() {
+	#usage: genFiles
+		echo `date +%Y%m%d%H%M` $CURRENT $TODAY >> $FVEDATADIR/history.`date +%Y%m`
+
+		FVEgenPage  --powerpage --current $CURRENT --today $TODAY --fvestatus $FVESTATUS
+		
+		genProductionFiles
+		
+		FVEgenGraphs --all
+}
+
+
+function mainLoop() {
+	getData
+	
+	if [ "$STDOUT" ]; then
+		printDataStdout 
+	else
+		genFiles
+		FVEoptRun "$CURRENT"
+		checkRunningStatus
+		uploadDataFTP
+	fi
+	cleanFile	
+}
+
+if [ "$#" = 1 ]; then
+	if [ "$1" = '-h' -o "$1" = "--help" ]; then
+		printHelp
+		exit
+	elif [ "$1" = "--stdout" ]; then
+		export STDOUT="YES"
+	elif [ "$1" = "--daemon" -o "$1" = "-d" ]; then
+		export DAEMON=1
+	else
+		echo "Non supported parametr $1"
+		exit 1
+	fi
+elif [ "$#" -gt 1 ]; then
+	echo "Too much options"
+	printHelp
+	exit
+fi
+
+if [ $DAEMON ]; then
+	while true; do
+		mainLoop
+		sleep 60
+	done
+else 
+	mainLoop
+fi
