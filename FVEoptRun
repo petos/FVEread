@@ -1,0 +1,106 @@
+#!/bin/bash
+
+source ~/.FVErc
+
+#DEMOFNC
+function opt() {
+	local COMPONENT=xxx
+	if [ "$1" = "ON" ]; then
+		FVEgenPage --update --$COMPONENT on
+	elif [ "$1" = "OFF" ]; then
+		FVEgenPage --update --$COMPONENT off
+	else
+		echo "Unknown parametr for $0"
+	fi
+}
+
+
+function printHelp() {
+	echo -e "\nusage: `basename $0` POWER OLDPOWER(s)
+ Opts:
+  * POWER -- Current power production. Script then will issue requested steps
+  * OLDPOWER(s) -- Previous power production - up to 5
+"
+exit 0
+}
+
+
+function optLacerta() {
+	COMPONENT=lacerta
+	if [ "$1" = "ON" ]; then
+		#wol 00:E0:4D:65:0A:18
+		FVEgenPage --update --lacerta on
+	elif [ "$1" = "OFF" ]; then
+		#ssh -t -l petos lacerta "/home/petos/.dotfiles/bin/FVEhalter enable" 2> /dev/null
+		#ssh -t -l petos lacerta "/home/petos/.dotfiles/bin/FVEhalter stopSystem" 2> /dev/null 
+		FVEgenPage --update --lacerta off
+	else
+		echo "Unknown parametr for $0"
+	fi
+}
+
+
+
+function optBoiler1() {
+	local COMPONENT=boiler1
+	if [ "$1" = "ON" ]; then
+		FVEgenPage --update --boiler1 on
+	elif [ "$1" = "OFF" ]; then
+		FVEgenPage --update --boiler1 off
+	else
+		echo "Unknown parametr for $0"
+	fi
+}
+
+function optBoiler2() {
+	local COMPONENT=boiler2
+	if [ "$1" = "ON" ]; then
+		FVEgenPage --update --boiler2 on
+	elif [ "$1" = "OFF" ]; then
+		FVEgenPage --update --boiler2 off
+	else
+		echo "Unknown parametr for $0"
+	fi
+}
+
+
+function optAC() {
+	local COMPONENT=ac
+	if [ "$1" = "ON" ]; then
+		FVEgenPage --update --$COMPONENT on
+	elif [ "$1" = "OFF" ]; then
+		FVEgenPage --update --$COMPONENT off
+	else
+		echo "Unknown parametr for $0"
+	fi
+}
+
+if [ "$1" = '-h' -o "$1" = "--help" -o "$#" = "0" ]; then
+	printHelp
+	exit
+fi
+
+CURRENT="$1"
+if [ $CURRENT -lt 100 ]; then
+	optLacerta OFF
+fi
+
+if [ $CURRENT -gt 400 ]; then
+	optLacerta ON
+fi
+
+if [ $CURRENT -gt 900 ]; then
+    optBoiler1 ON
+else
+    optBoiler1 OFF
+fi
+
+if [ $CURRENT -gt 1500 ] ; then
+    optBoiler2 ON
+else
+    optBoiler2 OFF
+fi
+
+
+
+exit 0
