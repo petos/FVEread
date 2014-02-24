@@ -176,6 +176,9 @@ while [ $# -gt 0 ]; do
 	shift
 done
 
+if [ $# -gt 0 ]; then
+	echo "Unrecognized parametr(s): \"$@\""
+fi
 
 if [ $VEBROSE ]; then
 	printLoadedParams
