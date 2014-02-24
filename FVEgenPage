@@ -106,15 +106,22 @@ function updateLacertaStatus() {
 }
 
 function checkStatus() {
-	#usage: checkStatus STATUS
+	#usage: checkStatus COMPONENT $STATUS
 	#only on|off statusses are allowed
-	STATUS=$1
-	#~ if [ $STATUS != on -o 
-	#~ fi
+	COMPONENT=$1
+	STATUS=$2
+	
+	if [ $STATUS != on -a $STATUS != off ]; then
+		echo "Wrong status!"
+		echo "Received:   $STATUS"
+		echo "Component: $COMPONENT"
+		exit 1
+	fi
 }
 
 function updateOptFile() {
 	if [ $LACERTA ]; then
+	checkStatus lacerta $LACERTA
 		if [ $LACERTA = on ]; then
 			sed -i 's/lacerta-off/lacerta-on/g' $HTMLOPTFILE 
 		elif [ $LACERTA = off ]; then
@@ -122,6 +129,7 @@ function updateOptFile() {
 		fi
 	fi	
 	if [ $BOILER1 ]; then	
+	checkStatus boiler1 $BOILER1
 		if [ $BOILER1 = on ]; then
 			sed -i 's/boiler1-off/boiler1-on/g' $HTMLOPTFILE 
 		elif [ $BOILER1 = off ]; then
@@ -129,6 +137,7 @@ function updateOptFile() {
 		fi
 	fi
 	if [ $BOILER2 ]; then	
+	checkStatus boiler2 $BOILER2
 		if [ $BOILER2 = on ]; then
 			sed -i 's/boiler2-off/boiler2-on/g' $HTMLOPTFILE 
 		elif [ $BOILER2 = off ]; then
@@ -167,6 +176,7 @@ while [ $# -gt 0 ]; do
 	shift
 done
 
+
 if [ $VEBROSE ]; then
 	printLoadedParams
 fi
@@ -188,6 +198,7 @@ if [ $GENOPTPAGE ]; then
 		echo "--lacerta and --boiler1 and --boiler2 are mandatorry for --optpage parameter"
 		printLoadedParams
 	else
+		checkStatus
 		updateLacertaStatus
 		genOptsPage
 	fi
