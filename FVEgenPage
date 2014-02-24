@@ -97,11 +97,11 @@ function updateLacertaStatus() {
 	if [ $? = 0 ]; then
 		sed -i s/lacerta-stat-off/lacerta-stat-on/g $HTMLOPTFILE 
 		LSTATUS=on
-		echo "Lacerta is ON" 
+		#echo "Lacerta is ON" 
 	else
 		sed -i s/lacerta-stat-on/lacerta-stat-off/g $HTMLOPTFILE
 		LSTATUS=off
-		echo "Lacerta is OFF"
+		#echo "Lacerta is OFF"
 	fi
 }
 
@@ -137,7 +137,7 @@ function updateOptFile() {
 	fi
 }
 
-if ! options=$(getopt -o vuodpls:c:t:A:B:C: -l verbose,update,optpage,defpage,powerpage,lstatus,fvestatus:,current:,today:,lacerta:,boiler1:,boiler2: -- "$@")
+if ! options=$(getopt -o fvuodpls:c:t:A:B:C: -l off,verbose,update,optpage,defpage,powerpage,lstatus,fvestatus:,current:,today:,lacerta:,boiler1:,boiler2: -- "$@")
 #if ! options=$(getopt -o c: -l current: -- "$@" )
 then
     # something went wrong, getopt will put out an error message for us
@@ -149,6 +149,7 @@ while [ $# -gt 0 ]; do
 	case $1 in
 		-v|--verbose) VEBROSE="Y";;
 		-d|--defpage) GENDEFPAGE=Y;;
+		-f|--off) LACERTA=off ; BOILER1=off;BOILER2=off;;
 		-o|--optpage) GENOPTPAGE=Y;;
 		-p|--powerpage) GENPOWERPAGE=Y;;
 		-l|--lstatus) LSTATUS=Y;;
