@@ -83,22 +83,15 @@ function checkFileExist() {
 
 function uploadDataFTP() {
 	#usage: uploadDataFTP
-<<<<<<< HEAD
-	
+
 	checkRunningStatus
 		
-=======
-	checkRunningStatus
->>>>>>> da9923340de41b1dc42ff55291ea0224f577cf1f
 	lftp -u petos@petos.cz,$FTPPASSWD -e "put -O tmp $TMPDIR/fvem.png $TMPDIR/fved.png /$TMPDIR/fvep.png $HTMLPOWERFILE $HTMLOPTFILE $HTMLFILE && bye" $HTMLSERVER
 	mv "$TMPDIR"/fved.png "$TMPDIR"/d`date +%Y%m%d`.png
 	mv "$TMPDIR"/fvem.png "$TMPDIR"/m`date +%Y%m`.png
 	mv "$TMPDIR"/fvep.png "$TMPDIR"/p`date +%Y%m`.png
 	lftp -u petos@petos.cz,$FTPPASSWD -e "mput -O tmp/fve.hist/ $TMPDIR/m*.png $TMPDIR/p*.png $TMPDIR/d*.png && bye" $HTMLSERVER
-<<<<<<< HEAD
-	
-=======
->>>>>>> da9923340de41b1dc42ff55291ea0224f577cf1f
+
 	rm -f "$TMPDIR"/.fveread
 	return 0
 }
