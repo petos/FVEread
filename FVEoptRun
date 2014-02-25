@@ -28,7 +28,6 @@ exit 0
 function optLacerta() {
 	COMPONENT=lacerta
 	if [ "$1" = "ON" ]; then
-		#wol 00:E0:4D:65:0A:18
 		FVEgenPage --update --lacerta on
 	elif [ "$1" = "OFF" ]; then
 		#ssh -t -l petos lacerta "/home/petos/.dotfiles/bin/FVEhalter enable" 2> /dev/null

@@ -97,24 +97,31 @@ function updateLacertaStatus() {
 	if [ $? = 0 ]; then
 		sed -i s/lacerta-stat-off/lacerta-stat-on/g $HTMLOPTFILE 
 		LSTATUS=on
-		echo "Lacerta is ON" 
+		#echo "Lacerta is ON" 
 	else
 		sed -i s/lacerta-stat-on/lacerta-stat-off/g $HTMLOPTFILE
 		LSTATUS=off
-		echo "Lacerta is OFF"
+		#echo "Lacerta is OFF"
 	fi
 }
 
 function checkStatus() {
-	#usage: checkStatus STATUS
+	#usage: checkStatus COMPONENT $STATUS
 	#only on|off statusses are allowed
-	STATUS=$1
-	#~ if [ $STATUS != on -o 
-	#~ fi
+	COMPONENT=$1
+	STATUS=$2
+	
+	if [ $STATUS != on -a $STATUS != off ]; then
+		echo "Wrong status!"
+		echo "Received:   $STATUS"
+		echo "Component: $COMPONENT"
+		exit 1
+	fi
 }
 
 function updateOptFile() {
 	if [ $LACERTA ]; then
+	checkStatus lacerta $LACERTA
 		if [ $LACERTA = on ]; then
 			sed -i 's/lacerta-off/lacerta-on/g' $HTMLOPTFILE 
 		elif [ $LACERTA = off ]; then
@@ -122,6 +129,7 @@ function updateOptFile() {
 		fi
 	fi	
 	if [ $BOILER1 ]; then	
+	checkStatus boiler1 $BOILER1
 		if [ $BOILER1 = on ]; then
 			sed -i 's/boiler1-off/boiler1-on/g' $HTMLOPTFILE 
 		elif [ $BOILER1 = off ]; then
@@ -129,6 +137,7 @@ function updateOptFile() {
 		fi
 	fi
 	if [ $BOILER2 ]; then	
+	checkStatus boiler2 $BOILER2
 		if [ $BOILER2 = on ]; then
 			sed -i 's/boiler2-off/boiler2-on/g' $HTMLOPTFILE 
 		elif [ $BOILER2 = off ]; then
@@ -137,7 +146,7 @@ function updateOptFile() {
 	fi
 }
 
-if ! options=$(getopt -o vuodpls:c:t:A:B:C: -l verbose,update,optpage,defpage,powerpage,lstatus,fvestatus:,current:,today:,lacerta:,boiler1:,boiler2: -- "$@")
+if ! options=$(getopt -o fvuodpls:c:t:A:B:C: -l off,verbose,update,optpage,defpage,powerpage,lstatus,fvestatus:,current:,today:,lacerta:,boiler1:,boiler2: -- "$@")
 #if ! options=$(getopt -o c: -l current: -- "$@" )
 then
     # something went wrong, getopt will put out an error message for us
@@ -149,6 +158,7 @@ while [ $# -gt 0 ]; do
 	case $1 in
 		-v|--verbose) VEBROSE="Y";;
 		-d|--defpage) GENDEFPAGE=Y;;
+		-f|--off) LACERTA=off ; BOILER1=off;BOILER2=off;;
 		-o|--optpage) GENOPTPAGE=Y;;
 		-p|--powerpage) GENPOWERPAGE=Y;;
 		-l|--lstatus) LSTATUS=Y;;
@@ -165,6 +175,10 @@ while [ $# -gt 0 ]; do
 	esac
 	shift
 done
+
+if [ $# -gt 0 ]; then
+	echo "Unrecognized parametr(s): \"$@\""
+fi
 
 if [ $VEBROSE ]; then
 	printLoadedParams
@@ -187,6 +201,7 @@ if [ $GENOPTPAGE ]; then
 		echo "--lacerta and --boiler1 and --boiler2 are mandatorry for --optpage parameter"
 		printLoadedParams
 	else
+		checkStatus
 		updateLacertaStatus
 		genOptsPage
 	fi
