@@ -46,7 +46,7 @@ function cleanFile() {
 	rm -f "$TMPDIR"/d`date +%Y%m%d`.png
 	rm -f "$TMPDIR"/m`date +%Y%m`.png
 	rm -f "$TMPDIR"/p`date +%Y%m`.png
-	rm -f "$TMPDIR"/.fveread
+	
 }
 
 function checkRunningStatus() {
@@ -73,11 +73,15 @@ function genProductionFiles() {
 function uploadDataFTP() {
 	#usage: uploadDataFTP
 	
+	checkRunningStatus
+		
 	lftp -u petos@petos.cz,$FTPPASSWD -e "put -O tmp $TMPDIR/fvem.png $TMPDIR/fved.png /$TMPDIR/fvep.png $HTMLPOWERFILE $HTMLOPTFILE $HTMLFILE && bye" $HTMLSERVER
 	mv "$TMPDIR"/fved.png "$TMPDIR"/d`date +%Y%m%d`.png
 	mv "$TMPDIR"/fvem.png "$TMPDIR"/m`date +%Y%m`.png
 	mv "$TMPDIR"/fvep.png "$TMPDIR"/p`date +%Y%m`.png
 	lftp -u petos@petos.cz,$FTPPASSWD -e "mput -O tmp/fve.hist/ $TMPDIR/m*.png $TMPDIR/p*.png $TMPDIR/d*.png && bye" $HTMLSERVER
+	
+	rm -f "$TMPDIR"/.fveread
 	return 0
 }
 
@@ -124,7 +128,6 @@ function mainLoop() {
 	else
 		genFiles
 		FVEoptRun "$CURRENT"
-		checkRunningStatus
 		uploadDataFTP
 	fi
 	cleanFile	
