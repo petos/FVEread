@@ -122,7 +122,7 @@ function getData() {
 
 function genFiles() {
 	#usage: genFiles
-		echo `date +%Y%m%d%H%M` $CURRENT $TODAY >> $FVEDATADIR/history.`date +%Y%m`
+		echo `date +%Y%m%d%H%M` $CURRENT $TODAY >> "$HISTORYFILE"
 
 		FVEgenPage  --powerpage --current $CURRENT --today $TODAY --fvestatus $FVESTATUS
 		

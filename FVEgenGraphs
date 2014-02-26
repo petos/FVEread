@@ -28,7 +28,7 @@ set xrange["`date +%Y%m%d` 00:00:00":"`date +%Y%m``expr $( date +%d ) + 1` 23:59
 set terminal png
 set output "$TMPDIR/fved.png"
 
-plot "$FVEDATADIR/history.`date +%Y%m`" u 1:2 with lines notitle
+plot "$HISTORYFILE" u 1:2 with lines notitle
 EOF
 	
 	gnuplot "$TMPDIR"/FVE.gn 2>/dev/null
@@ -46,7 +46,7 @@ set title "Mothly power overview\nGenerated on `date +%d/%m/%Y`"
 set terminal png
 set output "$TMPDIR/fvem.png"
 
-plot "$FVEDATADIR/history.`date +%Y%m`" u 1:2 with lines notitle
+plot "$HISTORYFILE" u 1:2 with lines notitle
 EOF
 	gnuplot "$TMPDIR"/FVE.gn 2>/dev/null
 }
@@ -67,7 +67,7 @@ set style data boxes
 set terminal png
 set output "$TMPDIR/fvep.png"
 
-plot "$FVEDATADIR/production.`date +%Y%m`" u 1:2 notitle with boxes
+plot "$PRODUCTIONFILE" u 1:2 notitle with boxes
 EOF
 	
 	gnuplot "$TMPDIR"/FVE.gn 2>/dev/null
