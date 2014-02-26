@@ -62,7 +62,7 @@ function checkRunningStatus() {
 }
 
 
-function genProductionFiles() {
+function updateProductionFile() {
 	#usage: genProductionFiles 
 	
 	DATE=`date +%Y%m%d`
@@ -126,7 +126,7 @@ function genFiles() {
 
 		FVEgenPage  --powerpage --current $CURRENT --today $TODAY --fvestatus $FVESTATUS
 		
-		genProductionFiles
+		updateProductionFile
 		
 		FVEgenGraphs --all
 }
