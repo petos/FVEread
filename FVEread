@@ -14,7 +14,8 @@ exit 0
 }
 
 function getFileFromFVE() {
-	curl -u $1:$2 http://stridac > "$TMPDIR"/FVE.$$.html 2>/dev/null 
+
+	curl -u $FVEUSERNAME:$FVEPWD http://stridac > "$TMPDIR"/FVE.$$.html 2>/dev/null 
 	if [ $? != 0 ]; then
 		echo "Stridac neni dostupny"
 		return 1
@@ -107,7 +108,7 @@ function printDataStdout() {
 
 
 function getData() {
-	getFileFromFVE $FVEUSERNAME $FVEPWD
+	getFileFromFVE 
 	if [ $? = 1 ]; then
 		CURRENT="-0"
 		TODAY="-0"
