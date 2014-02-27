@@ -2,18 +2,52 @@
 
 source ~/.FVErc
 
-#DEMOFNC
+function verbPrint() {
+	if [ $VERB ]; then
+		echo "$1"
+	fi
+}
+
 function opt() {
-	local COMPONENT=xxx
-	if [ "$1" = "ON" ]; then
-		FVEgenPage --update --$COMPONENT on
-	elif [ "$1" = "OFF" ]; then
-		FVEgenPage --update --$COMPONENT off
+	local COMPONENT=$1
+	local STATUS=${2,,}
+	
+	verbPrint "COMPONENT: STATUS"
+	verbPrint "$COMPONENT: $STATUS"
+	
+	if [ "$STATUS" = "on" ]; then
+		verbPrint "Turning ON"
+		FVEgenPage --update --$COMPONENT $STATUS
+		realStatus $COMPONENT $STATUS
+	elif [ "$STATUS" = "off" ]; then
+		verbPrint "Turning off"
+		FVEgenPage --update --$COMPONENT $STATUS
+		realStatus $COMPONENT $STATUS
 	else
 		echo "Unknown parametr for $0"
 	fi
 }
 
+function realStatus(){
+	#usage: getStatus $COMPONENT $STATUS
+	local COMPONENT=$1
+	local EXPECTEDSTATUS=$2
+	local STATUS=$(tdtool -l | awk /$COMPONENT/'{print $NF}' | tr '[:upper:]' '[:lower:]' )
+	local DEVICENUM=$(tdtool -l | awk /$COMPONENT/'{print $1}' )
+		verbPrint "COMPONENT: DEVICENUM = EXPECTEDSTATUS:STATUS"
+		verbPrint "$COMPONENT: $DEVICENUM = $EXPECTEDSTATUS:$STATUS"
+	if [ -z $DEVICENUM ]; then
+		echo "Device not recognized, skipping"
+		return 1
+	fi
+	if [ "$STATUS" = "$EXPECTEDSTATUS" ]; then
+		verbPrint "OK, nothing to change"
+		return 0
+	else
+			verbPrint "changing status of device #$DEVICENUM from $STATUS to $EXPECTEDSTATUS"
+		tdtool --${EXPECTEDSTATUS,,} $DEVICENUM $VERBOUT
+	fi
+}
 
 function printHelp() {
 	echo -e "\nusage: `basename $0` POWER OLDPOWER(s)
@@ -25,81 +59,39 @@ exit 0
 }
 
 
-function optLacerta() {
-	COMPONENT=lacerta
-	if [ "$1" = "ON" ]; then
-		FVEgenPage --update --lacerta on
-	elif [ "$1" = "OFF" ]; then
-		#ssh -t -l petos lacerta "/home/petos/.dotfiles/bin/FVEhalter enable" 2> /dev/null
-		#ssh -t -l petos lacerta "/home/petos/.dotfiles/bin/FVEhalter stopSystem" 2> /dev/null 
-		FVEgenPage --update --lacerta off
-	else
-		echo "Unknown parametr for $0"
-	fi
-}
-
-
-
-function optBoiler1() {
-	local COMPONENT=boiler1
-	if [ "$1" = "ON" ]; then
-		FVEgenPage --update --boiler1 on
-	elif [ "$1" = "OFF" ]; then
-		FVEgenPage --update --boiler1 off
-	else
-		echo "Unknown parametr for $0"
-	fi
-}
-
-function optBoiler2() {
-	local COMPONENT=boiler2
-	if [ "$1" = "ON" ]; then
-		FVEgenPage --update --boiler2 on
-	elif [ "$1" = "OFF" ]; then
-		FVEgenPage --update --boiler2 off
-	else
-		echo "Unknown parametr for $0"
-	fi
-}
-
-
-function optAC() {
-	local COMPONENT=ac
-	if [ "$1" = "ON" ]; then
-		FVEgenPage --update --$COMPONENT on
-	elif [ "$1" = "OFF" ]; then
-		FVEgenPage --update --$COMPONENT off
-	else
-		echo "Unknown parametr for $0"
-	fi
-}
+VERBOUT="2>/dev/null"
 
 if [ "$1" = '-h' -o "$1" = "--help" -o "$#" = "0" ]; then
 	printHelp
 	exit
+elif [ "$1" = "-v" ]; then
+	VERB=Y
+	VERBOUT=''
+	shift
 fi
 
 CURRENT="$1"
+
+
+
 if [ $CURRENT -lt 100 ]; then
-	optLacerta OFF
+	opt lacerta OFF
 fi
 
 if [ $CURRENT -gt 400 ]; then
-	optLacerta ON
+	opt lacerta ON
 fi
 
 if [ $CURRENT -gt 900 ]; then
-    optBoiler1 ON
+    opt boiler1 ON
 else
-    optBoiler1 OFF
+    opt boiler1 OFF
 fi
 
 if [ $CURRENT -gt 1500 ] ; then
-    optBoiler2 ON
+    opt boiler2 ON
 else
-    optBoiler2 OFF
+    opt boiler2 OFF
 fi
-
-
 
 exit 0
