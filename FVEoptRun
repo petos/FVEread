@@ -9,37 +9,48 @@ function verbPrint() {
 }
 
 function opt() {
+	#usage opt $COMPONENT $EXPECTEDSTATUS
 	local COMPONENT=$1
 	local STATUS=${2,,}
 	
-	verbPrint "COMPONENT: STATUS"
-	verbPrint "$COMPONENT: $STATUS"
+	verbPrint "COMPONENT: EXPECTEDSTATUS"
+	verbPrint "$COMPONENT: $EXPECTEDSTATUS"
 	
-	if [ "$STATUS" = "on" ]; then
+	if [ "$EXPECTEDSTATUS" = "on" ]; then
 		verbPrint "Turning ON"
-		FVEgenPage --update --$COMPONENT $STATUS
-		realStatus $COMPONENT $STATUS
-	elif [ "$STATUS" = "off" ]; then
+		realStatus $COMPONENT $EXPECTEDSTATUS
+		FVEgenPage --update --$COMPONENT $EXPECTEDSTATUS
+	elif [ "$EXPECTEDSTATUS" = "off" ]; then
 		verbPrint "Turning off"
-		FVEgenPage --update --$COMPONENT $STATUS
-		realStatus $COMPONENT $STATUS
+		realStatus $COMPONENT $EXPECTEDSTATUS
+		FVEgenPage --update --$COMPONENT $EXPECTEDSTATUS
 	else
 		echo "Unknown parametr for $0"
 	fi
+}
+
+function getDeviceNumber() {
+	#usage: getDeviceNumber $COMPONENT
+	local COMPONENT=$1
+	verbPrint "Getting device number for: $COMPONENT"
+	DEVICENUM=$( grep -B1 $COMPONENT /etc/tellstick.conf | head -1 | awk '{print $NF}')
+	verbPrint "$COMPONENT has device number: $DEVICENUM"
 }
 
 function realStatus(){
 	#usage: getStatus $COMPONENT $STATUS
 	local COMPONENT=$1
 	local EXPECTEDSTATUS=$2
-	local STATUS=$(tdtool -l | awk /$COMPONENT/'{print $NF}' | tr '[:upper:]' '[:lower:]' )
-	local DEVICENUM=$(tdtool -l | awk /$COMPONENT/'{print $1}' )
-		verbPrint "COMPONENT: DEVICENUM = EXPECTEDSTATUS:STATUS"
-		verbPrint "$COMPONENT: $DEVICENUM = $EXPECTEDSTATUS:$STATUS"
+	local DEVICENUM=''
+	getDeviceNumber $COMPONENT
+	verbPrint "$COMPONENT has device number: $DEVICENUM"
 	if [ -z $DEVICENUM ]; then
-		echo "Device not recognized, skipping"
+		verbPrint "Device not recognized, skipping"
 		return 1
 	fi
+	local STATUS=$(tdtool -l | awk /$COMPONENT/'{print $NF}' | tr '[:upper:]' '[:lower:]' )
+		verbPrint "COMPONENT: DEVICENUM = EXPECTEDSTATUS:STATUS"
+		verbPrint "$COMPONENT: $DEVICENUM = $EXPECTEDSTATUS:$STATUS"
 	if [ "$STATUS" = "$EXPECTEDSTATUS" ]; then
 		verbPrint "OK, nothing to change"
 		return 0
@@ -52,8 +63,8 @@ function realStatus(){
 function printHelp() {
 	echo -e "\nusage: `basename $0` POWER OLDPOWER(s)
  Opts:
-  * POWER -- Current power production. Script then will issue requested steps
-  * OLDPOWER(s) -- Previous power production - up to 5
+    POWER -- Current power production. Script then will issue requested steps
+    OLDPOWER(s) -- Previous power production - up to 5
 "
 exit 0
 }
@@ -72,26 +83,10 @@ fi
 
 CURRENT="$1"
 
-
-
-if [ $CURRENT -lt 100 ]; then
-	opt lacerta OFF
-fi
-
-if [ $CURRENT -gt 400 ]; then
-	opt lacerta ON
-fi
-
-if [ $CURRENT -gt 900 ]; then
-    opt boiler1 ON
+if [ $CURRENT -gt 1000 ]; then
+	opt boiler1 ON
 else
-    opt boiler1 OFF
-fi
-
-if [ $CURRENT -gt 1500 ] ; then
-    opt boiler2 ON
-else
-    opt boiler2 OFF
+	opt boiler1 OFF
 fi
 
 exit 0
