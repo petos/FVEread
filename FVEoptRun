@@ -72,6 +72,16 @@ function printHelp() {
 exit 0
 }
 
+function getAvrg() {
+	#Will make average production in last 10 minutes (last 10 lines)
+	AVRG=$(expr $(expr $(tail -10 $HISTORYFILE | sed '/^$/d' | sed ':a;N;$!ba;s/\n/ + /g')) / 10 )
+}
+
+
+
+
+
+
 
 VERBOUT="2>/dev/null"
 
