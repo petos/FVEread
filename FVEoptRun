@@ -105,7 +105,7 @@ fi
 
 getMinMax
 
-cat $OPTCFGFILE | while read DEVICE MINCOMP MAXCOMP ; do
+cat $OPTCFGFILE | grep -v ^# | while read DEVICE MINCOMP MAXCOMP ; do
 	if [ -z $DEVICE ] || [ -z $MINCOMP ] ; then continue; fi
 	if [ -z $MAXCOMP ]; then MAXCOMP=99999; fi
 	verbPrint "Processing $DEVICE with params: $MINCOMP/$MAXCOMP"
