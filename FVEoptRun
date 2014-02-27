@@ -74,18 +74,27 @@ exit 0
 
 function getAvrg() {
 	#Will make average production in last 10 minutes (last 10 lines)
-	AVRG=$(expr $(expr $(tail -10 $HISTORYFILE | sed '/^$/d' | sed ':a;N;$!ba;s/\n/ + /g')) / 10 )
+	AVRG=$(expr $(expr $(tail -10 $HISTORYFILE | awk '{print $2}' | sed '/^$/d' | sed ':a;N;$!ba;s/\n/ + /g')) / $(tail -10 $HISTORYFILE | awk '{print $2}' | sed '/^$/d' | wc -l) )	
 }
 
+function getMinVal() {
+	CURMIN=$(expr $AVRG - $(expr $AVRG / 10))
+}
 
+function getMaxVal() {
+	CURMAX=$(expr $AVRG + $(expr $AVRG / 10))
+}
 
-
-
-
+function getMinMax() {
+	getAvrg
+#	getMinVal
+#	getMaxVal
+	verbPrint "Avrg is: $AVRG"
+}
 
 VERBOUT="2>/dev/null"
 
-if [ "$1" = '-h' -o "$1" = "--help" -o "$#" = "0" ]; then
+if [ "$1" = '-h' -o "$1" = "--help" ]; then
 	printHelp
 	exit
 elif [ "$1" = "-v" ]; then
@@ -94,12 +103,30 @@ elif [ "$1" = "-v" ]; then
 	shift
 fi
 
-CURRENT="$1"
+getMinMax
 
-if [ $CURRENT -gt 1000 ]; then
-	opt boiler1 ON
-else
-	opt boiler1 OFF
-fi
+cat $OPTCFGFILE | while read DEVICE MINCOMP MAXCOMP ; do
+	if [ -z $DEVICE ] || [ -z $MINCOMP ] ; then continue; fi
+	if [ -z $MAXCOMP ]; then MAXCOMP=99999; fi
+	verbPrint "Processing $DEVICE with params: $MINCOMP/$MAXCOMP"
+	if [ $MINCOMP -ge $MAXCOMP ]; then
+		verbPrint "Minimal is bigger then maximal. This does not seems to be right: $MINCOMP/$MAXCOMP"
+		continue
+	fi
+	if [ $(echo $MINCOMP$MAXCOMP | sed 's/[0-9]*//g' ) ]; then 
+		verbPrint "Detected non proper configuration for device $DEVICE: consumption: $MINCOMP/$MAXCOMP"
+		continue
+	elif [ $MINCOMP -le 0 ] || [ $MAXCOMP -le 0 ]; then 
+		verbPrint "Detected non proper configuration for device $DEVICE: consumption: $MINCOMP/$MAXCOMP"
+		continue
+	fi
+	if [ $MINCOMP -le $AVRG  -a  $AVRG -le $MAXCOMP ]; then
+		verbPrint "Device $DEVICE is with cons: $CONSUMPTION is in limits, turning on"
+		opt $DEVICE ON
+	else
+		verbPrint "Device $DEVICE is with consumption $CONSUMPTION is in offlimits, turning off"
+		opt $DEVICE OFF
+	fi
+done
 
 exit 0
