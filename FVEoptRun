@@ -11,7 +11,7 @@ function verbPrint() {
 function opt() {
 	#usage opt $COMPONENT $EXPECTEDSTATUS
 	local COMPONENT=$1
-	local STATUS=${2,,}
+	local EXPECTEDSTATUS=${2,,}
 	
 	verbPrint "COMPONENT: EXPECTEDSTATUS"
 	verbPrint "$COMPONENT: $EXPECTEDSTATUS"
@@ -25,7 +25,7 @@ function opt() {
 		realStatus $COMPONENT $EXPECTEDSTATUS
 		FVEgenPage --update --$COMPONENT $EXPECTEDSTATUS
 	else
-		echo "Unknown parametr for $0"
+		echo "Unknown parametr for function opt(): $@"
 	fi
 }
 
@@ -34,7 +34,6 @@ function getDeviceNumber() {
 	local COMPONENT=$1
 	verbPrint "Getting device number for: $COMPONENT"
 	DEVICENUM=$( grep -B1 $COMPONENT /etc/tellstick.conf | head -1 | awk '{print $NF}')
-	verbPrint "$COMPONENT has device number: $DEVICENUM"
 }
 
 function realStatus(){
@@ -43,7 +42,7 @@ function realStatus(){
 	local EXPECTEDSTATUS=$2
 	local DEVICENUM=''
 	getDeviceNumber $COMPONENT
-	verbPrint "$COMPONENT has device number: $DEVICENUM"
+	verbPrint "$COMPONENT has been detected with device number $DEVICENUM"
 	if [ -z $DEVICENUM ]; then
 		verbPrint "Device not recognized, skipping"
 		return 1
@@ -55,8 +54,12 @@ function realStatus(){
 		verbPrint "OK, nothing to change"
 		return 0
 	else
-			verbPrint "changing status of device #$DEVICENUM from $STATUS to $EXPECTEDSTATUS"
-		tdtool --${EXPECTEDSTATUS,,} $DEVICENUM $VERBOUT
+		verbPrint "changing status of device #$DEVICENUM from $STATUS to $EXPECTEDSTATUS"
+		ERRMSG=$(tdtool --${EXPECTEDSTATUS,,} $DEVICENUM $VERBOUT )
+		if [ "$?" != "0" ]; then
+			echo "Problem with tdtool. Failed with message:"
+			echo "\"$ERRMSG\""
+		fi
 	fi
 }
 
