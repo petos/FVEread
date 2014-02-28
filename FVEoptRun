@@ -137,6 +137,8 @@ cat $OPTCFGFILE | grep -v ^# | while read DEVICE MINCOMP MAXCOMP ; do
 		continue
 	fi
 	
+	if [ -z $MAXCOMP ]; then MAXCOMP=99999; fi
+	
 	verbPrint "Device $DEVICE with params $MINCOMP/$MAXCOMP passed tests"
 
 	if [ $MINCOMP -le $AVRG  -a  $AVRG -le $MAXCOMP ]; then
