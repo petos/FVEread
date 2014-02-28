@@ -8,7 +8,7 @@ function debugPrint() {
 	fi
 }
 function verbPrint() {
-	if [ $VERB ]; then
+	if [ $DEBUG ]; then
 		echo "$1"
 	fi
 }
