@@ -2,6 +2,11 @@
 
 source ~/.FVErc
 
+function debugPrint() {
+	if [ $VERB ]; then
+		echo "$1"
+	fi
+}
 function verbPrint() {
 	if [ $VERB ]; then
 		echo "$1"
@@ -13,13 +18,13 @@ function opt() {
 	local COMPONENT=$1
 	local EXPECTEDSTATUS=${2,,}
 	
-	verbPrint "COMPONENT: EXPECTEDSTATUS"
-	verbPrint "$COMPONENT: $EXPECTEDSTATUS"
+	debugPrint "COMPONENT: EXPECTEDSTATUS"
+	debugPrint "$COMPONENT: $EXPECTEDSTATUS"
 	if [ "$EXPECTEDSTATUS" = "on" -o  "$EXPECTEDSTATUS" = "off" ]; then
 		if [ "$EXPECTEDSTATUS" = "on" ]; then
-			verbPrint "Turning ON"
+			debugPrint "Turning on"
 		elif [ "$EXPECTEDSTATUS" = "off" ]; then
-			verbPrint "Turning off"
+			debugPrint "Turning off"
 		fi
 		if ( realStatus $COMPONENT $EXPECTEDSTATUS ); then
 			FVEgenPage --update --$COMPONENT $EXPECTEDSTATUS
@@ -32,7 +37,7 @@ function opt() {
 function getDeviceNumber() {
 	#usage: getDeviceNumber $COMPONENT
 	local COMPONENT=$1
-	verbPrint "Getting device number for: $COMPONENT"
+	debugPrint "Getting device number for: $COMPONENT"
 	DEVICENUM=$( grep -B1 $COMPONENT /etc/tellstick.conf | head -1 | awk '{print $NF}')
 }
 
@@ -42,9 +47,9 @@ function realStatus(){
 	local EXPECTEDSTATUS=$2
 	local DEVICENUM=''
 	getDeviceNumber $COMPONENT
-	verbPrint "$COMPONENT has been found with device number $DEVICENUM"
+	debugPrint "$COMPONENT has been found with device number $DEVICENUM"
 	if [ -z $DEVICENUM ]; then
-		verbPrint "Device not recognized, skipping"
+		debugPrint "Device not recognized, skipping"
 		return 1
 	fi
 	local STATUS=$(tdtool -l | awk /$COMPONENT/'{print $NF}' | tr '[:upper:]' '[:lower:]' )
@@ -52,13 +57,13 @@ function realStatus(){
 			verbPrint "Error in getting real status, skipping"
 			return 1
 		fi
-		verbPrint "COMPONENT: DEVICENUM = EXPECTEDSTATUS:STATUS"
-		verbPrint "$COMPONENT: $DEVICENUM = $EXPECTEDSTATUS:$STATUS"
+		debugPrint "COMPONENT: DEVICENUM = EXPECTEDSTATUS:STATUS"
+		debugPrint "$COMPONENT: $DEVICENUM = $EXPECTEDSTATUS:$STATUS"
 	if [ "$STATUS" = "$EXPECTEDSTATUS" ]; then
 		verbPrint "OK, nothing to change"
 		return 0
 	else
-		verbPrint "changing status of device #$DEVICENUM from $STATUS to $EXPECTEDSTATUS"
+		debugPrint "changing status of device #$DEVICENUM from $STATUS to $EXPECTEDSTATUS"
 		ERRMSG=$(tdtool --${EXPECTEDSTATUS,,} $DEVICENUM $VERBOUT )
 		if [ "$?" != "0" ]; then
 			echo "Problem with tdtool. Failed with message:"
@@ -91,7 +96,7 @@ function getMaxVal() {
 
 function getMinMax() {
 	getAvrg
-	verbPrint "Avrg is: $AVRG"
+	debugPrint "Avrg is: $AVRG"
 }
 
 function checkParams() {
@@ -100,21 +105,21 @@ function checkParams() {
 	fi
 	if [ -z $MAXCOMP ]; then MAXCOMP=99999; fi
 	
-	verbPrint "Processing $DEVICE with params: $MINCOMP/$MAXCOMP"
+	debugPrint "Processing $DEVICE with params: $MINCOMP/$MAXCOMP"
 	
 	if [ $(echo $MINCOMP$MAXCOMP | sed 's/[0-9]*//g' ) ]; then 
-		verbPrint "Detected non proper configuration for device $DEVICE: consumption: $MINCOMP/$MAXCOMP"
+		debugPrint "Detected non proper configuration for device $DEVICE: consumption: $MINCOMP/$MAXCOMP"
 		return 1
 	elif [ $MINCOMP -le 0 ] || [ $MAXCOMP -le 0 ]; then 
-		verbPrint "Detected non proper configuration for device $DEVICE: consumption: $MINCOMP/$MAXCOMP"
+		debugPrint "Detected non proper configuration for device $DEVICE: consumption: $MINCOMP/$MAXCOMP"
 		return 1
 	fi
 	if [ $MINCOMP -ge $MAXCOMP ]; then
-		verbPrint "Minimal is bigger then maximal. This does not seems to be right: $MINCOMP/$MAXCOMP"
+		debugPrint "Minimal is bigger then maximal. This does not seems to be right: $MINCOMP/$MAXCOMP"
 		return 1
 	fi
 
-	verbPrint "Params OK"
+	debugPrint "Params OK"
 	return 0
 }
 
@@ -127,11 +132,15 @@ elif [ "$1" = "-v" ]; then
 	VERB=Y
 	VERBOUT=''
 	shift
+elif [ "$1" = "--debug" ]; then
+	VERB=Y
+	VERBOUT=''
+	DEBUG=Y
+	shift
 fi
 
 getMinMax
 
-verbPrint "ANO"
 cat $OPTCFGFILE | grep -v ^# | while read DEVICE MINCOMP MAXCOMP ; do
 	if ( ! checkParams ); then
 		continue
@@ -139,7 +148,7 @@ cat $OPTCFGFILE | grep -v ^# | while read DEVICE MINCOMP MAXCOMP ; do
 	
 	if [ -z $MAXCOMP ]; then MAXCOMP=99999; fi
 	
-	verbPrint "Device $DEVICE with params $MINCOMP/$MAXCOMP passed tests"
+	debugPrint "Device $DEVICE with params $MINCOMP/$MAXCOMP passed tests"
 
 	if [ $MINCOMP -le $AVRG  -a  $AVRG -le $MAXCOMP ]; then
 		verbPrint "Production $AVRG is IN limits of device $DEVICE, turning on"
