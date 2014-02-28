@@ -100,10 +100,6 @@ function checkParams() {
 	fi
 	if [ -z $MAXCOMP ]; then MAXCOMP=99999; fi
 	verbPrint "Processing $DEVICE with params: $MINCOMP/$MAXCOMP"
-	if [ $MINCOMP -ge $MAXCOMP ]; then
-		verbPrint "Minimal is bigger then maximal. This does not seems to be right: $MINCOMP/$MAXCOMP"
-		return 1
-	fi
 	if [ $(echo $MINCOMP$MAXCOMP | sed 's/[0-9]*//g' ) ]; then 
 		verbPrint "Detected non proper configuration for device $DEVICE: consumption: $MINCOMP/$MAXCOMP"
 		return 1
@@ -111,6 +107,11 @@ function checkParams() {
 		verbPrint "Detected non proper configuration for device $DEVICE: consumption: $MINCOMP/$MAXCOMP"
 		return 1
 	fi
+	if [ $MINCOMP -ge $MAXCOMP ]; then
+		verbPrint "Minimal is bigger then maximal. This does not seems to be right: $MINCOMP/$MAXCOMP"
+		return 1
+	fi
+
 	verbPrint "Params OK"
 	return 0
 }
