@@ -2,6 +2,12 @@
 
 source ~/.FVErc
 
+function verbPrint() {
+	if [ $VERB ]; then
+		echo "$1"
+	fi
+}
+
 function printHelp() {
 	echo -e "usage: `basename $0` [--stdout]
  Opts:
@@ -9,6 +15,7 @@ function printHelp() {
   --stdout    Will not update webpage, but print just output to stdout
   --daemon|-d Enable auto-refresh, otherwise the script will issue only 
               one iteration.
+  -v          Talky version
 "
 exit 0
 }
@@ -25,18 +32,18 @@ function getFileFromFVE() {
 }
 
 function cleanLine() {
-	LINE=$1
+	local LINE=$1
 	echo $LINE | sed 's/<\/td>//g' | sed 's/&nbsp//g' | tr -d ' ' | \
 	sed 's/xxx/0/g' | tr -dc '[:print:]'
 }
 
 function getCurrent() {
-	iCURRENT=`cat "$TMPDIR"/FVE.$$.html | grep -A2 'aktu[.]*'|grep ln -A2 | tail -1 `
+	local iCURRENT=`cat "$TMPDIR"/FVE.$$.html | grep -A2 'aktu[.]*'|grep ln -A2 | tail -1 `
 	echo `cleanLine "$iCURRENT"`
 }
 
 function getToday() {
-	iTODAY=`cat "$TMPDIR"/FVE.$$.html | grep -A2 'denn[.]*'|grep energie -A2 | tail -1`
+	local iTODAY=`cat "$TMPDIR"/FVE.$$.html | grep -A2 'denn[.]*'|grep energie -A2 | tail -1`
 	echo `cleanLine "$iTODAY"`
 }
 
@@ -140,11 +147,15 @@ function mainLoop() {
 	else
 		genFiles
 		checkFileExist
-		FVEoptRun 
+		FVEoptRun $VERBPARM
 		uploadDataFTP
 	fi
 	cleanFile	
 }
+
+VERBPARM=''
+VERBOUT=''
+VERB=''
 
 if [ "$#" = 1 ]; then
 	if [ "$1" = '-h' -o "$1" = "--help" ]; then
@@ -154,6 +165,11 @@ if [ "$#" = 1 ]; then
 		export STDOUT="YES"
 	elif [ "$1" = "--daemon" -o "$1" = "-d" ]; then
 		export DAEMON=1
+	elif [ "$1" = "-v" ]; then 
+		VERB=Y
+		VERBOUT=''
+		VERBPARM='-v'
+		shift
 	else
 		echo "Non supported parametr $1"
 		exit 1
