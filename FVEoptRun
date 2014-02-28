@@ -15,15 +15,15 @@ function opt() {
 	
 	verbPrint "COMPONENT: EXPECTEDSTATUS"
 	verbPrint "$COMPONENT: $EXPECTEDSTATUS"
-	
-	if [ "$EXPECTEDSTATUS" = "on" ]; then
-		verbPrint "Turning ON"
-		realStatus $COMPONENT $EXPECTEDSTATUS
-		FVEgenPage --update --$COMPONENT $EXPECTEDSTATUS
-	elif [ "$EXPECTEDSTATUS" = "off" ]; then
-		verbPrint "Turning off"
-		realStatus $COMPONENT $EXPECTEDSTATUS
-		FVEgenPage --update --$COMPONENT $EXPECTEDSTATUS
+	if [ "$EXPECTEDSTATUS" = "on" -o  "$EXPECTEDSTATUS" = "off" ]; then
+		if [ "$EXPECTEDSTATUS" = "on" ]; then
+			verbPrint "Turning ON"
+		elif [ "$EXPECTEDSTATUS" = "off" ]; then
+			verbPrint "Turning off"
+		fi
+		if ( realStatus $COMPONENT $EXPECTEDSTATUS ); then
+			FVEgenPage --update --$COMPONENT $EXPECTEDSTATUS
+		fi
 	else
 		echo "Unknown parametr for function opt(): $@"
 	fi
@@ -42,12 +42,16 @@ function realStatus(){
 	local EXPECTEDSTATUS=$2
 	local DEVICENUM=''
 	getDeviceNumber $COMPONENT
-	verbPrint "$COMPONENT has been detected with device number $DEVICENUM"
+	verbPrint "$COMPONENT has been found with device number $DEVICENUM"
 	if [ -z $DEVICENUM ]; then
 		verbPrint "Device not recognized, skipping"
 		return 1
 	fi
 	local STATUS=$(tdtool -l | awk /$COMPONENT/'{print $NF}' | tr '[:upper:]' '[:lower:]' )
+		if [ -z "$STATUS" ]; then
+			verbPrint "Error in getting real status, skipping"
+			return 1
+		fi
 		verbPrint "COMPONENT: DEVICENUM = EXPECTEDSTATUS:STATUS"
 		verbPrint "$COMPONENT: $DEVICENUM = $EXPECTEDSTATUS:$STATUS"
 	if [ "$STATUS" = "$EXPECTEDSTATUS" ]; then
@@ -93,11 +97,9 @@ function getMinMax() {
 }
 
 function checkParams() {
-	DEVICE=$1
-	MINCOMP=$2
-	MAXCOMP=$3
-	
-	if [ -z $DEVICE ] || [ -z $MINCOMP ] ; then continue; fi
+	if [ -z $DEVICE ] || [ -z $MINCOMP ] ; then 
+		return 1
+	fi
 	if [ -z $MAXCOMP ]; then MAXCOMP=99999; fi
 	verbPrint "Processing $DEVICE with params: $MINCOMP/$MAXCOMP"
 	if [ $MINCOMP -ge $MAXCOMP ]; then
@@ -114,6 +116,7 @@ function checkParams() {
 	verbPrint "Params OK"
 	return 0
 }
+
 VERBOUT="2>/dev/null"
 
 if [ "$1" = '-h' -o "$1" = "--help" ]; then
@@ -128,15 +131,19 @@ fi
 getMinMax
 
 cat $OPTCFGFILE | grep -v ^# | while read DEVICE MINCOMP MAXCOMP ; do
-	if ( ! $(checkParams $DEVICE $MINCOMP $MAXCOMP ) ); then
+	checkParams
+	PARAMSTATUS=$?
+	if [ $PARAMSTATUS != 0 ]; then
 		continue
 	fi
 	
+	verbPrint "Device $DEVICE with params $MINCOMP/$MAXCOMP passed tests"
+
 	if [ $MINCOMP -le $AVRG  -a  $AVRG -le $MAXCOMP ]; then
-		verbPrint "Device $DEVICE is with cons: $CONSUMPTION is in limits, turning on"
+		verbPrint "Production $AVRG is IN limits of device $DEVICE, turning on"
 		opt $DEVICE ON
 	else
-		verbPrint "Device $DEVICE is with consumption $CONSUMPTION is in offlimits, turning off"
+		verbPrint "Production $AVRG is OFF limits of device $DEVICE, turning off"
 		opt $DEVICE OFF
 	fi
 done
