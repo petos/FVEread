@@ -3,12 +3,12 @@
 source ~/.FVErc
 
 function debugPrint() {
-	if [ $VERB ]; then
+	if [ $DEBUG ]; then
 		echo "$1"
 	fi
 }
 function verbPrint() {
-	if [ $DEBUG ]; then
+	if [ $VERB ]; then
 		echo "$1"
 	fi
 }
