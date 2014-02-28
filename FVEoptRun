@@ -91,7 +91,6 @@ function getMaxVal() {
 
 function getMinMax() {
 	getAvrg
-l
 	verbPrint "Avrg is: $AVRG"
 }
 
