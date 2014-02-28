@@ -140,7 +140,7 @@ function mainLoop() {
 	else
 		genFiles
 		checkFileExist
-		FVEoptRun "$CURRENT"
+		FVEoptRun 
 		uploadDataFTP
 	fi
 	cleanFile	
