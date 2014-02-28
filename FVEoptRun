@@ -91,8 +91,7 @@ function getMaxVal() {
 
 function getMinMax() {
 	getAvrg
-#	getMinVal
-#	getMaxVal
+l
 	verbPrint "Avrg is: $AVRG"
 }
 
@@ -130,10 +129,10 @@ fi
 
 getMinMax
 
+verbPrint "ANO"
 cat $OPTCFGFILE | grep -v ^# | while read DEVICE MINCOMP MAXCOMP ; do
 	checkParams
-	PARAMSTATUS=$?
-	if [ $PARAMSTATUS != 0 ]; then
+	if ( ! checkParams ); then
 		continue
 	fi
 	
