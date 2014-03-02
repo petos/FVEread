@@ -1,0 +1,38 @@
+#! /bin/bash
+
+PATH=/sbin:/usr/sbin:/bin:/usr/bin
+DESC="Telldus TellStick background service"
+NAME=telldusd
+DAEMON=/usr/sbin/$NAME
+DAEMON_ARGS=""
+PIDFILE=/var/run/$NAME.pid
+SCRIPTNAME=/etc/init.d/$NAME
+
+do_start()
+{	
+	telldusd || return 1
+}
+
+do_stop()
+{
+	pkill -9 telldusd
+}
+
+
+do_reload() {
+	do_stop
+	sleep 1
+	do_start
+	
+	return 0
+}
+
+case "$1" in
+  start) do_start; exit 0 ;;
+  stop) do_stop; exit 0 ;;
+  restart|force-reload) do_reload; exit 0 ;;
+  *)
+	echo "Usage: $SCRIPTNAME {start|stop|restart|force-reload}" >&2
+	exit 3
+	;;
+esac
