@@ -140,13 +140,14 @@ elif [ "$1" = "--debug" ]; then
 	shift
 fi
 
-getStartStop
+getAvrg
+
 
 cat $OPTCFGFILE | grep -v ^# | while read DEVICE MINCOMP MAXCOMP ; do
 	if ( ! checkParams ); then
 		continue
 	fi
-	
+	getStartStop
 	if [ -z $MAXCOMP ]; then MAXCOMP=99999; fi
 	
 	debugPrint "Device $DEVICE with params $MINCOMP/$MAXCOMP passed tests"
