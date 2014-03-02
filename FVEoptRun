@@ -88,11 +88,13 @@ function getAvrg() {
 }
 
 function getStopVal() {
-	STOPLOWVAL=$(expr $MINCOMP - $(expr $MINCOMP / 10))
+	STOPVAL=$(expr $MINCOMP - $(expr $MINCOMP / 10))
+	debugPrint "STOPVAL is $STOPVAL"
 }
 
 function getStartVal() {
 	STARTVAL=$(expr $MINCOMP + $(expr $MINCOMP / 10))
+	debugPrint "STARTVAL is $STARTVAL"
 }
 
 function getStartStop() {
@@ -161,7 +163,7 @@ cat $OPTCFGFILE | grep -v ^# | while read DEVICE MINCOMP MAXCOMP ; do
 		opt $DEVICE OFF
 	else
 		#donothing
-		verbPrint "Vell, AVRG is between STARTVAL and STOPVAL: $STOPVAL < $AVRT < $STARTVAL"
+		verbPrint "For device $DEVICE production is between STARTVAL and STOPVAL: $STOPVAL < $AVRG < $STARTVAL"
 	fi
 done
 
