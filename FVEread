@@ -20,6 +20,12 @@ function printHelp() {
 exit 0
 }
 
+function getAvrg() {
+	#Will make average production in last 10 minutes (last 10 lines)
+	AVRG=$(expr $(expr $(tail -10 $HISTORYFILE | awk '{print $2}' | sed '/^$/d' | sed ':a;N;$!ba;s/\n/ + /g')) / $(tail -10 $HISTORYFILE | awk '{print $2}' | sed '/^$/d' | wc -l) )	
+	verbPrint "Avrg is: $AVRG"
+}
+
 function getFileFromFVE() {
 
 	curl -u $FVEUSERNAME:$FVEPWD http://stridac > "$TMPDIR"/FVE.$$.html 2>/dev/null 
@@ -125,11 +131,12 @@ function getData() {
 		TODAY="`getToday`"
 		FVESTATUS="Running"
 	fi
+	getAvrg
 }
 
 function genFiles() {
 	#usage: genFiles
-		echo `date +%Y%m%d%H%M` $CURRENT $TODAY >> "$HISTORYFILE"
+		echo `date +%Y%m%d%H%M` $CURRENT $TODAY $AVRG >> "$HISTORYFILE"
 
 		FVEgenPage  --powerpage --current $CURRENT --today $TODAY --fvestatus $FVESTATUS
 		

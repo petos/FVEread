@@ -28,7 +28,7 @@ set xrange["`date +%Y%m%d` 00:00:00":"`date +%Y%m``expr $( date +%d ) + 1` 23:59
 set terminal png
 set output "$TMPDIR/fved.png"
 
-plot "$HISTORYFILE" u 1:2 with lines notitle
+plot "$HISTORYFILE" u 1:2 with lines notitle, "$HISTORYFILE" u 1:4 with lines notitle
 EOF
 	
 	gnuplot "$TMPDIR"/FVE.gn 2>/dev/null
