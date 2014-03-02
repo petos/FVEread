@@ -154,7 +154,7 @@ cat $OPTCFGFILE | grep -v ^# | while read DEVICE MINCOMP MAXCOMP ; do
 	if [ $STARTVAL -le $AVRG  -a  $AVRG -le $MAXCOMP ]; then
 		verbPrint "Production $AVRG is IN limits of device $DEVICE, turning on"
 		opt $DEVICE ON
-	if [ $AVRG -le $STOPVAL  -a $MAXCOMP -le $AVRG  ]; then
+	elif [ $AVRG -le $STOPVAL  -a $MAXCOMP -le $AVRG  ]; then
 	#else
 		verbPrint "Production $AVRG is OFF limits of device $DEVICE, turning off"
 		opt $DEVICE OFF
