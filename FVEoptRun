@@ -84,19 +84,20 @@ exit 0
 function getAvrg() {
 	#Will make average production in last 10 minutes (last 10 lines)
 	AVRG=$(expr $(expr $(tail -10 $HISTORYFILE | awk '{print $2}' | sed '/^$/d' | sed ':a;N;$!ba;s/\n/ + /g')) / $(tail -10 $HISTORYFILE | awk '{print $2}' | sed '/^$/d' | wc -l) )	
-}
-
-function getMinVal() {
-	CURMIN=$(expr $AVRG - $(expr $AVRG / 10))
-}
-
-function getMaxVal() {
-	CURMAX=$(expr $AVRG + $(expr $AVRG / 10))
-}
-
-function getMinMax() {
-	getAvrg
 	debugPrint "Avrg is: $AVRG"
+}
+
+function getStopVal() {
+	STOPLOWVAL=$(expr $MINCOMP - $(expr $MINCOMP / 10))
+}
+
+function getStartVal() {
+	STARTVAL=$(expr $MINCOMP + $(expr $MINCOMP / 10))
+}
+
+function getStartStop() {
+	getStartVal
+	getStopVal
 }
 
 function checkParams() {
@@ -139,7 +140,7 @@ elif [ "$1" = "--debug" ]; then
 	shift
 fi
 
-getMinMax
+getStartStop
 
 cat $OPTCFGFILE | grep -v ^# | while read DEVICE MINCOMP MAXCOMP ; do
 	if ( ! checkParams ); then
@@ -150,12 +151,16 @@ cat $OPTCFGFILE | grep -v ^# | while read DEVICE MINCOMP MAXCOMP ; do
 	
 	debugPrint "Device $DEVICE with params $MINCOMP/$MAXCOMP passed tests"
 
-	if [ $MINCOMP -le $AVRG  -a  $AVRG -le $MAXCOMP ]; then
+	if [ $STARTVAL -le $AVRG  -a  $AVRG -le $MAXCOMP ]; then
 		verbPrint "Production $AVRG is IN limits of device $DEVICE, turning on"
 		opt $DEVICE ON
-	else
+	if [ $AVRG -le $STOPVAL  -a $MAXCOMP -le $AVRG  ]; then
+	#else
 		verbPrint "Production $AVRG is OFF limits of device $DEVICE, turning off"
 		opt $DEVICE OFF
+	else
+		#donothing
+		verbPrint "Vell, AVRG is between STARTVAL and STOPVAL: $STOPVAL < $AVRT < $STARTVAL"
 	fi
 done
 
