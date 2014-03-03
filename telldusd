@@ -22,6 +22,16 @@ do_start()
 	telldusd || return 1
 }
 
+get_status() {
+    DPID=$(ps -ef | grep -v bash | grep -v grep |  grep telldusd | awk '{print $2}')
+    if [ "$DPID" ]; then
+	echo "Running with pid $DPID"
+	exit 0
+    else
+	echo "Stopped"
+    fi
+}
+
 do_stop()
 {
 	pkill -9 telldusd
@@ -37,11 +47,12 @@ do_reload() {
 }
 
 case "$1" in
-  start) do_start; exit 0 ;;
-  stop) do_stop; exit 0 ;;
+  start) do_start; get_status; exit 0 ;;
+  stop) do_stop; get_status; exit 0 ;;
   restart|force-reload) do_reload; exit 0 ;;
+  status) get_status; exit 0;;
   *)
-	echo "Usage: $SCRIPTNAME {start|stop|restart|force-reload}" >&2
+	echo "Usage: $SCRIPTNAME {start|stop|status|restart|force-reload}"
 	exit 3
 	;;
 esac
