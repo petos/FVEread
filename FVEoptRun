@@ -41,6 +41,14 @@ function getDeviceNumber() {
 	DEVICENUM=$( grep -B1 $COMPONENT /etc/tellstick.conf | head -1 | awk '{print $NF}')
 }
 
+
+function checkTDstatus() {
+	if (sudo service telldusd status); then
+		echo "Seems telldusd is down? Restarting"
+		sudo service telldusd restart
+	fi
+}
+
 function realStatus(){
 	#usage: getStatus $COMPONENT $STATUS
 	local COMPONENT=$1
@@ -172,7 +180,7 @@ elif [ "$1" = "--debug" ]; then
 fi
 
 getAvrg
-
+checkTDstatus
 mainLoop
 
 

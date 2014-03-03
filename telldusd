@@ -25,10 +25,11 @@ do_start()
 get_status() {
     DPID=$(ps -ef | grep -v bash | grep -v grep |  grep telldusd | awk '{print $2}')
     if [ "$DPID" ]; then
-	echo "Running with pid $DPID"
-	exit 0
+		echo "Running with pid $DPID"
+		exit 0
     else
-	echo "Stopped"
+		echo "Stopped"
+		exit 1
     fi
 }
 
