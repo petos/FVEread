@@ -126,6 +126,31 @@ function checkParams() {
 	return 0
 }
 
+
+function mainLoop() {
+	cat $OPTCFGFILE | grep -v ^# | while read DEVICE MINCOMP MAXCOMP ; do
+		if ( ! checkParams ); then
+			continue
+		fi
+		getStartStop
+		if [ -z $MAXCOMP ]; then MAXCOMP=99999; fi
+		
+		debugPrint "Device $DEVICE with params $MINCOMP/$MAXCOMP passed tests"
+
+		if [ $STARTVAL -le $AVRG  -a  $AVRG -le $MAXCOMP ]; then
+			verbPrint "Production $AVRG is IN limits of device $DEVICE, turning on"
+			opt $DEVICE ON
+		elif [ $AVRG -le $STOPVAL  -o $MAXCOMP -le $AVRG  ]; then
+		#else
+			verbPrint "Production $AVRG is OFF limits of device $DEVICE, turning off"
+			opt $DEVICE OFF
+		else
+			#donothing
+			verbPrint "For device $DEVICE production is between STARTVAL and STOPVAL: $STOPVAL < $AVRG < $STARTVAL"
+		fi
+	done
+}
+
 VERBOUT="2>/dev/null"
 
 if [ "$1" = '-h' -o "$1" = "--help" ]; then
@@ -144,27 +169,7 @@ fi
 
 getAvrg
 
+mainLoop
 
-cat $OPTCFGFILE | grep -v ^# | while read DEVICE MINCOMP MAXCOMP ; do
-	if ( ! checkParams ); then
-		continue
-	fi
-	getStartStop
-	if [ -z $MAXCOMP ]; then MAXCOMP=99999; fi
-	
-	debugPrint "Device $DEVICE with params $MINCOMP/$MAXCOMP passed tests"
-
-	if [ $STARTVAL -le $AVRG  -a  $AVRG -le $MAXCOMP ]; then
-		verbPrint "Production $AVRG is IN limits of device $DEVICE, turning on"
-		opt $DEVICE ON
-	elif [ $AVRG -le $STOPVAL  -o $MAXCOMP -le $AVRG  ]; then
-	#else
-		verbPrint "Production $AVRG is OFF limits of device $DEVICE, turning off"
-		opt $DEVICE OFF
-	else
-		#donothing
-		verbPrint "For device $DEVICE production is between STARTVAL and STOPVAL: $STOPVAL < $AVRG < $STARTVAL"
-	fi
-done
 
 exit 0
