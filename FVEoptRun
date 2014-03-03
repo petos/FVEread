@@ -142,11 +142,11 @@ function mainLoop() {
 		debugPrint "Device $DEVICE with params $MINCOMP/$MAXCOMP passed tests"
 
 		if [ $STARTVAL -le $AVRG  -a  $AVRG -le $MAXCOMP ]; then
-			verbPrint "Production $AVRG is IN limits of device $DEVICE, turning on"
+			verbPrint "Production $AVRG is IN limits ($MINCOMP/$MAXCOMP) of device $DEVICE, turning on"
 			opt $DEVICE ON
 		elif [ $AVRG -le $STOPVAL  -o $MAXCOMP -le $AVRG  ]; then
 		#else
-			verbPrint "Production $AVRG is OFF limits of device $DEVICE, turning off"
+			verbPrint "Production $AVRG is OFF limits ($MINCOMP/$MAXCOMP) of device $DEVICE, turning off"
 			opt $DEVICE OFF
 		else
 			#donothing
