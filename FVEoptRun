@@ -88,16 +88,21 @@ function getAvrg() {
 }
 
 function getStopVal() {
-	STOPVAL=$(expr $MINCOMP - $(expr $MINCOMP / 10))
+	STOPVAL=$(expr $MINCOMP - $(expr $MINCOMP / $FLUCTPERC))
 	debugPrint "STOPVAL is $STOPVAL"
 }
 
 function getStartVal() {
-	STARTVAL=$(expr $MINCOMP + $(expr $MINCOMP / 10))
+	STARTVAL=$(expr $MINCOMP + $(expr $MINCOMP / $FLUCPERC))
 	debugPrint "STARTVAL is $STARTVAL"
 }
 
 function getStartStop() {
+	if [ $AVGR -gt 1500 ]; then
+		FLUCPERC=20
+	else
+		FLUCPERC=10
+	fi
 	getStartVal
 	getStopVal
 }
@@ -126,9 +131,8 @@ function checkParams() {
 	return 0
 }
 
-
 function mainLoop() {
-	cat $OPTCFGFILE | grep -v ^# | while read DEVICE MINCOMP MAXCOMP ; do
+	grep -v ^\# "$OPTCFGFILE" | while read DEVICE MINCOMP MAXCOMP ; do
 		if ( ! checkParams ); then
 			continue
 		fi
