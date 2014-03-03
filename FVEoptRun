@@ -43,9 +43,10 @@ function getDeviceNumber() {
 
 
 function checkTDstatus() {
-	if (sudo service telldusd status); then
+	local TDSTATUS=`telldusd status`
+	if [ "$TDSTATUS" = "Stopped" ]; then
 		echo "Seems telldusd is down? Restarting"
-		sudo service telldusd restart
+		telldusd start
 	fi
 }
 
