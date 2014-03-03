@@ -35,7 +35,7 @@ get_status() {
 
 do_stop()
 {
-	pkill -9 telldusd
+	kill -9 $(ps -ef | grep -v bash | grep -v grep |  grep telldusd | awk '{print $2}')
 }
 
 
