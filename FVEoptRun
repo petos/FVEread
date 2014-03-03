@@ -88,7 +88,7 @@ function getAvrg() {
 }
 
 function getStopVal() {
-	STOPVAL=$(expr $MINCOMP - $(expr $MINCOMP / $FLUCTPERC))
+	STOPVAL=$(expr $MINCOMP - $(expr $MINCOMP / $FLUCPERC))
 	debugPrint "STOPVAL is $STOPVAL"
 }
 
@@ -98,7 +98,7 @@ function getStartVal() {
 }
 
 function getStartStop() {
-	if [ $AVGR -gt 1500 ]; then
+	if [ $AVRG -gt 1500 ]; then
 		FLUCPERC=20
 	else
 		FLUCPERC=10
