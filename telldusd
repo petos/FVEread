@@ -50,7 +50,7 @@ do_reload() {
 case "$1" in
   start) do_start; get_status; exit 0 ;;
   stop) do_stop; get_status; exit 0 ;;
-  restart|force-reload) do_reload; exit 0 ;;
+  restart|force-reload) do_reload; get_status; exit 0 ;;
   status) get_status; exit 0;;
   *)
 	echo "Usage: $SCRIPTNAME {start|stop|status|restart|force-reload}"
