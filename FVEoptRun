@@ -46,7 +46,7 @@ function checkTDstatus() {
 	local TDSTATUS=`telldusd status`
 	if [ "$TDSTATUS" = "Stopped" ]; then
 		echo "Seems telldusd is down? Restarting"
-		telldusd start
+		sudo telldusd
 	fi
 }
 
