@@ -75,7 +75,7 @@ cat > "$HTMLOPTFILE" << EOF
     <th>Endpoint:</th>
     <th>Lacerta</th>
     <th>Boiler 1</th>
-    <th>Fukac 1</th>
+    <th>Fukar 1</th>
   </tr>
   <tr valign="middle" align="center">
     <td>Designed status:</td>
@@ -201,7 +201,7 @@ if [ $GENOPTPAGE ]; then
 		echo "--lacerta and --boiler1 and --fukar1 are mandatorry for --optpage parameter"
 		printLoadedParams
 	else
-		checkStatus
+		#checkStatus 
 		updateLacertaStatus
 		genOptsPage
 	fi

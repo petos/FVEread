@@ -62,6 +62,8 @@ set title "Mothly production overview\nGenerated on `date +%d/%m/%Y`"
 set boxwidth 0.8 relative
 set style fill solid 1.0
 
+set yrange [0:*]
+
 set style data boxes
 
 set terminal png
