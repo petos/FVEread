@@ -97,7 +97,8 @@ function getAvrg() {
 }
 
 function getStopVal() {
-	STOPVAL=$(expr $MINCOMP - $(expr $MINCOMP / $FLUCPERC))
+#	STOPVAL=$(expr $MINCOMP - $(expr $MINCOMP / $FLUCPERC))
+	STOPVAL=$MINCOMP
 	debugPrint "STOPVAL is $STOPVAL"
 }
 
