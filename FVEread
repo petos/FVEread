@@ -115,6 +115,7 @@ function printDataStdout() {
 
 	echo "My FV: `date`:"
 	echo "Current production [kW]  = $CURRENT"
+	echo "Avarage production [kW]  = $AVRG"
 	echo "Today was produced [kWh] = $TODAY"
 	return 0
 }
@@ -138,7 +139,7 @@ function genFiles() {
 	#usage: genFiles
 		echo `date +%Y%m%d%H%M` $CURRENT $TODAY $AVRG >> "$HISTORYFILE"
 
-		FVEgenPage  --powerpage --current $CURRENT --today $TODAY --fvestatus $FVESTATUS
+		FVEgenPage  --powerpage --current $CURRENT --today $TODAY --fvestatus $FVESTATUS --avrg $AVRG
 		
 		updateProductionFile
 		

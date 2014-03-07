@@ -6,9 +6,6 @@ function printHelp() {
 	echo "
 	-c CURRENT
 	-t TODAY
-	--lacerta DESIGNED|REAL 
-	--boiler1 STATUS
-	--fukar1 STATUS
 	"
 	
 }
@@ -18,6 +15,7 @@ function printLoadedParams() {
 	FVESTATUS=$FVESTATUS
 	FVECURRENT=$FVECURRENT
 	FVETODAY=$FVETODAY
+	FVEAVRG=$FVEAVRG
 	LACERTA=$LACERTA
 	BOILER1=$BOILER1
 	FUKAR1=$FUKAR1
@@ -63,6 +61,7 @@ cat > "$HTMLPOWERFILE" << EOF
 <p>Generated on `date +%d/%m/%Y,%H:%M`</p>
 <h3>Current status/health: $FVESTATUS</h3>
 <h3>Power now: $FVECURRENT [W]</h3>
+<h3>Average (10m): $FVEAVRG [W]</h3>
 <h3>Production today: $FVETODAY [kWh]</h3>
 EOF
 }
@@ -146,7 +145,7 @@ function updateOptFile() {
 	fi
 }
 
-if ! options=$(getopt -o fvuodpls:c:t:A:B:C: -l off,verbose,update,optpage,defpage,powerpage,lstatus,fvestatus:,current:,today:,lacerta:,boiler1:,fukar1: -- "$@")
+if ! options=$(getopt -o fvuodpla:s:c:t:A:B:C: -l off,verbose,update,optpage,defpage,powerpage,lstatus,avrg:,fvestatus:,current:,today:,lacerta:,boiler1:,fukar1: -- "$@")
 #if ! options=$(getopt -o c: -l current: -- "$@" )
 then
     # something went wrong, getopt will put out an error message for us
@@ -165,6 +164,7 @@ while [ $# -gt 0 ]; do
 		-s|--fvestatus) FVESTATUS="$2"; shift;;
 		-c|--current) FVECURRENT="$2"; shift;;
 		-t|--today) FVETODAY="$2"; shift;;
+		-a|--avrg)	FVEAVRG="$2"; shift;;
 		-A|--lacerta) LACERTA="$2"; shift;;
 		-B|--boiler1) BOILER1="$2"; shift;;
 		-C|--fukar1) FUKAR1="$2"; shift;;
@@ -207,8 +207,8 @@ if [ $GENOPTPAGE ]; then
 	fi
 fi
 if [ $GENPOWERPAGE ]; then
-	if [ -z $FVECURRENT ] || [ -z $FVETODAY ] || [ -z $FVESTATUS ]; then
-		echo "--current, --today and --fvestatus are mandatorry for --powerpage parameter"
+	if [ -z $FVECURRENT ] || [ -z $FVETODAY ] || [ -z $FVESTATUS ] || [ -z $FVEAVRG ] ; then
+		echo "--current, --today, --avrg and --fvestatus are mandatorry for --powerpage parameter"
 		printLoadedParams
 	else
 		genPowerPage
