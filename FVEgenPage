@@ -35,7 +35,7 @@ cat > "$HTMLFILE" << EOF
 
 <body>
 
-<iframe src="$FVEHTMLPOWERNAME" width="100%" height="170"></iframe>
+<iframe src="$FVEHTMLPOWERNAME" width="640" height="230"></iframe>
 
 
 <h3>Graphs:</h3>
@@ -48,7 +48,7 @@ cat > "$HTMLFILE" << EOF
 
 <h3>Optimalization of consumption</h3>
 
-<iframe src="$FVEHTMLOPTNAME" width="100%" height="170"></iframe>
+<iframe src="$FVEHTMLOPTNAME" width="640" height="170"></iframe>
 
 </table>
 </body>
