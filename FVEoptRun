@@ -43,10 +43,12 @@ function getDeviceNumber() {
 
 
 function checkTDstatus() {
-	local TDPID=`ps -ef | grep -v bash | grep -v grep |  grep telldusd | awk '{print $2}'`
-	if [ ! "$TDPID" ]; then
-		echo "Seems telldusd is down? Restarting"
-		sudo /sbin/telldusd
+	local TDSTATUS=`sudo service telldusd status | tr -d '!' `
+	if [  "$TDSTATUS" = "telldusd is not running ... failed" ]; then
+		echo "`date +%Y/%M/%d-%H:%M:%S` - Seems telldusd is down? Restarting"
+		sudo service telldusd start 
+		sudo service telldusd status
+		echo ====
 	fi
 }
 
