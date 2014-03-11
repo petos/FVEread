@@ -79,22 +79,40 @@ EOF
 
 function genOptsPage() {
 	
+> "$HTMLOPTFILE"
+
+local DEVICENUM=0
+local DEVICE=''
+
+while read DEVICENAME; do
+	DEVICE[$DEVICENUM]=$DEVICENAME
+	((DEVICENUM++))
+done < <(cat $OPTCFGFILE | grep -v ^\# | sed 's/^$//g' |awk '{print $1}' )
+
+
 cat > "$HTMLOPTFILE" << EOF
 <table border="0" cellpadding="6" cellspacing="0">
   <tr valign="middle" align="center">
     <th>Endpoint:</th>
-    <th>Lacerta</th>
-    <th>Boiler 1</th>
-    <th>Fukar 1</th>
+EOF
+
+for NUM in $(seq 0 $(expr $DEVICENUM - 1 )); do
+	echo "    <th>${DEVICE[$NUM]}</th>" >> "$HTMLOPTFILE"
+done
+
+cat >> "$HTMLOPTFILE" << EOF
   </tr>
   <tr valign="middle" align="center">
     <td>Designed status:</td>
-    <td><img src=lacerta-off.png></td>
-    <td><img src=boiler1-off.png></td>
-    <td><img src=fukar1-off.png></td>
-  </tr>
-</table>
 EOF
+for NUM in $(seq 0 $(expr $DEVICENUM - 1 )); do
+echo "    <td><img src=${DEVICE[$NUM]}-off.png></td>" >> "$HTMLOPTFILE"
+done
+echo '  </tr>' >> "$HTMLOPTFILE"
+echo '</table>' >> "$HTMLOPTFILE"
+
+FVEoptRun -f
+
 }
 
 function updateLacertaStatus() {
@@ -162,7 +180,8 @@ while [ $# -gt 0 ]; do
 			DEVICENAME[$DEVICENUM]="$2"
 			DEVICESTATUS[$DEVICENUM]="$3"
 			((++DEVICENUM)) 
-			shift 3;;
+			shift 3
+			;;
 		--update) UPDATE=Y; shift;;
 		*)  echo "$0: error - unrecognized option $1" 1>&2; exit 1;;
 	esac
@@ -191,7 +210,7 @@ if [ $GENDEFPAGE ]; then
 fi
 
 if [ $GENOPTPAGE ]; then 
-		genOptsPage
+	genOptsPage
 fi
 
 if [ $GENPOWERPAGE ]; then
