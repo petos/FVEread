@@ -190,7 +190,7 @@ fi
 
 if [ $DAEMON ]; then
 	while true; do
-		while [ `date +%S` = "01" ]; do
+		while [ `date +%S` != "01" ]; do
 			sleep 1
 		done
 		mainLoop
