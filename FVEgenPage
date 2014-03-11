@@ -16,12 +16,7 @@ function printHelp() {
 		--fvestatus FVESTATUS
 
 	--optpage
-        --off -- set OFF for all devices
-		
-		currently supported devices:
-		--lacerta [on|off]
-		--boiler1 [on|off]
-		--fukar1 [on|off]
+		generates optimalization page with off status for all devices
 	
 	--update
 		updates only row with device. Not going to re-generate 
@@ -36,10 +31,6 @@ function printLoadedParams() {
 	FVECURRENT=$FVECURRENT
 	FVETODAY=$FVETODAY
 	FVEAVRG=$FVEAVRG
-	LACERTA=$LACERTA
-	BOILER1=$BOILER1
-	FUKAR1=$FUKAR1
-	KLIMA1=$KLIMA1
 	"
 }
 
@@ -98,9 +89,9 @@ cat > "$HTMLOPTFILE" << EOF
   </tr>
   <tr valign="middle" align="center">
     <td>Designed status:</td>
-    <td><img src=lacerta-$LACERTA.png></td>
-    <td><img src=boiler1-$BOILER1.png></td>
-    <td><img src=fukar1-$FUKAR1.png></td>
+    <td><img src=lacerta-off.png></td>
+    <td><img src=boiler1-off.png></td>
+    <td><img src=fukar1-off.png></td>
   </tr>
 </table>
 EOF
@@ -156,16 +147,13 @@ while [ $# -gt 0 ]; do
 	case $1 in
 		-v|--verbose) VEBROSE="Y"; shift;;
 		--defpage) GENDEFPAGE=Y; shift;;
-		--off) LACERTA=off ; BOILER1=off;FUKAR1=off; shift;;
 		--optpage) GENOPTPAGE=Y; shift;;
 		--powerpage) GENPOWERPAGE=Y; shift;;
 		--fvestatus) FVESTATUS="$2"; shift 2;;
 		--current) FVECURRENT="$2"; shift 2;;
 		--today) FVETODAY="$2"; shift 2;;
 		--avrg)	FVEAVRG="$2"; shift 2;;
-		--lacerta) LACERTA="$2"; shift 2;;
-		--boiler1) BOILER1="$2"; shift 2;;
-		--fukar1) FUKAR1="$2"; shift 2;;
+
 		--device) 
 			if [ $# -lt 3 ]; then 
 				echo "Not enough params passed for --device"
@@ -203,18 +191,9 @@ if [ $GENDEFPAGE ]; then
 fi
 
 if [ $GENOPTPAGE ]; then 
-	if [ -z $LACERTA ] || [ -z $BOILER1 ] || [ -z $FUKAR1 ] || [ -z $KLIMA1 ]; then
-	#	echo "--lacerta and --boiler1 and --fukar1 and --klima1 are mandatorry for --optpage parameter"
-		printLoadedParams
-		LACERTA=off
-		BOILER1=off
-		FUKAR1=off
-	fi
-		#checkStatus 
-		#updateLacertaStatus
 		genOptsPage
-	#fi
 fi
+
 if [ $GENPOWERPAGE ]; then
 	if [ -z $FVECURRENT ] || [ -z $FVETODAY ] || [ -z $FVESTATUS ] || [ -z $FVEAVRG ] ; then
 		echo "--current, --today, --avrg and --fvestatus are mandatorry for --powerpage parameter"
