@@ -84,10 +84,9 @@ function realStatus(){
 }
 
 function printHelp() {
-	echo -e "\nusage: `basename $0` POWER OLDPOWER(s)
- Opts:
-    POWER -- Current power production. Script then will issue requested steps
-    OLDPOWER(s) -- Previous power production - up to 5
+	echo -e "\nusage: `basename $0` [OPTIONS]
+	-v       talky output
+	--debug  tells everything it knows
 "
 exit 0
 }
@@ -99,7 +98,6 @@ function getAvrg() {
 }
 
 function getStopVal() {
-#	STOPVAL=$(expr $MINCOMP - $(expr $MINCOMP / $FLUCPERC))
 	STOPVAL=$MINCOMP
 	debugPrint "STOPVAL is $STOPVAL"
 }

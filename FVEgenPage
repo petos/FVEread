@@ -4,8 +4,28 @@ source ~/.FVErc
 
 function printHelp() {
 	echo "
-	-c CURRENT
-	-t TODAY
+		-v|--verbose
+	
+	--defpage
+
+	--powerpage 
+	
+		--current CURRENT
+		--today TODAY
+		--avrg AVERAGE
+		--fvestatus FVESTATUS
+
+	--optpage
+        --off -- set OFF for all devices
+		
+		currently supported devices:
+		--lacerta [on|off]
+		--boiler1 [on|off]
+		--fukar1 [on|off]
+	
+	--update
+		updates only row with device. Not going to re-generate 
+		the whole page.
 	"
 	
 }
@@ -19,6 +39,7 @@ function printLoadedParams() {
 	LACERTA=$LACERTA
 	BOILER1=$BOILER1
 	FUKAR1=$FUKAR1
+	KLIMA1=$KLIMA1
 	LSTATUS=$LSTATUS
 	"
 }
@@ -75,16 +96,19 @@ cat > "$HTMLOPTFILE" << EOF
     <th>Lacerta</th>
     <th>Boiler 1</th>
     <th>Fukar 1</th>
+    <th>Klimatizace 1</th>
   </tr>
   <tr valign="middle" align="center">
     <td>Designed status:</td>
     <td><img src=lacerta-$LACERTA.png></td>
     <td><img src=boiler1-$BOILER1.png></td>
     <td><img src=fukar1-$FUKAR1.png></td>
+    <td><img src=klima1-$KLIMA1.png></td>
   </tr>
     <tr valign="middle" align="center">
     <td>Real status:</td>
     <td><img src=lacerta-stat-$LSTATUS.png></td>
+    <td><img src=unknown-status.jpg alt="Unknown"></td>
     <td><img src=unknown-status.jpg alt="Unknown"></td>
     <td><img src=unknown-status.jpg alt="Unknown"></td>
   </tr>
@@ -151,9 +175,17 @@ function updateOptFile() {
 			sed -i 's/fukar1-on/fukar1-off/g' $HTMLOPTFILE 
 		fi	
 	fi
+	if [ $KLIMA1 ]; then	
+	checkStatus klima1 $KLIMA1
+		if [ $KLIMA1 = on ]; then
+			sed -i 's/klima1-off/klima1-on/g' $HTMLOPTFILE 
+		elif [ $KLIMA1 = off ]; then
+			sed -i 's/klima1-on/klima1-off/g' $HTMLOPTFILE 
+		fi	
+	fi
 }
 
-if ! options=$(getopt -o fvuodpla:s:c:t:A:B:C: -l off,verbose,update,optpage,defpage,powerpage,lstatus,avrg:,fvestatus:,current:,today:,lacerta:,boiler1:,fukar1: -- "$@")
+if ! options=$(getopt -o fvuodpla:s:c:t:A:B:C:D: -l off,verbose,update,optpage,defpage,powerpage,lstatus,avrg:,fvestatus:,current:,today:,lacerta:,boiler1:,fukar1:,klima1: -- "$@")
 #if ! options=$(getopt -o c: -l current: -- "$@" )
 then
     # something went wrong, getopt will put out an error message for us
@@ -176,6 +208,7 @@ while [ $# -gt 0 ]; do
 		-A|--lacerta) LACERTA="$2"; shift;;
 		-B|--boiler1) BOILER1="$2"; shift;;
 		-C|--fukar1) FUKAR1="$2"; shift;;
+		-D|--klima1) KLIMA1="$2"; shift;;
 		-u|--update) UPDATE=Y;;
 		(--) shift; break;;
 		(-*) echo "$0: error - unrecognized option $1" 1>&2; exit 1;;
@@ -204,15 +237,20 @@ fi
 if [ $GENDEFPAGE ]; then
 	genDefPage
 fi
+
 if [ $GENOPTPAGE ]; then 
-	if [ -z $LACERTA ] || [ -z $BOILER1 ] || [ -z $FUKAR1 ] ; then
-		echo "--lacerta and --boiler1 and --fukar1 are mandatorry for --optpage parameter"
+	if [ -z $LACERTA ] || [ -z $BOILER1 ] || [ -z $FUKAR1 ] || [ -z $KLIMA1 ]; then
+	#	echo "--lacerta and --boiler1 and --fukar1 and --klima1 are mandatorry for --optpage parameter"
 		printLoadedParams
-	else
+		LACERTA=off
+		BOILER1=off
+		FUKAR1=off
+		KLIMA1=off
+	fi
 		#checkStatus 
 		updateLacertaStatus
 		genOptsPage
-	fi
+	#fi
 fi
 if [ $GENPOWERPAGE ]; then
 	if [ -z $FVECURRENT ] || [ -z $FVETODAY ] || [ -z $FVESTATUS ] || [ -z $FVEAVRG ] ; then
