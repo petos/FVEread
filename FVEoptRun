@@ -26,8 +26,10 @@ function opt() {
 		elif [ "$EXPECTEDSTATUS" = "off" ]; then
 			debugPrint "Turning off"
 		fi
-		if ( realStatus $COMPONENT $EXPECTEDSTATUS ); then
-			FVEgenPage --update --$COMPONENT $EXPECTEDSTATUS
+		realStatus $COMPONENT $EXPECTEDSTATUS
+		local STATUS=$? 
+		if [ $STATUS = 0 -o "$FORCE" = "Y" ] ; then
+			FVEgenPage --update --device $COMPONENT $EXPECTEDSTATUS
 		fi
 	else
 		echo "Unknown parametr for function opt(): $@"
@@ -54,6 +56,11 @@ function checkTDstatus() {
 
 function realStatus(){
 	#usage: getStatus $COMPONENT $STATUS
+	#retval: 0 -- the status was changed
+	#        1 -- OK, but status was not changed
+	#        2 -- OK, but device was not recognized as part of config
+	#        9 -- ERROR with telldusd
+
 	local COMPONENT=$1
 	local EXPECTEDSTATUS=$2
 	local DEVICENUM=''
@@ -61,33 +68,40 @@ function realStatus(){
 	debugPrint "$COMPONENT has been found with device number $DEVICENUM"
 	if [ -z $DEVICENUM ]; then
 		debugPrint "Device not recognized, skipping"
-		return 1
+		return 2
 	fi
 	local STATUS=$(tdtool -l | awk /$COMPONENT/'{print $NF}' | tr '[:upper:]' '[:lower:]' )
 		if [ -z "$STATUS" ]; then
 			verbPrint "Error in getting real status, skipping"
-			return 1
+			return 9
 		fi
 		debugPrint "COMPONENT: DEVICENUM = EXPECTEDSTATUS:STATUS"
 		debugPrint "$COMPONENT: $DEVICENUM = $EXPECTEDSTATUS:$STATUS"
-	if [ "$STATUS" = "$EXPECTEDSTATUS" ]; then
+	if [ "$STATUS" = "$EXPECTEDSTATUS" -o $FORCE = 'N' ]; then
 		verbPrint "OK, nothing to change"
-		return 0
+		return 1
 	else
-		debugPrint "changing status of device #$DEVICENUM from $STATUS to $EXPECTEDSTATUS"
+		if [ $FORCE = Y ]; then
+			verbPrint "Forced: changing status of device #$DEVICENUM to $EXPECTEDSTATUS"
+		else
+			debugPrint "Changing status of device #$DEVICENUM from $STATUS to $EXPECTEDSTATUS"
+		fi
 		ERRMSG=$(tdtool --${EXPECTEDSTATUS,,} $DEVICENUM $VERBOUT )
 		if [ "$?" != "0" ]; then
 			echo "Problem with tdtool. Failed with message:"
 			echo "\"$ERRMSG\""
+			return 9
+		else
+			return 0
 		fi
 	fi
 }
 
 function printHelp() {
-	echo -e "\nusage: `basename $0` POWER OLDPOWER(s)
- Opts:
-    POWER -- Current power production. Script then will issue requested steps
-    OLDPOWER(s) -- Previous power production - up to 5
+	echo -e "\nusage: `basename $0` [OPTIONS]
+	-v       talky output
+	--debug  tells everything it knows
+	-f       force to send the on/off command despite of real status.
 "
 exit 0
 }
@@ -99,7 +113,6 @@ function getAvrg() {
 }
 
 function getStopVal() {
-#	STOPVAL=$(expr $MINCOMP - $(expr $MINCOMP / $FLUCPERC))
 	STOPVAL=$MINCOMP
 	debugPrint "STOPVAL is $STOPVAL"
 }
@@ -163,11 +176,16 @@ function mainLoop() {
 		else
 			#donothing
 			verbPrint "For device $DEVICE production is between STARTVAL and STOPVAL: $STOPVAL < $AVRG < $STARTVAL"
+			if [ $FORCE = 'Y' ]; then
+				verbPrint "Forced, hence shutting down."
+				opt $DEVICE OFF
+			fi
 		fi
 	done
 }
 
 VERBOUT="2>/dev/null"
+FORCE='N'
 
 if [ "$1" = '-h' -o "$1" = "--help" ]; then
 	printHelp
@@ -181,6 +199,8 @@ elif [ "$1" = "--debug" ]; then
 	VERBOUT=''
 	DEBUG=Y
 	shift
+elif [ "$1" = '-f' ]; then
+	FORCE=Y
 fi
 
 getAvrg

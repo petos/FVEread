@@ -40,7 +40,7 @@ function genMonthlyPowerGraph() {
 cat> "$TMPDIR"/FVE.gn << EOF
 set timefmt "%Y%m%d%H%M"
 set xdata time
-set format x "%d/%m\n%H:%M"
+set format x "%d/%m"
 set title "Mothly power overview\nGenerated on `date +%d/%m/%Y`"
 
 set terminal png

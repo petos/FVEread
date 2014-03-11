@@ -88,7 +88,7 @@ function updateProductionFile() {
  
 function checkFileExist() {
 	if [ ! -e $HTMLOPTFILE -o `cat $HTMLOPTFILE | wc -l` -le 1 ]; then
-		FVEgenPage --off --optpage
+		FVEgenPage --optpage
 	fi
 	if [ ! -e $HTMLFILE ]; then
 		FVEgenPage --defpage

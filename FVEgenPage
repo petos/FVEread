@@ -4,8 +4,23 @@ source ~/.FVErc
 
 function printHelp() {
 	echo "
-	-c CURRENT
-	-t TODAY
+		-v|--verbose
+	
+	--defpage
+
+	--powerpage 
+	
+		--current CURRENT
+		--today TODAY
+		--avrg AVERAGE
+		--fvestatus FVESTATUS
+
+	--optpage
+		generates optimalization page with off status for all devices
+	
+	--update
+		updates only row with device. Not going to re-generate 
+		the whole page.
 	"
 	
 }
@@ -16,10 +31,6 @@ function printLoadedParams() {
 	FVECURRENT=$FVECURRENT
 	FVETODAY=$FVETODAY
 	FVEAVRG=$FVEAVRG
-	LACERTA=$LACERTA
-	BOILER1=$BOILER1
-	FUKAR1=$FUKAR1
-	LSTATUS=$LSTATUS
 	"
 }
 
@@ -68,27 +79,40 @@ EOF
 
 function genOptsPage() {
 	
+> "$HTMLOPTFILE"
+
+local DEVICENUM=0
+local DEVICE=''
+
+while read DEVICENAME; do
+	DEVICE[$DEVICENUM]=$DEVICENAME
+	((DEVICENUM++))
+done < <(cat $OPTCFGFILE | grep -v ^\# | sed 's/^$//g' |awk '{print $1}' )
+
+
 cat > "$HTMLOPTFILE" << EOF
 <table border="0" cellpadding="6" cellspacing="0">
   <tr valign="middle" align="center">
     <th>Endpoint:</th>
-    <th>Lacerta</th>
-    <th>Boiler 1</th>
-    <th>Fukar 1</th>
+EOF
+
+for NUM in $(seq 0 $(expr $DEVICENUM - 1 )); do
+	echo "    <th>${DEVICE[$NUM]}</th>" >> "$HTMLOPTFILE"
+done
+
+cat >> "$HTMLOPTFILE" << EOF
   </tr>
   <tr valign="middle" align="center">
     <td>Designed status:</td>
-    <td><img src=lacerta-$LACERTA.png></td>
-    <td><img src=boiler1-$BOILER1.png></td>
-    <td><img src=fukar1-$FUKAR1.png></td>
-  </tr>
-    <tr valign="middle" align="center">
-    <td>Real status:</td>
-    <td><img src=lacerta-stat-$LSTATUS.png></td>
-    <td><img src=unknown-status.jpg alt="Unknown"></td>
-    <td><img src=unknown-status.jpg alt="Unknown"></td>
-  </tr>
 EOF
+for NUM in $(seq 0 $(expr $DEVICENUM - 1 )); do
+echo "    <td><img src=${DEVICE[$NUM]}-off.png></td>" >> "$HTMLOPTFILE"
+done
+echo '  </tr>' >> "$HTMLOPTFILE"
+echo '</table>' >> "$HTMLOPTFILE"
+
+FVEoptRun -f
+
 }
 
 function updateLacertaStatus() {
@@ -103,6 +127,13 @@ function updateLacertaStatus() {
 		#echo "Lacerta is OFF"
 	fi
 }
+
+function updateTimeStamp() {
+	sed '/<\/table>$/,$d' file
+	echo "<\/table>" >> $HTMLOPTFILE 
+	echo `date +%Y/%m/%d,%H:%M:%S` >> $HTMLOPTFILE 
+}
+
 
 function checkStatus() {
 	#usage: checkStatus COMPONENT $STATUS
@@ -119,61 +150,41 @@ function checkStatus() {
 }
 
 function updateOptFile() {
-	if [ $LACERTA ]; then
-	checkStatus lacerta $LACERTA
-		if [ $LACERTA = on ]; then
-			sed -i 's/lacerta-off/lacerta-on/g' $HTMLOPTFILE 
-		elif [ $LACERTA = off ]; then
-			sed -i 's/lacerta-on/lacerta-off/g' $HTMLOPTFILE 
+	for NUM in $(seq 0 $(expr $DEVICENUM - 1 )); do
+	checkStatus ${DEVICENAME[$NUM]} ${DEVICESTATUS[$NUM]}
+		if [ ${DEVICESTATUS[$NUM]} = on ]; then
+			sed -i s/${DEVICENAME[$NUM]}-off/${DEVICENAME[$NUM]}-on/g $HTMLOPTFILE 
+		elif [ ${DEVICESTATUS[$NUM]} = off ]; then
+			sed -i s/${DEVICENAME[$NUM]}-on/${DEVICENAME[$NUM]}-off/g $HTMLOPTFILE 
 		fi
-	fi	
-	if [ $BOILER1 ]; then	
-	checkStatus boiler1 $BOILER1
-		if [ $BOILER1 = on ]; then
-			sed -i 's/boiler1-off/boiler1-on/g' $HTMLOPTFILE 
-		elif [ $BOILER1 = off ]; then
-			sed -i 's/boiler1-on/boiler1-off/g' $HTMLOPTFILE 
-		fi
-	fi
-	if [ $FUKAR1 ]; then	
-	checkStatus fukar1 $FUKAR1
-		if [ $FUKAR1 = on ]; then
-			sed -i 's/fukar1-off/fukar1-on/g' $HTMLOPTFILE 
-		elif [ $FUKAR1 = off ]; then
-			sed -i 's/fukar1-on/fukar1-off/g' $HTMLOPTFILE 
-		fi	
-	fi
+	done
 }
 
-if ! options=$(getopt -o fvuodpla:s:c:t:A:B:C: -l off,verbose,update,optpage,defpage,powerpage,lstatus,avrg:,fvestatus:,current:,today:,lacerta:,boiler1:,fukar1: -- "$@")
-#if ! options=$(getopt -o c: -l current: -- "$@" )
-then
-    # something went wrong, getopt will put out an error message for us
-    exit 1
-fi
-eval set -- $options
-
+DEVICENUM=0
 while [ $# -gt 0 ]; do
 	case $1 in
-		-v|--verbose) VEBROSE="Y";;
-		-d|--defpage) GENDEFPAGE=Y;;
-		-f|--off) LACERTA=off ; BOILER1=off;FUKAR1=off;;
-		-o|--optpage) GENOPTPAGE=Y;;
-		-p|--powerpage) GENPOWERPAGE=Y;;
-		-l|--lstatus) LSTATUS=Y;;
-		-s|--fvestatus) FVESTATUS="$2"; shift;;
-		-c|--current) FVECURRENT="$2"; shift;;
-		-t|--today) FVETODAY="$2"; shift;;
-		-a|--avrg)	FVEAVRG="$2"; shift;;
-		-A|--lacerta) LACERTA="$2"; shift;;
-		-B|--boiler1) BOILER1="$2"; shift;;
-		-C|--fukar1) FUKAR1="$2"; shift;;
-		-u|--update) UPDATE=Y;;
-		(--) shift; break;;
-		(-*) echo "$0: error - unrecognized option $1" 1>&2; exit 1;;
-		(*) break;;
+		-v|--verbose) VEBROSE="Y"; shift;;
+		--defpage) GENDEFPAGE=Y; shift;;
+		--optpage) GENOPTPAGE=Y; shift;;
+		--powerpage) GENPOWERPAGE=Y; shift;;
+		--fvestatus) FVESTATUS="$2"; shift 2;;
+		--current) FVECURRENT="$2"; shift 2;;
+		--today) FVETODAY="$2"; shift 2;;
+		--avrg)	FVEAVRG="$2"; shift 2;;
+
+		--device) 
+			if [ $# -lt 3 ]; then 
+				echo "Not enough params passed for --device"
+				exit 2
+			fi
+			DEVICENAME[$DEVICENUM]="$2"
+			DEVICESTATUS[$DEVICENUM]="$3"
+			((++DEVICENUM)) 
+			shift 3
+			;;
+		--update) UPDATE=Y; shift;;
+		*)  echo "$0: error - unrecognized option $1" 1>&2; exit 1;;
 	esac
-	shift
 done
 
 if [ $# -gt 0 ]; then
@@ -191,21 +202,17 @@ if [ -z $GENDEFPAGE ] && [ -z $GENOPTPAGE ] && [ -z $GENPOWERPAGE ] && [ -z $UPD
 	GENOPTPAGE: $GENOPTPAGE
 	GENPOWERPAGE: $GENPOWERPAGE
 	"
+	exit 1
 fi
 
 if [ $GENDEFPAGE ]; then
 	genDefPage
 fi
+
 if [ $GENOPTPAGE ]; then 
-	if [ -z $LACERTA ] || [ -z $BOILER1 ] || [ -z $FUKAR1 ] ; then
-		echo "--lacerta and --boiler1 and --fukar1 are mandatorry for --optpage parameter"
-		printLoadedParams
-	else
-		#checkStatus 
-		updateLacertaStatus
-		genOptsPage
-	fi
+	genOptsPage
 fi
+
 if [ $GENPOWERPAGE ]; then
 	if [ -z $FVECURRENT ] || [ -z $FVETODAY ] || [ -z $FVESTATUS ] || [ -z $FVEAVRG ] ; then
 		echo "--current, --today, --avrg and --fvestatus are mandatorry for --powerpage parameter"
@@ -218,5 +225,5 @@ if [ $UPDATE ]; then
 	updateOptFile
 fi
 
-sed -i '$ d' $HTMLOPTFILE 
-echo `date +%Y/%m/%d,%H:%M:%S` >> $HTMLOPTFILE 
+updateTimeStamp
+
