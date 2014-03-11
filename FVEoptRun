@@ -70,11 +70,15 @@ function realStatus(){
 		fi
 		debugPrint "COMPONENT: DEVICENUM = EXPECTEDSTATUS:STATUS"
 		debugPrint "$COMPONENT: $DEVICENUM = $EXPECTEDSTATUS:$STATUS"
-	if [ "$STATUS" = "$EXPECTEDSTATUS" ]; then
+	if [ "$STATUS" = "$EXPECTEDSTATUS" -o $FORCE = 'N' ]; then
 		verbPrint "OK, nothing to change"
 		return 0
 	else
-		debugPrint "changing status of device #$DEVICENUM from $STATUS to $EXPECTEDSTATUS"
+		if [ $FORCE = Y ]; then
+			debugPrint "Forced: changing status of device #$DEVICENUM to $EXPECTEDSTATUS"
+		else
+			debugPrint "changing status of device #$DEVICENUM from $STATUS to $EXPECTEDSTATUS"
+		fi
 		ERRMSG=$(tdtool --${EXPECTEDSTATUS,,} $DEVICENUM $VERBOUT )
 		if [ "$?" != "0" ]; then
 			echo "Problem with tdtool. Failed with message:"
@@ -161,11 +165,16 @@ function mainLoop() {
 		else
 			#donothing
 			verbPrint "For device $DEVICE production is between STARTVAL and STOPVAL: $STOPVAL < $AVRG < $STARTVAL"
+			if [ $FORCE = 'Y' ]; then
+				verbPrint "Forced, hence shutting down."
+				opt $DEVICE OFF
+			fi
 		fi
 	done
 }
 
 VERBOUT="2>/dev/null"
+FORCE='N'
 
 if [ "$1" = '-h' -o "$1" = "--help" ]; then
 	printHelp
@@ -179,6 +188,8 @@ elif [ "$1" = "--debug" ]; then
 	VERBOUT=''
 	DEBUG=Y
 	shift
+elif [ "$1" = '-f' ]; then
+	FORCE=Y
 fi
 
 getAvrg
