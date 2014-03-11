@@ -88,6 +88,7 @@ cat > "$HTMLOPTFILE" << EOF
     <td><img src=unknown-status.jpg alt="Unknown"></td>
     <td><img src=unknown-status.jpg alt="Unknown"></td>
   </tr>
+</table>
 EOF
 }
 
@@ -103,6 +104,13 @@ function updateLacertaStatus() {
 		#echo "Lacerta is OFF"
 	fi
 }
+
+function updateTimeStamp() {
+	sed '/<\/table>$/,$d' file
+	echo "<\/table>" >> $HTMLOPTFILE 
+	echo `date +%Y/%m/%d,%H:%M:%S` >> $HTMLOPTFILE 
+}
+
 
 function checkStatus() {
 	#usage: checkStatus COMPONENT $STATUS
@@ -218,5 +226,5 @@ if [ $UPDATE ]; then
 	updateOptFile
 fi
 
-sed -i '$ d' $HTMLOPTFILE 
-echo `date +%Y/%m/%d,%H:%M:%S` >> $HTMLOPTFILE 
+updateTimeStamp
+
