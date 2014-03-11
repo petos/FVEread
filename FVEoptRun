@@ -27,7 +27,7 @@ function opt() {
 			debugPrint "Turning off"
 		fi
 		if ( realStatus $COMPONENT $EXPECTEDSTATUS ); then
-			FVEgenPage --update --$COMPONENT $EXPECTEDSTATUS
+			FVEgenPage --update --device $COMPONENT $EXPECTEDSTATUS
 		fi
 	else
 		echo "Unknown parametr for function opt(): $@"
