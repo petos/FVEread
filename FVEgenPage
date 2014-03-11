@@ -129,8 +129,8 @@ function updateLacertaStatus() {
 }
 
 function updateTimeStamp() {
-	sed '/<\/table>$/,$d' file
-	echo "<\/table>" >> $HTMLOPTFILE 
+	sed -i '/<\/table>$/,$d' $HTMLOPTFILE
+	echo '</table>' >> $HTMLOPTFILE 
 	echo `date +%Y/%m/%d,%H:%M:%S` >> $HTMLOPTFILE 
 }
 
@@ -223,7 +223,7 @@ if [ $GENPOWERPAGE ]; then
 fi
 if [ $UPDATE ]; then
 	updateOptFile
+	updateTimeStamp
 fi
 
-updateTimeStamp
 
