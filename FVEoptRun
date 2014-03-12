@@ -77,7 +77,7 @@ function realStatus(){
 		fi
 		debugPrint "COMPONENT: DEVICENUM = EXPECTEDSTATUS:STATUS"
 		debugPrint "$COMPONENT: $DEVICENUM = $EXPECTEDSTATUS:$STATUS"
-	if [ "$STATUS" = "$EXPECTEDSTATUS" -o $FORCE = 'N' ]; then
+	if [ "$STATUS" = "$EXPECTEDSTATUS" -a $FORCE = "N" ]; then
 		verbPrint "OK, nothing to change"
 		return 1
 	else
