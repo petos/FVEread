@@ -82,7 +82,7 @@ function realStatus(){
 		return 1
 	else
 		if [ $FORCE = Y ]; then
-			verbPrint "Forced: changing status of device #$DEVICENUM to $EXPECTEDSTATUS"
+			echo "Forced: changing status of device #$DEVICENUM to $EXPECTEDSTATUS"
 		else
 			debugPrint "Changing status of device #$DEVICENUM from $STATUS to $EXPECTEDSTATUS"
 		fi
@@ -177,7 +177,7 @@ function mainLoop() {
 			#donothing
 			verbPrint "For device $DEVICE production is between STARTVAL and STOPVAL: $STOPVAL < $AVRG < $STARTVAL"
 			if [ $FORCE = 'Y' ]; then
-				verbPrint "Forced, hence shutting down."
+				echo "Forced, hence shutting down."
 				opt $DEVICE OFF
 			fi
 		fi
@@ -200,7 +200,7 @@ elif [ "$1" = "--debug" ]; then
 	DEBUG=Y
 	shift
 elif [ "$1" = '-f' ]; then
-	FORCE=Y
+	FORCE='Y'
 fi
 
 getAvrg
