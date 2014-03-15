@@ -187,21 +187,17 @@ function mainLoop() {
 VERBOUT="2>/dev/null"
 FORCE='N'
 
-if [ "$1" = '-h' -o "$1" = "--help" ]; then
-	printHelp
-	exit
-elif [ "$1" = "-v" ]; then
-	VERB=Y
-	VERBOUT=''
-	shift
-elif [ "$1" = "--debug" ]; then
-	VERB=Y
-	VERBOUT=''
-	DEBUG=Y
-	shift
-elif [ "$1" = '-f' ]; then
-	FORCE='Y'
-fi
+
+while [ $# -gt 0 ]; do
+	case $1 in
+		-h|--help) printHelp; shift;;
+		-v|--verbose) VERB=Y; VERBOUT='' ; shift;;
+		-d|--debug) VERB=Y; VERBOUT=''; DEBUG=Y ; shift;;
+		-f|--force) FORCE='Y'; shift;;
+		*)  echo "$0: error - unrecognized option $1" 1>&2; exit 1;;
+	esac
+done
+
 
 getAvrg
 checkTDstatus
