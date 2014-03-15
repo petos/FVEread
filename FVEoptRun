@@ -186,11 +186,12 @@ function mainLoop() {
 
 VERBOUT="2>/dev/null"
 FORCE='N'
-
+OFF=''
 
 while [ $# -gt 0 ]; do
 	case $1 in
 		-h|--help) printHelp; shift;;
+		--off) OFF=Y ; shift;;
 		-v|--verbose) VERB=Y; VERBOUT='' ; shift;;
 		-d|--debug) VERB=Y; VERBOUT=''; DEBUG=Y ; shift;;
 		-f|--force) FORCE='Y'; shift;;
@@ -198,8 +199,12 @@ while [ $# -gt 0 ]; do
 	esac
 done
 
+if [ $OFF ]; then
+	AVRG=0
+else
+	getAvrg
+fi
 
-getAvrg
 checkTDstatus
 mainLoop
 
