@@ -163,11 +163,11 @@ function enableMe() {
 }
 
 function onMe() {
-	sed -i -e'/FVEOPTONOFF/s/""/"--off"/g' $FVECFG
+	sed -i -e'/FVEOPTONOFF/s/"ON"/"OFF"/g' $FVECFG
 }
 
 function offMe() {
-	sed -i -e'/FVEOPTONOFF/s/"--off"/""/g' $FVECFG
+	sed -i -e'/FVEOPTONOFF/s/"OFF"/"ON"/g' $FVECFG
 }
 
 function mainLoop() {
@@ -178,7 +178,7 @@ function mainLoop() {
 	else
 		genFiles
 		checkFileExist
-		FVEoptRun $VERBPARM $FVEOPTONOFF
+		FVEoptRun $VERBPARM
 		uploadDataFTP
 	fi
 	cleanFile	
@@ -209,7 +209,7 @@ while [ $# -gt 0 ]; do
 			offMe
 			shift
 			;;
-		--on
+		--on)
 			onMe
 			shift
 			;;

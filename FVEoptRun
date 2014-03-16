@@ -188,10 +188,15 @@ VERBOUT="2>/dev/null"
 FORCE='N'
 OFF=''
 
+if [ "$FVEOPTONOFF" = "OFF" ]; then
+	OFF='Y'
+	FORCE='Y'
+fi
+
 while [ $# -gt 0 ]; do
 	case $1 in
 		-h|--help) printHelp; shift;;
-		--off) OFF=Y ; shift;;
+		--off) OFF='Y' ; shift;;
 		-v|--verbose) VERB=Y; VERBOUT='' ; shift;;
 		-d|--debug) VERB=Y; VERBOUT=''; DEBUG=Y ; shift;;
 		-f|--force) FORCE='Y'; shift;;
