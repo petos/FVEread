@@ -163,11 +163,11 @@ function enableMe() {
 }
 
 function onMe() {
-	sed -i -e'/FVEOPTONOFF/s/"ON"/"OFF"/g' $FVECFG
+        sed -i -e'/FVEOPTONOFF/s/"OFF"/"ON"/g' ~/.FVErc
 }
 
 function offMe() {
-	sed -i -e'/FVEOPTONOFF/s/"OFF"/"ON"/g' $FVECFG
+        sed -i -e'/FVEOPTONOFF/s/"ON"/"OFF"/g' ~/.FVErc
 }
 
 function mainLoop() {
