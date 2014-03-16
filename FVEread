@@ -9,13 +9,21 @@ function verbPrint() {
 }
 
 function printHelp() {
-	echo -e "usage: `basename $0` [--stdout]
+	echo -e "usage: `basename $0` [OPTIONS]
  Opts:
   --help|-h   Print this help message
+  -v          Talky version
   --stdout    Will not update webpage, but print just output to stdout
   --daemon|-d Enable auto-refresh, otherwise the script will issue only 
               one iteration.
-  -v          Talky version
+  
+  CAUTION: this are permanent changes and must be reverted via the oposite
+           command!!!
+  --disable   Kick off the script out of the crontab and stop all devices
+  --enable    Enable the script 
+  --off       Turn off all devices and will disable power optimalization
+  --on        Will enable power optimalization
+
 "
 exit 0
 }
@@ -146,6 +154,21 @@ function genFiles() {
 		FVEgenGraphs --all
 }
 
+function disableMe() {
+	crontab -l | sed  -e'/FVEread/s/^/#/g' | crontab	
+}
+
+function enableMe() {
+	crontab -l | sed  -e'/FVEread/s/^#//g' | crontab
+}
+
+function onMe() {
+	sed -i -e'/FVEOPTONOFF/s/""/"--off"/g' $FVECFG
+}
+
+function offMe() {
+	sed -i -e'/FVEOPTONOFF/s/"--off"/""/g' $FVECFG
+}
 
 function mainLoop() {
 	getData
@@ -155,7 +178,7 @@ function mainLoop() {
 	else
 		genFiles
 		checkFileExist
-		FVEoptRun $VERBPARM
+		FVEoptRun $VERBPARM $FVEOPTONOFF
 		uploadDataFTP
 	fi
 	cleanFile	
@@ -172,6 +195,24 @@ while [ $# -gt 0 ]; do
 		-d|--daemon) DAEMON=1; shift;;
 		--stdout) STDOUT="YES" ; shift;;
 		-v|--verbose) VERB=Y; VERBOUT='';VERBPARM="-v" ; shift;;
+		--disable) 
+			disableMe 2>/dev/null
+			FVEoptRun --off
+			shift
+			exit
+			;;
+		--enable)
+			enableMe 2>/dev/null
+			shift
+			;;
+		--off)
+			offMe
+			shift
+			;;
+		--on
+			onMe
+			shift
+			;;
 		*)  echo "$0: error - unrecognized option $1" 1>&2; exit 1;;
 	esac
 done
