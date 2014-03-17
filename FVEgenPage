@@ -61,7 +61,8 @@ cat > "$HTMLFILE" << EOF
 EOF
 
 grep -v ^\# "$OPTCFGFILE" | while read DEVICE USELESS ; do
-echo "\<img src=\"fve.device.$DEVICE.png\" alt=\"Produced this month\"\> " >> $HTMLFILE
+echo "<img src=\"fve.device.$DEVICE.png\" alt=\"Produced this month\"> " >> $HTMLFILE
+echo '</br>' >> $HTMLFILE
 done
 
 cat >> "$HTMLFILE" << EOF

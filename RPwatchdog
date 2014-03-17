@@ -5,10 +5,10 @@ PNGW=10
 DEST=8.8.8.8
 
 
-fi ( ! ping -q -c $PNGC -w $PNGW $DEST >> /dev/null ); then
+if ( ! ping -q -c $PNGC -w $PNGW $DEST >> /dev/null ); then
 	sudo shutdown -r now
 fi
 
-if [ $(free -m | awk  /+/'{print $NL}') -le 100 ]; then
+if [ $(free -m | awk  /-/'{print $NF}') -le 100 ]; then
 	sudo shutdown -r now
 fi
