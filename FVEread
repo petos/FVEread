@@ -70,7 +70,7 @@ function cleanFile() {
 	rm -f "$TMPDIR"/d`date +%Y%m%d`.png
 	rm -f "$TMPDIR"/m`date +%Y%m`.png
 	rm -f "$TMPDIR"/p`date +%Y%m`.png
-	
+	rm -f "$TMPDIR"/fve.device.*.png
 }
 
 function checkRunningStatus() {
@@ -108,11 +108,16 @@ function uploadDataFTP() {
 
 	checkRunningStatus
 		
-	lftp -u "$FTPUSERNAME",$FTPPASSWD -e "put -O "$HTMLDESTDIR" $TMPDIR/fvem.png $TMPDIR/fved.png /$TMPDIR/fvep.png $HTMLPOWERFILE $HTMLOPTFILE $HTMLFILE && bye" $HTMLSERVER >> /dev/null
+	lftp -u "$FTPUSERNAME",$FTPPASSWD -e "put -O "$HTMLDESTDIR" $TMPDIR/fvem.png $TMPDIR/fve.device.*.png $TMPDIR/fved.png /$TMPDIR/fvep.png $HTMLPOWERFILE $HTMLOPTFILE $HTMLFILE && bye" $HTMLSERVER >> /dev/null
 	mv "$TMPDIR"/fved.png "$TMPDIR"/d`date +%Y%m%d`.png
 	mv "$TMPDIR"/fvem.png "$TMPDIR"/m`date +%Y%m`.png
 	mv "$TMPDIR"/fvep.png "$TMPDIR"/p`date +%Y%m`.png
-	lftp -u "$FTPUSERNAME",$FTPPASSWD -e "mput -O "$HTMLDESTDIR"/fve.hist/ $TMPDIR/m*.png $TMPDIR/p*.png $TMPDIR/d*.png && bye" $HTMLSERVER >> /dev/null
+	for FILE in "$TMPDIR"/fve.device.*.png; do 
+		TRIMMED=${FILE%.png}
+		mv $TRIMMED{.png,.`date +%Y%m`.png} 
+	done
+
+	lftp -u "$FTPUSERNAME",$FTPPASSWD -e "mput -O "$HTMLDESTDIR"/fve.hist/ $TMPDIR/m*.png $TMPDIR/fve.device.*.png $TMPDIR/p*.png $TMPDIR/d*.png && bye" $HTMLSERVER >> /dev/null
 
 	rm -f "$TMPDIR"/.fveread
 	return 0

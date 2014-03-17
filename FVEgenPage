@@ -58,10 +58,14 @@ cat > "$HTMLFILE" << EOF
 <img src="fvep.png" alt="Produced this month">
 
 <h3>Optimalization of consumption</h3>
+EOF
 
+grep -v ^\# "$OPTCFGFILE" | while read DEVICE USELESS ; do
+echo "\<img src=\"fve.device.$DEVICE.png\" alt=\"Produced this month\"\> " >> $HTMLFILE
+done
+
+cat >> "$HTMLFILE" << EOF
 <iframe src="$FVEHTMLOPTNAME" width="640" height="170"></iframe>
-
-</table>
 </body>
 </html>
 EOF

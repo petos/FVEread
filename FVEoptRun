@@ -169,10 +169,12 @@ function mainLoop() {
 		if [ $STARTVAL -le $AVRG  -a  $AVRG -le $MAXCOMP ]; then
 			verbPrint "Production $AVRG is IN limits ($MINCOMP/$MAXCOMP) of device $DEVICE, turning on"
 			opt $DEVICE ON
+			echo `date +%Y%m%d%H%M` 1 >> $FVEDATADIR/$DEVICE.`date +%Y%m`
 		elif [ $AVRG -le $STOPVAL  -o $MAXCOMP -le $AVRG  ]; then
 		#else
 			verbPrint "Production $AVRG is OFF limits ($MINCOMP/$MAXCOMP) of device $DEVICE, turning off"
 			opt $DEVICE OFF
+			echo `date +%Y%m%d%H%M` 0 >> $FVEDATADIR/$DEVICE.`date +%Y%m`
 		else
 			#donothing
 			verbPrint "For device $DEVICE production is between STARTVAL and STOPVAL: $STOPVAL < $AVRG < $STARTVAL"

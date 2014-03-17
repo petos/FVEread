@@ -10,8 +10,34 @@ function printHelp() {
   --today      Gen today power graph
   --monthpower Gen monthly power graph 
   --monthtotal Gen monthly production graph
+  --onoff      Gen overview of ON/OFF all devices
 "
 exit 0
+}
+
+function genOnOffDevicesGraphs() {
+	> "$TMPDIR"/FVE.gn
+
+grep -v ^\# "$OPTCFGFILE" | while read DEVICE MINCOMP MAXCOMP ; do
+local DEVICEDATAFILE="$FVEDATADIR"/"$DEVICE.`date +%Y%m`"
+
+cat> "$TMPDIR"/FVE.gn << EOF
+set timefmt "%Y%m%d%H%M"
+set xdata time
+set format x "%H:%M"
+set title "Today on/off for device $DEVICE\nGenerated on `date +%H:%M`"
+
+set xrange["`date +%Y%m%d` 00:00:00":"`date +%Y%m``expr $( date +%d ) + 1` 23:59:59"]
+
+set terminal png
+set output "$TMPDIR"/fve.device.$DEVICE.png
+
+plot "$DEVICEDATAFILE" u 1:2 with lines title '$DEVICE'
+EOF
+	
+	gnuplot "$TMPDIR"/FVE.gn 2>/dev/null
+	
+done
 }
 
 function genTodayPowerGraph() {
@@ -86,10 +112,13 @@ if [ "$#" = 1 ]; then
 		genMonthlyPowerGraph
 	elif [ "$1" = "--monthtotal" ]; then
 		genMonthlyProductionGraph
+	elif [ "$1" = "--onoff" ]; then
+		genOnOffDevicesGraphs
 	elif [ "$1" = "--all" ]; then
 		genTodayPowerGraph
 		genMonthlyPowerGraph
 		genMonthlyProductionGraph
+		genOnOffDevicesGraphs
 	else
 		echo "Non supported parametr $1"
 		exit 1
