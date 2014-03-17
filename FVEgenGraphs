@@ -28,8 +28,9 @@ set format x "%H:%M"
 set title "Today on/off for device $DEVICE\nGenerated on `date +%H:%M`"
 
 set xrange["`date +%Y%m%d` 00:00:00":"`date +%Y%m``expr $( date +%d ) + 1` 23:59:59"]
+set yrange[-0.1:1.1]
 
-set terminal png
+set terminal png small size 640,240
 set output "$TMPDIR/fve.device.$DEVICE.png"
 
 plot "$DEVICEDATAFILE" u 1:2 with lines title '$DEVICE'
