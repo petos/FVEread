@@ -4,7 +4,7 @@ source ~/.FVErc
 
 function verbPrint() {
 	if [ $VERB ]; then
-		echo "$1"
+		echo "`date +%d.%m.%Y-%H:%M`: $1"
 	fi
 }
 

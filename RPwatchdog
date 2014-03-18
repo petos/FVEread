@@ -1,14 +1,45 @@
 #!/bin/bash
 
+#Number of ping packets to be sent
 PNGC=1
+#Waiting time to return of packet in seconds
 PNGW=10
+#Pinging destination. Should be stable and reliable server
 DEST=8.8.8.8
 
+#LOGFILE is file where errors should be logged. 
+LOGFILE=/home/fve/logs/sysfails
 
-if ( ! ping -q -c $PNGC -w $PNGW $DEST >> /dev/null ); then
+#Create header of the error entry in error log
+function printErrHdr() {
+	echo "=======" | tee -a $LOGFILE
+	echo `date`| tee -a $LOGFILE	
+}
+
+#Print some information to be appended to the error log.
+function printErr() {
+	#usage: printErr "MESSAGE"
+	echo "$1" | tee -a $LOGFILE
+}
+
+#Test ping. If failed, print error and reboot RPi.
+if ( ! ping -q -c $PNGC -w $PNGW $DEST >> /dev/null ); then 
+	printErrHdr
+	printErr "Reboot, not able to ping!"
 	sudo shutdown -r now
+else
+	echo "ping OK"
 fi
 
+#Test free memory. If failed, print some system info and reboot RPi.
 if [ $(free -m | awk  /-/'{print $NF}') -le 100 ]; then
+	printErrHdr
+	printErr "Reboot, OOM!"
+	printErr "`free -m`"
+	printErr "`ps -ef`"
+	printErr "`top -n 1`"
+	printErr "`cat /proc/meminfo`"
 	sudo shutdown -r now
+else
+	echo "mem OK"
 fi
