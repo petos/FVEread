@@ -19,8 +19,8 @@ function printHelp() {
   
   CAUTION: this are permanent changes and must be reverted via the oposite
            command!!!
-  --disable   Kick off the script out of the crontab and stop all devices
-  --enable    Enable the script 
+  --disable   Kick off the script out of the crontab and stop all devices in cron
+  --enable    Enable the script in cron
   --off       Turn off all devices and will disable power optimalization
   --on        Will enable power optimalization
 
