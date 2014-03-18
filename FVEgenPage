@@ -46,7 +46,7 @@ cat > "$HTMLFILE" << EOF
 
 <body>
 
-<iframe src="$FVEHTMLPOWERNAME" width="640" height="230"></iframe>
+<iframe src="$FVEHTMLPOWERNAME" width="640" height="270"></iframe>
 
 
 <h3>Graphs:</h3>
@@ -66,7 +66,7 @@ echo '</br>' >> $HTMLFILE
 done
 
 cat >> "$HTMLFILE" << EOF
-<iframe src="$FVEHTMLOPTNAME" width="640" height="170"></iframe>
+<iframe src="$FVEHTMLOPTNAME" width="640" height="120"></iframe>
 </body>
 </html>
 EOF
@@ -79,7 +79,13 @@ cat > "$HTMLPOWERFILE" << EOF
 <h3>Power now: $FVECURRENT [W]</h3>
 <h3>Average (10m): $FVEAVRG [W]</h3>
 <h3>Production today: $FVETODAY [kWh]</h3>
+<h3>Devices uptime today:</h3>
 EOF
+grep -v ^\# "$OPTCFGFILE" | while read DEVICE MINCOMP MAXCOMP ; do
+	local DEVICEDATAFILE="$FVEDATADIR"/"$DEVICE.`date +%Y%m`"
+	local DEVICEUPTIME=$(grep `date +%Y%m%d`.*1$ $DEVICEDATAFILE | sort -u | wc -l)
+echo "<h4>Device: $DEVICE was today up: $DEVICEUPTIME [mins]</h4>" >> $HTMLPOWERFILE
+done
 }
 
 function genOptsPage() {
