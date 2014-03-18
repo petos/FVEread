@@ -4,12 +4,12 @@ source ~/.FVErc
 
 function debugPrint() {
 	if [ $DEBUG ]; then
-		echo "$1"
+		echo "`date +%d.%m.%Y-%H:%M`: $1"
 	fi
 }
 function verbPrint() {
 	if [ $VERB ]; then
-		echo "$1"
+		echo "`date +%d.%m.%Y-%H:%M`: $1"
 	fi
 }
 
