@@ -4,11 +4,33 @@ PNGC=1
 PNGW=10
 DEST=8.8.8.8
 
+LOGFILE=/home/fve/logs/sysfails
 
-if ( ! ping -q -c $PNGC -w $PNGW $DEST >> /dev/null ); then
+function printErrHdr() {
+	echo "=======" | tee -a $LOGFILE
+	echo `date`| tee -a $LOGFILE	
+}
+
+function printErr() {
+	echo "$1" | tee -a $LOGFILE
+}
+
+if ( ! ping -q -c $PNGC -w $PNGW $DEST >> /dev/null ); then 
+	printErrHdr
+	printErr "Reboot, not able to ping!"
 	sudo shutdown -r now
+else
+	echo "ping OK"
 fi
 
 if [ $(free -m | awk  /-/'{print $NF}') -le 100 ]; then
+	printErrHdr
+	printErr "Reboot, OOM!"
+	printErr "`free -m`"
+	printErr "`ps -ef`"
+	printErr "`top -n 1`"
+	printErr "`cat /proc/meminfo`"
 	sudo shutdown -r now
+else
+	echo "mem OK"
 fi
