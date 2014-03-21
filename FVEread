@@ -71,12 +71,12 @@ function cleanFile() {
 	rm -f "$TMPDIR"/m`date +%Y%m`.png
 	rm -f "$TMPDIR"/p`date +%Y%m`.png
 	rm -f "$TMPDIR"/fve.device.*.png
+	rm -f "$TMPDIR"/.fveread
 }
 
 function checkRunningStatus() {
 	if [ -e "$TMPDIR"/.fveread ]; then
 		echo "Already running, quiting."
-		echo $$ >> "$TMPDIR"/.fveDebug
 		exit 0
 	fi
 	echo $$ > "$TMPDIR"/.fveread
@@ -105,10 +105,8 @@ function checkFileExist() {
 
 function uploadDataFTP() {
 	#usage: uploadDataFTP
-
-	checkRunningStatus
 	
-		lftp -u "$FTPUSERNAME",$FTPPASSWD -e "mput -O "$HTMLDESTDIR" $TMPDIR/fvem.png $TMPDIR/fve.device.*.png $TMPDIR/fved.png /$TMPDIR/fvep.png $HTMLPOWERFILE $HTMLOPTFILE $HTMLFILE && bye" $HTMLSERVER >> /dev/null
+	lftp -u "$FTPUSERNAME",$FTPPASSWD -e "mput -O "$HTMLDESTDIR" $TMPDIR/fvem.png $TMPDIR/fve.device.*.png $TMPDIR/fved.png /$TMPDIR/fvep.png $HTMLPOWERFILE $HTMLOPTFILE $HTMLFILE && bye" $HTMLSERVER >> /dev/null
 
 	mv "$TMPDIR"/fved.png "$TMPDIR"/d`date +%Y%m%d`.png
 	mv "$TMPDIR"/fvem.png "$TMPDIR"/m`date +%Y%m`.png
@@ -120,7 +118,6 @@ function uploadDataFTP() {
 
 	lftp -u "$FTPUSERNAME",$FTPPASSWD -e "mput -O "$HTMLDESTDIR"/fve.hist/ $TMPDIR/m*.png $TMPDIR/fve.device.*.png $TMPDIR/p*.png $TMPDIR/d*.png && bye" $HTMLSERVER >> /dev/null
 
-	rm -f "$TMPDIR"/.fveread
 	return 0
 }
 
@@ -177,6 +174,7 @@ function offMe() {
 }
 
 function mainLoop() {
+	checkRunningStatus
 	getData
 	
 	if [ "$STDOUT" ]; then
@@ -187,7 +185,7 @@ function mainLoop() {
 		FVEoptRun $VERBPARM
 		uploadDataFTP
 	fi
-	cleanFile	
+	cleanFile
 }
 
 VERBPARM=''
