@@ -40,7 +40,7 @@ if [ $(free -m | awk  /-/'{print $NF}') -le 100 ]; then
 	printErr "`top -n 1`"
 	printErr "`cat /proc/meminfo`"
 	printErr "====="	
-	printErr "ps -e -o pid,vsz,comm= | sort -n -k 2 | tail"
+	printErr "`ps -e -o pid,vsz,comm= | sort -n -k 2 | tail`"
 	sudo shutdown -r now
 else
 	echo "mem OK"
