@@ -71,15 +71,15 @@ function cleanFile() {
 	rm -f "$TMPDIR"/m`date +%Y%m`.png
 	rm -f "$TMPDIR"/p`date +%Y%m`.png
 	rm -f "$TMPDIR"/fve.device.*.png
-	rm -f "$TMPDIR"/.fveread
+	rm -f "$TMPDIR"/.fveread.lock
 }
 
 function checkRunningStatus() {
-	if [ -e "$TMPDIR"/.fveread ]; then
+	if [ -e "$TMPDIR"/.fveread.lock ]; then
 		echo "Already running, quiting."
 		exit 0
 	fi
-	echo $$ > "$TMPDIR"/.fveread
+	echo $$ > "$TMPDIR"/.fveread.lock
 }
 
 
