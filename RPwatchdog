@@ -32,15 +32,15 @@ else
 fi
 
 #Test free memory. If failed, print some system info and reboot RPi.
-if [ $(free -m | awk  /-/'{print $NF}') -le 100 ]; then
+if [ $(free -m | awk  /-/'{print $NF}') -le 200 ]; then
 	printErrHdr
 	printErr "Reboot, OOM!"
 	printErr "`free -m`"
 	printErr "`ps -ef`"
 	printErr "`top -n 1`"
 	printErr "`cat /proc/meminfo`"
-	printErr "====="	
 	printErr "`ps -e -o pid,vsz,comm= | sort -n -k 2 | tail`"
+	printErr "`ps -ef | grep telldus`"
 	sudo shutdown -r now
 else
 	echo "mem OK"
