@@ -201,7 +201,7 @@ function createBackup() {
 
 function restoreBackup() {
 	pushd "$FVEDATADIR" > /dev/null
-	wget http://"$HTMLSERVER"/fve.hist/fvedata.tar.gz
+	wget http://"$HTMLSERVER"/"$HTMLDESTDIR"/fve.hist/fvedata.tar.gz
 	tar -xzf "$TMPDIF"/fvedata.tar.gz 
 	popd > /dev/null
 	
