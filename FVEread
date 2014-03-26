@@ -193,7 +193,7 @@ function mainLoop() {
 
 function createBackup() {
 	pushd "$FVEDATADIR" > /dev/null
-	tar -czf "$TMPDIF"/fvedata.tar.gz *
+	tar -czf "$TMPDIR"/fvedata.tar.gz *
 	popd > /dev/null
 	
 	lftp -u "$FTPUSERNAME",$FTPPASSWD -e "put -O "$HTMLDESTDIR"/fve.hist/ "$TMPDIR"/fvedata.tar.gz && bye" $HTMLSERVER >> /dev/null
