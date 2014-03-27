@@ -23,10 +23,6 @@ function printHelp() {
   --enable    Enable the script in cron
   --off       Turn off all devices and will disable power optimalization
   --on        Will enable power optimalization
-
-  --mkbckp    Create backup and push to FTP
-  --restorebckp
-              Restore from backup
 "
 exit 0
 }
@@ -190,27 +186,8 @@ function mainLoop() {
 	cleanFile
 }
 
-
-function createBackup() {
-	pushd "$FVEDATADIR" > /dev/null
-	tar -czf "$TMPDIR"/fvedata.tar.gz *
-	popd > /dev/null
-	
-	lftp -u "$FTPUSERNAME",$FTPPASSWD -e "put -O "$HTMLDESTDIR"/fve.hist/ "$TMPDIR"/fvedata.tar.gz && bye" $HTMLSERVER >> /dev/null
-}
-
-function restoreBackup() {
-	pushd "$FVEDATADIR" > /dev/null
-	wget http://"$HTMLSERVER"/"$HTMLDESTDIR"/fve.hist/fvedata.tar.gz
-	tar -xzf "$TMPDIF"/fvedata.tar.gz 
-	popd > /dev/null
-	
-	exit 0
-}
-
 VERBPARM=''
 VERB=''
-
 
 while [ $# -gt 0 ]; do
 	case $1 in
@@ -234,14 +211,6 @@ while [ $# -gt 0 ]; do
 			;;
 		--on)
 			onMe
-			shift
-			;;
-		--mkbckp)
-			createBackup
-			shift
-			;;
-		--restorebckp)
-			restoreBackup
 			shift
 			;;
 		*)  echo "$0: error - unrecognized option $1" 1>&2; exit 1;;
