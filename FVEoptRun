@@ -152,14 +152,14 @@ function checkParams() {
 	debugPrint "Processing $DEVICE with params: $MINCOMP/$MAXCOMP"
 	
 	if [ $(echo $MINCOMP$MAXCOMP | sed 's/[0-9]*//g' ) ]; then 
-		debugPrint "Detected non proper configuration for device $DEVICE: consumption: $MINCOMP/$MAXCOMP"
+		echo "Detected non proper configuration for device $DEVICE: consumption: $MINCOMP/$MAXCOMP"
 		return 1
 	elif [ $MINCOMP -le 0 ] || [ $MAXCOMP -le 0 ]; then 
-		debugPrint "Detected non proper configuration for device $DEVICE: consumption: $MINCOMP/$MAXCOMP"
+		echo "Detected non proper configuration for device $DEVICE: consumption: $MINCOMP/$MAXCOMP"
 		return 1
 	fi
 	if [ $MINCOMP -ge $MAXCOMP ]; then
-		debugPrint "Minimal is bigger then maximal. This does not seems to be right: $MINCOMP/$MAXCOMP"
+		echo "Minimal is bigger then maximal. This does not seems to be right: $MINCOMP/$MAXCOMP"
 		return 1
 	fi
 
@@ -182,12 +182,10 @@ function mainLoop() {
 			opt $DEVICE ON
 			echo `date +%Y%m%d%H%M` 1 >> $FVEDATADIR/$DEVICE.`date +%Y%m`
 		elif [ $AVRG -le $STOPVAL  -o $MAXCOMP -le $AVRG  ]; then
-		#else
 			verbPrint "Production $AVRG is OFF limits ($MINCOMP/$MAXCOMP) of device $DEVICE, turning off"
 			opt $DEVICE OFF
 			echo `date +%Y%m%d%H%M` 0 >> $FVEDATADIR/$DEVICE.`date +%Y%m`
 		else
-			#donothing
 			verbPrint "For device $DEVICE production is between STARTVAL and STOPVAL: $STOPVAL < $AVRG < $STARTVAL"
 			if [ $FORCE = 'Y' ]; then
 				echo "Forced, hence shutting down."
