@@ -52,6 +52,8 @@ function checkTDstatus() {
 		sudo service telldusd status
 		echo ====
 	fi
+	> "$TMPDIR"/FVE.statuses
+	tdtool -l > "$TMPDIR"/FVE.statuses
 }
 
 function realStatus(){
@@ -70,7 +72,8 @@ function realStatus(){
 		debugPrint "Device not recognized, skipping"
 		return 2
 	fi
-	local STATUS=$(tdtool -l | awk /$COMPONENT/'{print $NF}' | tr '[:upper:]' '[:lower:]' )
+	#local STATUS=$(tdtool -l | awk /$COMPONENT/'{print $NF}' | tr '[:upper:]' '[:lower:]' )
+	local STATUS=$( awk /$COMPONENT/'{print $NF}' "$TMPDIR"/FVE.statuses | tr '[:upper:]' '[:lower:]' )
 		if [ -z "$STATUS" ]; then
 			verbPrint "Error in getting real status, skipping"
 			return 9
@@ -99,9 +102,9 @@ function realStatus(){
 
 function printHelp() {
 	echo -e "\nusage: `basename $0` [OPTIONS]
-	-v       talky output
-	--debug  tells everything it knows
-	-f       force to send the on/off command despite of real status.
+	-v         talky output
+	--debug    tells everything it knows
+	-f|--force force to send the on/off command despite of real status.
 "
 exit 0
 }
@@ -224,5 +227,5 @@ fi
 checkTDstatus
 mainLoop
 
-
+rm -f "$TMPDIR"/FVE.statuses
 exit 0
