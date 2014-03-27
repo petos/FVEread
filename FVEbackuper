@@ -1,0 +1,50 @@
+#!/bin/bash
+# Expected to be run from the cron to housekeep data and backup.
+
+source ~/.FVErc
+
+function printHelp() {
+	echo -e "usage: `basename $0` [OPTIONS]
+ Opts:
+  --help|-h   Print this help message
+  -v          Talky version
+
+  --mkbckp    Create backup and push to FTP
+  --restorebckp
+              Restore from backup
+"
+exit 0
+}
+
+function createBackup() {
+	pushd "$FVEDATADIR" > /dev/null
+	tar -czf "$TMPDIR"/fvedata.tar.gz *
+	popd > /dev/null
+	
+	lftp -u "$FTPUSERNAME",$FTPPASSWD -e "put -O "$HTMLDESTDIR"/fve.hist/ "$TMPDIR"/fvedata.tar.gz && bye" $HTMLSERVER >> /dev/null
+}
+
+function restoreBackup() {
+	pushd "$FVEDATADIR" > /dev/null
+	wget http://"$HTMLSERVER"/"$HTMLDESTDIR"/fve.hist/fvedata.tar.gz
+	tar -xzf "$TMPDIF"/fvedata.tar.gz 
+	popd > /dev/null
+	
+	exit 0
+}
+
+while [ $# -gt 0 ]; do
+	case $1 in
+		-h|--help) printHelp; exit; shift;;
+		-v|--verbose) VERB=Y; shift;;
+		--mkbckp)
+			createBackup
+			shift
+			;;
+		--restorebckp)
+			restoreBackup
+			shift
+			;;
+		*)  echo "$0: error - unrecognized option $1" 1>&2; exit 1;;
+	esac
+done
