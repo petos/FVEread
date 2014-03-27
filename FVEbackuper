@@ -1,5 +1,6 @@
 #!/bin/bash
 # Expected to be run from the cron to housekeep data and backup.
+# Customised for my setup with read-only filesystem, regular backups etc.
 
 source ~/.FVErc
 
@@ -9,42 +10,108 @@ function printHelp() {
   --help|-h   Print this help message
   -v          Talky version
 
-  --mkbckp    Create backup and push to FTP
-  --restorebckp
+  --backup [ALL]   
+			  Create backup and push to FTP
+			  If ALL is passed, all configuration and data of FVEread 
+			  will be downloaded from server, but not restored! This must
+			  be done manually!              
+  --restorebckp [ALL]
               Restore from backup
+              If ALL is passed, all parts of configuration and data of FVEread
+              will be backuped.
+  --restoreDate <DATE>
+               Date of backup to be used when restoring. Otherwise the
+               latest is being used. 
+               Format:   YYYYMMDD
 "
 exit 0
 }
 
 function createBackup() {
-	pushd "$FVEDATADIR" > /dev/null
-	tar -czf "$TMPDIR"/fvedata.tar.gz *
-	popd > /dev/null
+	local DATE=`date +%Y%m%d`
 	
-	lftp -u "$FTPUSERNAME",$FTPPASSWD -e "put -O "$HTMLDESTDIR"/fve.hist/ "$TMPDIR"/fvedata.tar.gz && bye" $HTMLSERVER >> /dev/null
+	pushd "$FVEDATADIR" > /dev/null
+	tar -czf "$TMPDIR"/fvedata."$DATE".tar.gz *.`date +%Y%m`
+	popd > /dev/null
+	cp "$TMPDIR"/fvedata."$DATE".tar.gz "$TMPDIR"/fvedata.latest.tar.gz
+	lftp -u "$FTPUSERNAME",$FTPPASSWD -e "put -O "$HTMLDESTDIR"/fve.hist/ "$TMPDIR"/fvedata."$DATE".tar.gz "$TMPDIR"/fvedata.latest.tar.gz && bye" $HTMLSERVER >> /dev/null
+}
+
+function createFullBackup() {
+	local DATE=`date +%Y%m%d`
+	
+	mkdir "$TMPDIR"/fvefullbackup
+	
+	cp "$FVEDATADIR"/* "$TMPDIR"/fvefullbackup/
+	cp ~/.FVErc mkdir "$TMPDIR"/fvefullbackup/
+	cp $OPTCFGFILE  "$TMPDIR"/fvefullbackup/
+	cp /etc/tellstick.conf "$TMPDIR"/fvefullbackup/
+	
+	tar -czf "$TMPDIR"/fvedata.full."$DATE".tar.gz "$TMPDIR"/fvefullbackup
+	cp "$TMPDIR"/fvedata.full."$DATE".tar.gz "$TMPDIR"/fvedata.full.latest.tar.gz
+	lftp -u "$FTPUSERNAME",$FTPPASSWD -e "put -O "$HTMLDESTDIR"/fve.hist/ "$TMPDIR"/fvedata.full."$DATE".tar.gz "$TMPDIR"/fvedata.latest.tar.gz && bye" $HTMLSERVER >> /dev/null
+	
+	rm -fr "$TMPDIR"/fvefullbackup
+	rm -f "$TMPDIR"/fvedata.full."$DATE".tar.gz 
+	rm -f "$TMPDIR"/fvedata.full.latest.tar.gz
 }
 
 function restoreBackup() {
 	pushd "$FVEDATADIR" > /dev/null
-	wget http://"$HTMLSERVER"/"$HTMLDESTDIR"/fve.hist/fvedata.tar.gz
-	tar -xzf "$TMPDIF"/fvedata.tar.gz 
+	wget http://"$HTMLSERVER"/"$HTMLDESTDIR"/fve.hist/fvedata."$RESTOREDATE".tar.gz
+	tar -xzf fvedata."$RESTOREDATE".tar.gz 
 	popd > /dev/null
 	
 	exit 0
 }
 
+function restoreFULLBackup() {
+	wget -O /tmp/fvedata.full."$RESTOREDATE".tar.gz http://"$HTMLSERVER"/"$HTMLDESTDIR"/fve.hist/fvedata.full."$RESTOREDATE".tar.gz
+	echo "Full backup is saved to /tmp/fvedata.full."$RESTOREDATE".tar.gz"
+	echo "Rest of restoring MUST be done by admin"
+	exit 0
+}
+
+function houseKeep() {
+	createFullBackup
+	find "$FVEDATADIR" -type f | grep -v `date +%Y%m` | while read FILETORM; do
+	rm -f $FILETORM
+	done
+}
+
+RESTOREDATE="latest"
 while [ $# -gt 0 ]; do
 	case $1 in
 		-h|--help) printHelp; exit; shift;;
 		-v|--verbose) VERB=Y; shift;;
-		--mkbckp)
-			createBackup
+		--backup)
+			if [ $2 = "all" ]; then 
+				createFullBackup
+				shift 2
+			else 
+				createBackup
+				shift
+			fi
+			;;
+		--restore)
+			if [ $2 = "all" ]; then 
+				restoreFULLBackup
+				shift 2
+			else 
+				restoreBackup
+				shift
+			fi
+			;;
+		--restoreDate)
+			RESTOREDATE="$2"
+			shift 2
+			;;
+		--housekeep)
+			houseKeep
 			shift
 			;;
-		--restorebckp)
-			restoreBackup
-			shift
-			;;
-		*)  echo "$0: error - unrecognized option $1" 1>&2; exit 1;;
+		*)  echo "$0: error - unrecognized option $1" 1>&2; 
+		    printHelp; 
+		    exit 1;;
 	esac
 done

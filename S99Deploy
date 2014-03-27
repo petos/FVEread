@@ -1,0 +1,8 @@
+#!/bin/bash
+
+tar -xzf /FVEdefault.tar.gz  -C /home/fve/
+chown -R fve:fve /home/fve/
+pushd /home/fve/FVEread > /dev/null
+su - fve -c "git pull FVEread master"
+su - fve -c "/home/fve/FVEread/FVEbackuper --restore"
+popd > /dev/null
