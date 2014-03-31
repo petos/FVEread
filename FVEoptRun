@@ -183,6 +183,7 @@ function mainLoop() {
 			echo `date +%Y%m%d%H%M` 1 >> $FVEDATADIR/$DEVICE.`date +%Y%m`
 		elif [ $AVRG -le $STOPVAL  -o $MAXCOMP -le $AVRG  ]; then
 			verbPrint "Production $AVRG is OFF limits ($MINCOMP/$MAXCOMP) of device $DEVICE, turning off"
+			FORCE='Y'
 			opt $DEVICE OFF
 			echo `date +%Y%m%d%H%M` 0 >> $FVEDATADIR/$DEVICE.`date +%Y%m`
 		else
