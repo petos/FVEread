@@ -46,7 +46,7 @@ else
 	echo "mem OK"
 fi
 
-if [ $( -ef | grep -e telldus -e tdtool | grep -v grep | wc -l ) -ge 4 ]; then
+if [ $(ps -ef | grep -e telldus -e tdtool | grep -v grep | wc -l ) -ge 4 ]; then
         printErrHdr
         printErr "Reboot, a lot of tdtools processes!!!!"
         printErr "`free -m`"
