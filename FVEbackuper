@@ -40,7 +40,11 @@ function createBackup() {
 function createFullBackup() {
 	local DATE=`date +%Y%m%d`
 	
-	mkdir "$TMPDIR"/fvefullbackup
+	if [ ! -e "$TMPDIR"/fvefullbackup ]; then
+		mkdir "$TMPDIR"/fvefullbackup
+	else
+		rm -f "$TMPDIR"/fvefullbackup/*
+	fi
 	
 	cp "$FVEDATADIR"/* "$TMPDIR"/fvefullbackup/
 	cp ~/.FVErc "$TMPDIR"/fvefullbackup/
