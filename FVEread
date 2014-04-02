@@ -114,8 +114,9 @@ function uploadDataFTP() {
 		TRIMMED=${FILE%.png}
 		mv $TRIMMED{.png,.`date +%Y%m%d`.png} 
 	done
-
-
+	
+	lftp -u "$FTPUSERNAME",$FTPPASSWD -e "mput -O "$HTMLDESTDIR"/fve.hist/ $TMPDIR/m*.png $TMPDIR/fve.device.*.png $TMPDIR/p*.png $TMPDIR/d`date +%Y%m%d`.png && bye" $HTMLSERVER >> /dev/null 
+	
 	return 0
 }
 
@@ -199,7 +200,7 @@ while [ $# -gt 0 ]; do
 			disableMe 2>/dev/null
 			FVEoptRun --off
 			shift
-			exit
+			exit 0
 			;;
 		--enable)
 			enableMe 2>/dev/null
