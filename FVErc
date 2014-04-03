@@ -28,13 +28,12 @@ PATH=$PATH:~/bin
 FVEDATADIR=~/fve
 PRODUCTIONFILE="$FVEDATADIR"/production.`date +%Y%m`
 HISTORYFILE="$FVEDATADIR"/history.`date +%Y%m`
-OPTCFGFILE="$FVEDATADIR"/FVEoptRun.cfg
+
+CFGDIR=~/config
+OPTCFGFILE="$CFGDIR"/FVEoptRun.cfg
+OPTCFGLOWFILE="$CFGDIR"/FVEoptRun.low.cfg
 
 HTMLSERVER=SERVER.COM
 HTMLDESTDIR=fve
-
-DATEMTH=`date +%Y%m`
-DATEDAY=`date +%Y%m%d`
-DATETIME=`date +%Y%m%d`
 
 FVEBINDIR=~/FVEread

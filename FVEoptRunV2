@@ -3,24 +3,10 @@
 source ~/.FVErc
 source "$FVEBINDIR"/FVEcomFncs
 
-function opt() {
-	#usage opt $COMPONENT $EXPECTEDSTATUS
-	local COMPONENT=$1
-	local EXPECTEDSTATUS=${2,,}
-	
-	debugPrint "$COMPONENT: should be $EXPECTEDSTATUS"
-	if [ "$EXPECTEDSTATUS" = "on" -o  "$EXPECTEDSTATUS" = "off" ]; then
-		debugPrint "Turning $EXPECTEDSTATUS"
+OPTCFGFILE=$OPTCFGFILE.2
+OPTCFGLOWFILE="$CFGDIR"/FVEoptRun.low.cfg
 
-		realStatus $COMPONENT $EXPECTEDSTATUS
-		local STATUS=$? 
-		if [ $STATUS = 0 -o "$FORCE" = "Y" ] ; then
-			FVEgenPage --update --device $COMPONENT $EXPECTEDSTATUS
-		fi
-	else
-		echo "Unknown parametr for function opt(): $@"
-	fi
-}
+source $OPTCFGLOWFILE
 
 function getDeviceNumber() {
 	#usage: getDeviceNumber $COMPONENT
@@ -28,7 +14,6 @@ function getDeviceNumber() {
 	debugPrint "Getting device number for: $COMPONENT"
 	DEVICENUM=$( grep -B1 $COMPONENT /etc/tellstick.conf | head -1 | awk '{print $NF}')
 }
-
 
 function checkTDstatus() {
 	local TDSTATUS=`sudo service telldusd status | tr -d '!' `
@@ -38,52 +23,9 @@ function checkTDstatus() {
 		sudo service telldusd status
 		echo ====
 	fi
+	
 	> "$TMPDIR"/FVE.statuses
 	tdtool -l > "$TMPDIR"/FVE.statuses
-}
-
-function realStatus(){
-	#usage: getStatus $COMPONENT $STATUS
-	#retval: 0 -- the status was changed
-	#        1 -- OK, but status was not changed
-	#        2 -- OK, but device was not recognized as part of config
-	#        9 -- ERROR with telldusd
-
-	local COMPONENT=$1
-	local EXPECTEDSTATUS=$2
-	local DEVICENUM=''
-	getDeviceNumber $COMPONENT
-	debugPrint "$COMPONENT has been found with device number $DEVICENUM"
-
-	if [ -z $DEVICENUM ]; then
-		debugPrint "Device not recognized, skipping"
-		return 2
-	fi
-
-	local STATUS=$( awk /$COMPONENT/'{print $NF}' "$TMPDIR"/FVE.statuses | tr '[:upper:]' '[:lower:]' )
-	if [ -z "$STATUS" ]; then
-		verbPrint "Error in getting real status, skipping"
-		return 9
-	fi
-	debugPrint "$COMPONENT [$DEVICENUM] = should be: $EXPECTEDSTATUS, is $STATUS"
-	if [ "$STATUS" = "$EXPECTEDSTATUS" -a $FORCE = "N" ]; then
-		verbPrint "OK, nothing to change"
-		return 1
-	else
-		if [ $FORCE = Y ]; then
-			echo "Forced: changing status of device #$DEVICENUM to $EXPECTEDSTATUS"
-		else
-			debugPrint "Changing status of device #$DEVICENUM from $STATUS to $EXPECTEDSTATUS"
-		fi
-		ERRMSG=$(tdtool --${EXPECTEDSTATUS,,} $DEVICENUM $VERBOUT )
-		if [ "$?" != "0" ]; then
-			echo "Problem with tdtool. Failed with message:"
-			echo "\"$ERRMSG\""
-			return 9
-		else
-			return 0
-		fi
-	fi
 }
 
 function printHelp() {
@@ -101,26 +43,6 @@ function getAvrg() {
 	debugPrint "Avrg is: $AVRG"
 }
 
-function getStopVal() {
-	STOPVAL=$MINCOMP
-	debugPrint "STOPVAL is $STOPVAL"
-}
-
-function getStartVal() {
-	STARTVAL=$(expr $MINCOMP + $(expr $MINCOMP / $FLUCPERC))
-	debugPrint "STARTVAL is $STARTVAL"
-}
-
-function getStartStop() {
-	if [ $AVRG -gt 1500 ]; then
-		FLUCPERC=20
-	else
-		FLUCPERC=10
-	fi
-	getStartVal
-	getStopVal
-}
-
 function checkUptime() {
 	UPTIME=$(cat /proc/uptime | awk -F '.' '{print $1}')
 	if [ $UPTIME -lt 660 ]; then
@@ -129,58 +51,83 @@ function checkUptime() {
 	fi
 }
 
-function checkParams() {
-	if [ -z $DEVICE ] || [ -z $MINCOMP ] ; then 
-		return 1
-	fi
-	if [ -z $MAXCOMP ]; then MAXCOMP=99999; fi
-	
-	debugPrint "Processing $DEVICE with params: $MINCOMP/$MAXCOMP"
-	
-	if [ $(echo $MINCOMP$MAXCOMP | sed 's/[0-9]*//g' ) ]; then 
-		echo "Detected non proper configuration for device $DEVICE: consumption: $MINCOMP/$MAXCOMP"
-		return 1
-	elif [ $MINCOMP -le 0 ] || [ $MAXCOMP -le 0 ]; then 
-		echo "Detected non proper configuration for device $DEVICE: consumption: $MINCOMP/$MAXCOMP"
-		return 1
-	fi
-	if [ $MINCOMP -ge $MAXCOMP ]; then
-		echo "Minimal is bigger then maximal. This does not seems to be right: $MINCOMP/$MAXCOMP"
-		return 1
-	fi
-
-	debugPrint "Params OK"
-	return 0
+function getTemperature() {
+	TEMPERATURE=60
+	exit 0
 }
 
-function mainLoop() {
-	grep -v ^\# "$OPTCFGFILE" | while read DEVICE MINCOMP MAXCOMP ; do
-		if ( ! checkParams ); then
-			continue
-		fi
-		getStartStop
-		if [ -z $MAXCOMP ]; then MAXCOMP=99999; fi
-		
-		debugPrint "Device $DEVICE with params $MINCOMP/$MAXCOMP passed tests"
-
-		if [ $STARTVAL -le $AVRG  -a  $AVRG -le $MAXCOMP ]; then
-			verbPrint "Production $AVRG is IN limits ($MINCOMP/$MAXCOMP) of device $DEVICE, turning on"
-			opt $DEVICE ON
-			echo $TIMEDATE_YYYYMMDDHHmm 1 >> $FVEDATADIR/$DEVICE."$TIMEDATE_YYYYMM"
-		elif [ $AVRG -le $STOPVAL  -o $MAXCOMP -le $AVRG  ]; then
-			verbPrint "Production $AVRG is OFF limits ($MINCOMP/$MAXCOMP) of device $DEVICE, turning off"
-			FORCE='Y'
-			opt $DEVICE OFF
-			echo $TIMEDATE_YYYYMMDDHHmm 0 >> $FVEDATADIR/$DEVICE."$TIMEDATE_YYYYMM"
-		else
-			verbPrint "For device $DEVICE production is between STARTVAL and STOPVAL: $STOPVAL < $AVRG < $STARTVAL"
-			if [ $FORCE = 'Y' ]; then
-				echo "Forced, hence shutting down."
-				opt $DEVICE OFF
-			fi
+function getLowTarifInfo() {
+	#returns if now we are in Low tarif or not and eventually what low tarif (1st part, 2nd part...)
+	
+	ISLOWTARIF=N
+	WHATLOWTARIF=''
+	local LOWTARIFN
+	local TIMEDATEHHmm=$(date +%H%M)
+	
+	#Parse lowtarif config
+	for LOWTARIFN in $(seq 0 $(expr $VALLOWTARIFS - 1)); do
+		if [ ${VALLOWTARIF_STARTS[$LOWTARIFN]} -lt $TIMEDATEHHmm -a $TIMEDATEHHmm -lt ${VALLOWTARIF_STOPS[$LOWTARIFN]} ]; then
+			echo "$TIMEDATEHHmm: LowTarif=YES: $LOWTARIFN"
+			ISLOWTARIF=Y
+			LOWTARIFNUM=$LOWTARIFN
 		fi
 	done
+	echo "$LOWTARIFNUM: LowTarif=$ISLOWTARIF"
 }
+
+function manageThermalDevicesNODT() {
+	#AWRG enough=> ON
+	#else
+	#LOWTARIF, should be ON?
+}
+
+function manageGeneralDevices() {
+	#MANAGE REST OF ENERGYBUCKET
+}
+
+function mainloopDT() {
+	#~ #Parse lowtarif config
+		#~ getTemperature
+	#~ #Parse devices config
+	#~ #Decide what should be on/off
+	#~ #Start/stop devices
+	#~ echo DEVICEID TYPE DEVICE CONSUMPTION TIME1 TIME2 STARTTEMP STOPTEMP
+	#~ while read DEVICEID TYPE DEVICE CONSUMPTION TIME1 TIME2 STARTTEMP STOPTEMP; do 
+		#~ echo $DEVICEID $TYPE $DEVICE $CONSUMPTION $TIME1 $TIME2 $STARTTEMP $STOPTEMP
+	#~ done < "$OPTCFGFILE"
+}
+
+
+function mainloopNODT() {
+	
+	getLowTarifInfo
+	manageThermalDevicesNODT
+	manageGeneralDevices
+	enableDisableDevices
+	#Parse devices config
+	#Decide what should be on/off
+	#Start/stop devices
+	echo DEVICEID TYPE DEVICE CONSUMPTION TIME1 TIME2 STARTTEMP STOPTEMP
+	while read DEVICEID TYPE DEVICE CONSUMPTION TIME1 TIME2 STARTTEMP STOPTEMP; do 
+		echo $DEVICEID $TYPE $DEVICE $CONSUMPTION $TIME1 $TIME2 $STARTTEMP $STOPTEMP
+	done < "$OPTCFGFILE"
+}
+
+mainloop() {
+	getLowTarifInfo
+	
+	if [ "$DIRECTTEMP" = "ON" ]; then
+		mainLoopDT
+	elif [ "$DIRECTTEMP" = "OFF" ]; then
+		mainLoopNODT
+	else
+		echo "Not able parse configuration, quitting"
+		exit 1
+	fi
+	
+}
+
+
 
 VERBOUT="2>/dev/null"
 FORCE='N'
@@ -209,7 +156,11 @@ else
 	getAvrg
 fi
 
+ENERGYBUCKET=$AVRG
+
 checkTDstatus
+
+
 mainLoop
 
 rm -f "$TMPDIR"/FVE.statuses
