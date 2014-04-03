@@ -3,30 +3,17 @@
 source ~/.FVErc
 source "$FVEBINDIR"/FVEcomFncs
 
-function debugPrint() {
-	if [ $DEBUG ]; then
-		echo "`date +%d.%m.%Y-%H:%M`: $1"
-	fi
-}
-function verbPrint() {
-	if [ $VERB ]; then
-		echo "`date +%d.%m.%Y-%H:%M`: $1"
-	fi
-}
+
 
 function opt() {
 	#usage opt $COMPONENT $EXPECTEDSTATUS
 	local COMPONENT=$1
 	local EXPECTEDSTATUS=${2,,}
 	
-	debugPrint "COMPONENT: EXPECTEDSTATUS"
-	debugPrint "$COMPONENT: $EXPECTEDSTATUS"
+	debugPrint "$COMPONENT: should be $EXPECTEDSTATUS"
 	if [ "$EXPECTEDSTATUS" = "on" -o  "$EXPECTEDSTATUS" = "off" ]; then
-		if [ "$EXPECTEDSTATUS" = "on" ]; then
-			debugPrint "Turning on"
-		elif [ "$EXPECTEDSTATUS" = "off" ]; then
-			debugPrint "Turning off"
-		fi
+		debugPrint "Turning $EXPECTEDSTATUS"
+
 		realStatus $COMPONENT $EXPECTEDSTATUS
 		local STATUS=$? 
 		if [ $STATUS = 0 -o "$FORCE" = "Y" ] ; then
@@ -69,18 +56,18 @@ function realStatus(){
 	local DEVICENUM=''
 	getDeviceNumber $COMPONENT
 	debugPrint "$COMPONENT has been found with device number $DEVICENUM"
+
 	if [ -z $DEVICENUM ]; then
 		debugPrint "Device not recognized, skipping"
 		return 2
 	fi
-	#local STATUS=$(tdtool -l | awk /$COMPONENT/'{print $NF}' | tr '[:upper:]' '[:lower:]' )
+
 	local STATUS=$( awk /$COMPONENT/'{print $NF}' "$TMPDIR"/FVE.statuses | tr '[:upper:]' '[:lower:]' )
-		if [ -z "$STATUS" ]; then
-			verbPrint "Error in getting real status, skipping"
-			return 9
-		fi
-		debugPrint "COMPONENT: DEVICENUM = EXPECTEDSTATUS:STATUS"
-		debugPrint "$COMPONENT: $DEVICENUM = $EXPECTEDSTATUS:$STATUS"
+	if [ -z "$STATUS" ]; then
+		verbPrint "Error in getting real status, skipping"
+		return 9
+	fi
+	debugPrint "$COMPONENT [$DEVICENUM] = should be: $EXPECTEDSTATUS, is $STATUS"
 	if [ "$STATUS" = "$EXPECTEDSTATUS" -a $FORCE = "N" ]; then
 		verbPrint "OK, nothing to change"
 		return 1

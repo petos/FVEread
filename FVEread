@@ -3,12 +3,6 @@
 source ~/.FVErc
 source "$FVEBINDIR"/FVEcomFncs
 
-function verbPrint() {
-	if [ $VERB ]; then
-		echo "`date +%d.%m.%Y-%H:%M`: $1"
-	fi
-}
-
 function printHelp() {
 	echo -e "usage: `basename $0` [OPTIONS]
  Opts:

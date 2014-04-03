@@ -1,5 +1,17 @@
 TIMEDATE_YYYYMM=$(date +%Y%m)
 TIMEDATE_YYYYMMDD=$(date +%Y%m%d)
 
-TIMEDATE_YYYYMMDDHH=$(date +%Y%m%d%H)
+#TIMEDATE_YYYYMMDDHH=$(date +%Y%m%d%H)
 TIMEDATE_YYYYMMDDHHmm=$(date +%Y%m%d%H%M)
+
+function debugPrint() {
+	if [ $DEBUG ]; then
+		echo "`date +%d.%m.%Y-%H:%M`: $1"
+	fi
+}
+
+function verbPrint() {
+	if [ $VERB ]; then
+		echo "`date +%d.%m.%Y-%H:%M`: $1"
+	fi
+}
