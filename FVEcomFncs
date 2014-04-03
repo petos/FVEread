@@ -1,0 +1,5 @@
+TIMEDATE_YYYYMM=$(date +%Y%m)
+TIMEDATE_YYYYMMDD=$(date +%Y%m%d)
+
+TIMEDATE_YYYYMMDDHH=$(date +%Y%m%d%H)
+TIMEDATE_YYYYMMDDHHmm=$(date +%Y%m%d%H%M)

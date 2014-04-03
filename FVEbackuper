@@ -3,6 +3,7 @@
 # Customised for my setup with read-only filesystem, regular backups etc.
 
 source ~/.FVErc
+source ./FVEcomFncs
 
 function printHelp() {
 	echo -e "usage: `basename $0` [OPTIONS]
@@ -28,17 +29,17 @@ exit 0
 }
 
 function createBackup() {
-	local DATE=`date +%Y%m%d`
+	local DATE="$TIMEDATE_YYYYMMDD"
 	
 	pushd "$FVEDATADIR" > /dev/null
-	tar -czf "$TMPDIR"/fvedata."$DATE".tar.gz *.`date +%Y%m`
+	tar -czf "$TMPDIR"/fvedata."$DATE".tar.gz *."$TIMEDATE_YYYYMM"
 	popd > /dev/null
 	cp "$TMPDIR"/fvedata."$DATE".tar.gz "$TMPDIR"/fvedata.latest.tar.gz
 	lftp -u "$FTPUSERNAME",$FTPPASSWD -e "put -O "$HTMLDESTDIR"/fve.hist/ "$TMPDIR"/fvedata."$DATE".tar.gz "$TMPDIR"/fvedata.latest.tar.gz && bye" $HTMLSERVER >> /dev/null
 }
 
 function createFullBackup() {
-	local DATE=`date +%Y%m%d`
+	local DATE="$TIMEDATE_YYYYMMDD"
 	
 	if [ ! -e "$TMPDIR"/fvefullbackup ]; then
 		mkdir "$TMPDIR"/fvefullbackup
@@ -78,7 +79,7 @@ function restoreFULLBackup() {
 
 function houseKeep() {
 	createFullBackup
-	find "$FVEDATADIR" -type f | grep -v `date +%Y%m` | while read FILETORM; do
+	find "$FVEDATADIR" -type f | grep -v "$TIMEDATE_YYYYMM" | while read FILETORM; do
 	rm -f $FILETORM
 	done
 }

@@ -1,6 +1,7 @@
 #!/bin/bash
 
 source ~/.FVErc
+source ./FVEcomFncs
 
 function verbPrint() {
 	if [ $VERB ]; then
@@ -66,9 +67,9 @@ function cleanFile() {
 	rm -f "$TMPDIR"/fved.png
 	rm -f "$TMPDIR"/fvem.png
 	rm -f "$TMPDIR"/fvep.png
-	rm -f "$TMPDIR"/d`date +%Y%m%d`.png
-	rm -f "$TMPDIR"/m`date +%Y%m`.png
-	rm -f "$TMPDIR"/p`date +%Y%m`.png
+	rm -f "$TMPDIR"/d"$TIMEDATE_YYYYMMDD".png
+	rm -f "$TMPDIR"/m"$TIMEDATE_YYYYMM".png
+	rm -f "$TMPDIR"/p"$TIMEDATE_YYYYMM".png
 	rm -f "$TMPDIR"/fve.device.*.png
 	rm -f "$TMPDIR"/.fveread.lock
 }
@@ -85,10 +86,10 @@ function checkRunningStatus() {
 function updateProductionFile() {
 	#usage: genProductionFiles 
 	
-	DATE=`date +%Y%m%d`
+	#DATE="$TIMEDATE_YYYYMMDD"
 
-	sed -i /"$DATE"/d $PRODUCTIONFILE
-	echo "$DATE $TODAY" >> $PRODUCTIONFILE
+	sed -i /"$TIMEDATE_YYYYMMDD"/d $PRODUCTIONFILE
+	echo "$TIMEDATE_YYYYMMDD $TODAY" >> $PRODUCTIONFILE
 	
 	return 0
 }
@@ -107,15 +108,15 @@ function uploadDataFTP() {
 	
 	lftp -u "$FTPUSERNAME",$FTPPASSWD -e "mput -O "$HTMLDESTDIR" $TMPDIR/fvem.png $TMPDIR/fve.device.*.png $TMPDIR/fved.png /$TMPDIR/fvep.png $HTMLPOWERFILE $HTMLOPTFILE $HTMLFILE && bye" $HTMLSERVER >> /dev/null
 
-	mv "$TMPDIR"/fved.png "$TMPDIR"/d`date +%Y%m%d`.png
-	mv "$TMPDIR"/fvem.png "$TMPDIR"/m`date +%Y%m`.png
-	mv "$TMPDIR"/fvep.png "$TMPDIR"/p`date +%Y%m`.png
+	mv "$TMPDIR"/fved.png "$TMPDIR"/d"$TIMEDATE_YYYYMMDD".png
+	mv "$TMPDIR"/fvem.png "$TMPDIR"/m"$TIMEDATE_YYYYMM".png
+	mv "$TMPDIR"/fvep.png "$TMPDIR"/p"$TIMEDATE_YYYYMM".png
 	for FILE in "$TMPDIR"/fve.device.*.png; do 
 		TRIMMED=${FILE%.png}
-		mv $TRIMMED{.png,.`date +%Y%m%d`.png} 
+		mv $TRIMMED{.png,."$TIMEDATE_YYYYMMDD".png} 
 	done
 	
-	lftp -u "$FTPUSERNAME",$FTPPASSWD -e "mput -O "$HTMLDESTDIR"/fve.hist/ $TMPDIR/m*.png $TMPDIR/fve.device.*.png $TMPDIR/p*.png $TMPDIR/d`date +%Y%m%d`.png && bye" $HTMLSERVER >> /dev/null 
+	lftp -u "$FTPUSERNAME",$FTPPASSWD -e "mput -O "$HTMLDESTDIR"/fve.hist/ $TMPDIR/m*.png $TMPDIR/fve.device.*.png $TMPDIR/p*.png $TMPDIR/d"$TIMEDATE_YYYYMMDD".png && bye" $HTMLSERVER >> /dev/null 
 	
 	return 0
 }
@@ -147,7 +148,7 @@ function getData() {
 
 function genFiles() {
 	#usage: genFiles
-		echo `date +%Y%m%d%H%M` $CURRENT $TODAY $AVRG >> "$HISTORYFILE"
+		echo $TIMEDATE_YYYYMMDDHHmm $CURRENT $TODAY $AVRG >> "$HISTORYFILE"
 
 		FVEgenPage  --powerpage --current $CURRENT --today $TODAY --fvestatus $FVESTATUS --avrg $AVRG
 		

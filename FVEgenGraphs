@@ -1,6 +1,7 @@
 #!/bin/bash
 
 source ~/.FVErc
+source ./FVEcomFncs
 
 function printHelp() {
 	echo -e "usage: `basename $0` COMMAND
@@ -19,7 +20,7 @@ function genOnOffDevicesGraphs() {
 	> "$TMPDIR"/FVE.gn
 
 grep -v ^\# "$OPTCFGFILE" | while read DEVICE MINCOMP MAXCOMP ; do
-local DEVICEDATAFILE="$FVEDATADIR"/"$DEVICE.`date +%Y%m`"
+local DEVICEDATAFILE="$FVEDATADIR"/"$DEVICE"."$TIMEDATE_YYYYMM"
 
 cat> "$TMPDIR"/FVE.gn << EOF
 set timefmt "%Y%m%d%H%M"
@@ -27,7 +28,7 @@ set xdata time
 set format x "%H:%M"
 set title "Today on/off for device $DEVICE\nGenerated on `date +%H:%M`"
 
-set xrange["`date +%Y%m%d` 00:00:00":"`date +%Y%m``expr $( date +%d ) + 1` 23:59:59"]
+set xrange["$TIMEDATE_YYYYMMDD 00:00:00":"$TIMEDATE_YYYYMM`expr $( date +%d ) + 1` 23:59:59"]
 set yrange[-0.1:1.1]
 
 set terminal png small size 640,240
@@ -50,7 +51,7 @@ set xdata time
 set format x "%H:%M"
 set title "Today power\nGenerated on `date +%H:%M`"
 
-set xrange["`date +%Y%m%d` 00:00:00":"`date +%Y%m``expr $( date +%d ) + 1` 23:59:59"]
+set xrange["$TIMEDATE_YYYYMMDD 00:00:00":"$TIMEDATE_YYYYMM`expr $( date +%d ) + 1` 23:59:59"]
 
 set terminal png
 set output "$TMPDIR/fved.png"
