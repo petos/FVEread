@@ -36,3 +36,5 @@ HTMLDESTDIR=fve
 DATEMTH=`date +%Y%m`
 DATEDAY=`date +%Y%m%d`
 DATETIME=`date +%Y%m%d`
+
+FVEBINDIR=~/FVEread

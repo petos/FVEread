@@ -3,7 +3,7 @@
 # Customised for my setup with read-only filesystem, regular backups etc.
 
 source ~/.FVErc
-source ./FVEcomFncs
+source "$FVEBINDIR"/FVEcomFncs
 
 function printHelp() {
 	echo -e "usage: `basename $0` [OPTIONS]
