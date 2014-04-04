@@ -60,70 +60,95 @@ function getLowTarifInfo() {
 	#returns if now we are in Low tarif or not and eventually what low tarif (1st part, 2nd part...)
 	
 	ISLOWTARIF=N
-	WHATLOWTARIF=''
+	LOWTARIFNUM=''
 	local LOWTARIFN
 	local TIMEDATEHHmm=$(date +%H%M)
 	
 	#Parse lowtarif config
 	for LOWTARIFN in $(seq 0 $(expr $VALLOWTARIFS - 1)); do
 		if [ ${VALLOWTARIF_STARTS[$LOWTARIFN]} -lt $TIMEDATEHHmm -a $TIMEDATEHHmm -lt ${VALLOWTARIF_STOPS[$LOWTARIFN]} ]; then
-			echo "$TIMEDATEHHmm: LowTarif=YES: $LOWTARIFN"
+			verbPrint "$TIMEDATEHHmm: LowTarif=YES: $LOWTARIFN"
 			ISLOWTARIF=Y
 			LOWTARIFNUM=$LOWTARIFN
 		fi
 	done
-	echo "$LOWTARIFNUM: LowTarif=$ISLOWTARIF"
+	verbPrint "$LOWTARIFNUM: LowTarif=$ISLOWTARIF"
 }
 
-function manageThermalDevicesNODT() {
-	#AWRG enough=> ON
-	#else
-	#LOWTARIF, should be ON?
+
+
+function parseThermalDevice() {
+DEVICEN=-1
+	while read LNDEVICEID LNTYPE LNDEVICE LNCONSUMPTION LNTIME0 LNTIME1 LNSTARTTEMP LNSTOPTEMP ; do 
+	#while read LINE; do
+		((++DEVICEN))
+		verbPrint "$LNDEVICEID $LNTYPE $LNDEVICE $LNCONSUMPTION $LNTIME0 $LNTIME1 $LNSTARTTEMP $LNSTOPTEMP"
+		DEVICEID[$DEVICEN]=$LNDEVICEID
+		TYPE["$DEVICEN"]=$LNTYPE
+		DEVICE["$DEVICEN"]=$LNDEVICE
+		CONSUMPTION["$DEVICEN"]=$LNCONSUMPTION
+		TIME0["$DEVICEN"]=$LNTIME0
+		TIME1["$DEVICEN"]=$LNTIME1
+		STARTTEMP["$DEVICEN"]=$LNSTARTTEMP
+		STOPTEMP["$DEVICEN"]=$LNSTOPTEMP
+	done < <( cat "$OPTCFGFILE" | grep thermal)
+
+	###TEST
+	if [ $DEBUG = Y ]; then
+	for i in `seq 0 $DEVICEN`; do
+		echo "ID$i: ${DEVICEID[$i]}"
+		echo "TYPE$i: ${TYPE["$i"]}"
+		echo "NAME$i: ${DEVICE["$i"]}"
+		echo "CONS$i: ${CONSUMPTION["$i"]}"
+		echo "TIM1$i: ${TIME0["$i"]}"
+		echo "TIM2$i: ${TIME1["$i"]}"
+		echo "RTTM$i: ${STARTTEMP["$i"]}"
+		echo "TPTM$i: ${STOPTEMP["$i"]}"
+		echo "#####"
+	done
+	fi
+	###ENDTEST
 }
 
+function whatDevicesShouldBeUp() {
+	TIMETARIF="TIME$LOWTARIFNUM[@]"
+	local LOCALDEVICEID=-1
+	while read UPMINS; do
+		((++LOCALDEVICEID))
+		if [ $UPMINS -gt 0 ]; then
+			verbPrint "Device ${DEVICE["$LOCALDEVICEID"]} in this lowtarif n.$LOWTARIFNUM should be up for $UPMINS mins."
+			getUptimeOfDevice
+		else
+			verbPrint "Device ${DEVICE["$LOCALDEVICEID"]} in this lowtarif n.$LOWTARIFNUM should not be up"
+		fi
+	done < <(echo ${!TIMETARIF} | tr ' ' '\n')
+	return 0
+}
+
+
+
+
+function manageThermalDevices {
+	parseThermalDevice #done
+	whatDevicesShouldBeUp
+	
+}
 function manageGeneralDevices() {
-	#MANAGE REST OF ENERGYBUCKET
+	return 0
 }
-
-function mainloopDT() {
-	#~ #Parse lowtarif config
-		#~ getTemperature
-	#~ #Parse devices config
-	#~ #Decide what should be on/off
-	#~ #Start/stop devices
+function enableDisableDevices() {
+	return 0
+}
+mainloop() {
+	getLowTarifInfo #done
+	manageThermalDevices
+#	manageGeneralDevices
+	#enableDisableDevices
+	
 	#~ echo DEVICEID TYPE DEVICE CONSUMPTION TIME1 TIME2 STARTTEMP STOPTEMP
 	#~ while read DEVICEID TYPE DEVICE CONSUMPTION TIME1 TIME2 STARTTEMP STOPTEMP; do 
 		#~ echo $DEVICEID $TYPE $DEVICE $CONSUMPTION $TIME1 $TIME2 $STARTTEMP $STOPTEMP
-	#~ done < "$OPTCFGFILE"
-}
-
-
-function mainloopNODT() {
-	
-	getLowTarifInfo
-	manageThermalDevicesNODT
-	manageGeneralDevices
-	enableDisableDevices
-	#Parse devices config
-	#Decide what should be on/off
-	#Start/stop devices
-	echo DEVICEID TYPE DEVICE CONSUMPTION TIME1 TIME2 STARTTEMP STOPTEMP
-	while read DEVICEID TYPE DEVICE CONSUMPTION TIME1 TIME2 STARTTEMP STOPTEMP; do 
-		echo $DEVICEID $TYPE $DEVICE $CONSUMPTION $TIME1 $TIME2 $STARTTEMP $STOPTEMP
-	done < "$OPTCFGFILE"
-}
-
-mainloop() {
-	getLowTarifInfo
-	
-	if [ "$DIRECTTEMP" = "ON" ]; then
-		mainLoopDT
-	elif [ "$DIRECTTEMP" = "OFF" ]; then
-		mainLoopNODT
-	else
-		echo "Not able parse configuration, quitting"
-		exit 1
-	fi
+	#~ done < <(cat "$OPTCFGFILE" | grep ' ')
 	
 }
 
@@ -159,9 +184,8 @@ fi
 ENERGYBUCKET=$AVRG
 
 checkTDstatus
-
-
 mainLoop
+
 
 rm -f "$TMPDIR"/FVE.statuses
 exit 0
