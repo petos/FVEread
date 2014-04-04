@@ -61,7 +61,7 @@ function checkUptime() {
 
 function getTemperature() {
 	TEMPERATURE=60
-	exit 0
+	verbPrint "Temperature on thermal devices is $TEMPERATURE"
 }
 
 function getLowTarifInfo() {
@@ -75,7 +75,7 @@ function getLowTarifInfo() {
 	#Parse lowtarif config
 	for LOWTARIFN in $(seq 0 $(expr $VALLOWTARIFS - 1)); do
 		if [ ${VALLOWTARIF_STARTS[$LOWTARIFN]} -lt $TIMEDATEHHmm -a $TIMEDATEHHmm -lt ${VALLOWTARIF_STOPS[$LOWTARIFN]} ]; then
-			verbPrint "Now we are in Low Tarif time: ${VALLOWTARIF_STARTS[$LOWTARIFN]} < $TIMEDATEHHmm ${VALLOWTARIF_STOPS[$LOWTARIFN]} "
+			verbPrint "Now we are in Low Tarif time: ${VALLOWTARIF_STARTS[$LOWTARIFN]} < $TIMEDATEHHmm < ${VALLOWTARIF_STOPS[$LOWTARIFN]} "
 			ISLOWTARIF=Y
 			LOWTARIFNUM=$LOWTARIFN
 			break
@@ -103,16 +103,16 @@ DEVICEN=-1
 
 	###TEST
 	if [ $DEBUG ]; then
-	for i in `seq 0 $DEVICEN`; do
-		echo "ID$i: ${DEVICEID[$i]}"
-		echo "TYPE$i: ${TYPE["$i"]}"
-		echo "NAME$i: ${DEVICE["$i"]}"
-		echo "CONS$i: ${CONSUMPTION["$i"]}"
-		echo "TIM1$i: ${TIME0["$i"]}"
-		echo "TIM2$i: ${TIME1["$i"]}"
-		echo "RTTM$i: ${STARTTEMP["$i"]}"
-		echo "TPTM$i: ${STOPTEMP["$i"]}"
-	done
+		for i in `seq 0 $DEVICEN`; do
+			echo "ID$i: ${DEVICEID[$i]}"
+			echo "TYPE$i: ${TYPE["$i"]}"
+			echo "NAME$i: ${DEVICE["$i"]}"
+			echo "CONS$i: ${CONSUMPTION["$i"]}"
+			echo "TIM1$i: ${TIME0["$i"]}"
+			echo "TIM2$i: ${TIME1["$i"]}"
+			echo "RTTM$i: ${STARTTEMP["$i"]}"
+			echo "TPTM$i: ${STOPTEMP["$i"]}"
+		done
 	fi
 	###ENDTEST
 }
@@ -136,7 +136,7 @@ function whatDevicesShouldBeUpNODT() {
 			local UPTIME="$?"
 			if [ "$UPTIME" -lt "$DESIREDUPTIME" ]; then
 				verbPrint "Device ${DEVICE["$LOCALDEVICEID"]} was up for $UPTIME mins, but required is $DESIREDUPTIME."				
-				STARTSTOPDEVICES["${DEVICE["$LOCALDEVICEID"]}"]=ON
+				STARTSTOPDEVICES["${DEVICEID["$LOCALDEVICEID"]}"]=ON
 				updateEnergy ${CONSUMPTION["$LOCALDEVICEID"]}
 			else
 				verbPrint "Device ${DEVICE["$LOCALDEVICEID"]} was up for $UPTIME, that is more than $DESIREDUPTIME mins, not starting now"
@@ -150,15 +150,32 @@ function whatDevicesShouldBeUpNODT() {
 	return 0
 }
 
+function whatDevicesShouldBeUpDT() {
+	getTemperature
+
+	if [ $TEMPERATURE -lt $VALLOWTARIFMINTEMP ]; then
+		verbPrint "Temperature in thermal device is lower than minimum requested. $TEMPERATURE < $VALLOWTARIFMINTEMP"
+		local LOCALDEVICEID=-1
+		while read DEVICENAME; do
+			((++LOCALDEVICEID))
+			verbPrint "STARTING DEVICE $DEVICENAME"
+			STARTSTOPDEVICES["${DEVICEID[$LOCALDEVICEID]}"]=ON
+			updateEnergy ${CONSUMPTION["$LOCALDEVICEID"]}
+		done < <( cat "$OPTCFGFILE" | grep -v \# | awk /thermal/'{print $3}' ) 
+	else 
+		verbPrint "Temperature in thermal device is over minimum requested. $VALLOWTARIFMINTEMP < $TEMPERATURE"
+	fi
+}
+
 function manageThermalDevices {
 	parseThermalDevice #done
-			#LOWTARIFHEAT
 	if [ "$ISLOWTARIF" = "Y" ]; then
 	verbPrint "LowTarif time is enabled"
 		if [ "$DIRECTTEMP" = "ON" ]; then
-			echo whatDevicesShouldBeUpDT
+			verbPrint "DirectTemp is ON, enabling temperature-based configuration"
+			whatDevicesShouldBeUpDT
 		elif [ "$DIRECTTEMP" = "OFF" ]; then
-			verbPrint "DirectTemp is OFF, enabling time-related configuration"
+			verbPrint "DirectTemp is OFF, enabling time-based configuration"
 			whatDevicesShouldBeUpNODT
 		else
 			echo "Not able parse configuration, quitting"
@@ -177,10 +194,9 @@ function enableDisableDevices() {
 }
 
 function initDevTable() {
-	declare -a STARTSTOPDEVICES
-	while read VOID VOID DEVICENAME VOID; do
-		STARTSTOPDEVICES["$DEVICENAME"]=OFF
-		#verbPrint "$DEVICENAME = ${STARTSTOPDEVICES["$DEVICENAME"]}"
+	while read ID VOID DEVICENAME VOID; do
+		STARTSTOPDEVICES["$ID"]=OFF
+		verbPrint "$DEVICENAME = ${STARTSTOPDEVICES["$ID"]}"
 	done < <( cat "$OPTCFGFILE" | grep -v \# | sed /^$/d)
 }
 
