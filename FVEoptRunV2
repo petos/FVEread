@@ -47,7 +47,12 @@ exit 0
 
 function getAvrg() {
 	#Will make average production in last 10 minutes (last 10 lines)
-	AVRG=$(expr $(expr $(tail -10 $HISTORYFILE | awk '{print $2}' | sed '/^$/d' | sed ':a;N;$!ba;s/\n/ + /g')) / $(tail -10 $HISTORYFILE | awk '{print $2}' | sed '/^$/d' | wc -l) )	
+
+	if [ $OFF ]; then
+		AVRG=0
+	else
+		AVRG=$(expr $(expr $(tail -10 $HISTORYFILE | awk '{print $2}' | sed '/^$/d' | sed ':a;N;$!ba;s/\n/ + /g')) / $(tail -10 $HISTORYFILE | awk '{print $2}' | sed '/^$/d' | wc -l) )	
+	fi
 	debugPrint "Avrg is: $AVRG"
 }
 
@@ -183,29 +188,40 @@ function manageThermalDevices {
 		fi
 	else
 		verbPrint "Out of lowtarif"
-	fi
-	
+	fi	
 }
+
 function manageGeneralDevices() {
 	return 0
 }
+
 function enableDisableDevices() {
 	return 0
 }
 
-function initDevTable() {
+function initDeviceTable() {
+	verbPrint "Table STARTSTOPDEVICES[] is being initialized with values:"
 	while read ID VOID DEVICENAME VOID; do
 		STARTSTOPDEVICES["$ID"]=OFF
+		verbPrint "$DEVICENAME = ${STARTSTOPDEVICES["$ID"]}"
+	done < <( cat "$OPTCFGFILE" | grep -v \# | sed /^$/d)
+	
+}
+
+function checkDeviceTable() {
+	verbPrint "Current status of table STARTSTOPDEVICES[]:"
+	while read ID VOID DEVICENAME VOID; do
 		verbPrint "$DEVICENAME = ${STARTSTOPDEVICES["$ID"]}"
 	done < <( cat "$OPTCFGFILE" | grep -v \# | sed /^$/d)
 }
 
 mainLoop() {
-	initDevTable
+	initDeviceTable
 	getLowTarifInfo
 	manageThermalDevices
 	#~ manageGeneralDevices
 	#~ enableDisableDevices
+	checkDeviceTable
 }
 
 
@@ -233,12 +249,9 @@ done
 
 checkUptime
 
-#~ if [ $OFF ]; then
-	#~ AVRG=0
-#~ else
-	#~ getAvrg
-#~ fi
-AVRG=0
+getAvrg
+
+#AVRG=0
 
 ENERGYBUCKET=$AVRG
 
