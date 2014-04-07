@@ -225,18 +225,13 @@ function decideOnOff() {
 	return 0
 }
 
-function manageThermalDevicesNonLT() {
-	verbPrint "Processing thermal devices. After lowtarif actions the available energy is: $ENERGYBUCKET"
-	
-	decideOnOff "thermal"
-
-	return 0
-}
-
 function manageThermalDevices() {
 	parseThermalDevice
 	manageThermalDevicesLowTarif
-	manageThermalDevicesNonLT
+	
+	verbPrint "Processing thermal devices. After lowtarif actions the available energy is: $ENERGYBUCKET"
+	decideOnOff "thermal"
+	
 	return 0
 }
 
