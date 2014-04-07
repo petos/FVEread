@@ -191,41 +191,45 @@ function manageThermalDevicesLowTarif {
 	fi
 }
 
-function thermalWorks() {
+function decideOnOff() {
+	local FILTER="$1"
+	
 	local LOCALDEVICEID
 	local LOCALCONSUMPTION
+	local LOCALDEVICE
 	local VOID
 	local LOCSTARTTEMP
 	local LOCSTOPTEMP
 	local LOCALDEVICE
 	
 	while read LOCALDEVICEID VOID LOCALDEVICE LOCALCONSUMPTION VOID VOID LOCSTARTTEMP LOCSTOPTEMP; do
+	
 		if [ "${STARTSTOPDEVICES["$LOCALDEVICEID"]}" = "ON" ]; then
 			debugPrint "Device $LOCALDEVICE (id: $LOCALDEVICEID) is already setup to be on, skipping"
 		else
 			if [ $LOCALCONSUMPTION -lt $ENERGYBUCKET ]; then
-				verbPrint "Device  (ID:$LOCALDEVICEID) CONS: ${LOCALCONSUMPTION} < $ENERGYBUCKET"
+				if [ "$DIRECTTEMP" = "ON" -a "$FILTER" = "thermal" ]; then
+					if [ "$TEMPERATURE" -lt "$LOCSTOPTEMP" ]; then
+						verbPrint "Device $LOCALDEVICE (ID:$LOCALDEVICEID): $TEMPERATURE is lower than STOP level ($TEMPERATURE < $LOCSTOPTEMP)"
+					else
+						verbPrint "Device $LOCALDEVICE (ID:$LOCALDEVICEID): $TEMPERATURE is more than STOP level ($LOCSTOPTEMP < $TEMPERATURE), skipping."
+						continue
+					fi 
+				fi
+				verbPrint "Device $LOCALDEVICE (ID:$LOCALDEVICEID) CONS: ${LOCALCONSUMPTION} < $ENERGYBUCKET"
 				STARTSTOPDEVICES["$LOCALDEVICEID"]=ON
 				updateEnergy $LOCALCONSUMPTION
 			fi
 		fi
-	done < <(cat "$OPTCFGFILE" | grep -v \# | grep thermal | sort -nrk4)
-
+	done < <(cat "$OPTCFGFILE" | grep -v \# | grep "$FILTER" | sort -nrk4)
 	return 0
 }
 
 function manageThermalDevicesNonLT() {
 	verbPrint "Processing thermal devices. After lowtarif actions the available energy is: $ENERGYBUCKET"
-	if [ "$DIRECTTEMP" = "ON" ]; then
-		verbPrint "DirectTemp is ON, enabling temperature-based configuration"
-		#thermalDT
-	elif [ "$DIRECTTEMP" = "OFF" ]; then
-		verbPrint "DirectTemp is OFF"
-		thermalWorks
-	else
-		echo "Not able parse configuration, quitting"
-		exit 1
-	fi
+	
+	decideOnOff "thermal"
+
 	return 0
 }
 
@@ -233,11 +237,6 @@ function manageThermalDevices() {
 	parseThermalDevice
 	manageThermalDevicesLowTarif
 	manageThermalDevicesNonLT
-	return 0
-}
-
-
-function manageGeneralDevices() {
 	return 0
 }
 
@@ -265,7 +264,7 @@ function mainLoop() {
 	initDeviceTable
 	getLowTarifInfo
 	manageThermalDevices
-	#~ manageGeneralDevices
+	decideOnOff "generic"
 	#~ enableDisableDevices
 	checkDeviceTable
 }
