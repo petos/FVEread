@@ -9,7 +9,7 @@ source $OPTCFGLOWFILE
 
 function updateEnergy() {
 	ENERGYBUCKET=$(expr $ENERGYBUCKET - $1)
-	if [ $ENERGYBUCKET -lt 0 ]; then
+	if [ "$ENERGYBUCKET" -lt 0 ]; then
 		ENERGYBUCKET=0
 	fi
 	verbPrint "Remaining energy = $ENERGYBUCKET"
@@ -92,23 +92,23 @@ function getLowTarifInfo() {
 
 
 function parseThermalDevice() {
-DEVICEN=-1
+	THERMALDEVICES=-1
 	while read LNDEVICEID LNTYPE LNDEVICE LNCONSUMPTION LNTIME0 LNTIME1 LNSTARTTEMP LNSTOPTEMP ; do 
-		((++DEVICEN))
+		((++THERMALDEVICES))
 		debugPrint "$LNDEVICEID $LNTYPE $LNDEVICE $LNCONSUMPTION $LNTIME0 $LNTIME1 $LNSTARTTEMP $LNSTOPTEMP"
-		DEVICEID[$DEVICEN]=$LNDEVICEID
-		TYPE["$DEVICEN"]=$LNTYPE
-		DEVICE["$DEVICEN"]=$LNDEVICE
-		CONSUMPTION["$DEVICEN"]=$LNCONSUMPTION
-		TIME0["$DEVICEN"]=$LNTIME0
-		TIME1["$DEVICEN"]=$LNTIME1
-		STARTTEMP["$DEVICEN"]=$LNSTARTTEMP
-		STOPTEMP["$DEVICEN"]=$LNSTOPTEMP
+		DEVICEID[$THERMALDEVICES]=$LNDEVICEID
+		TYPE["$THERMALDEVICES"]=$LNTYPE
+		DEVICE["$THERMALDEVICES"]=$LNDEVICE
+		CONSUMPTION["$THERMALDEVICES"]=$LNCONSUMPTION
+		TIME0["$THERMALDEVICES"]=$LNTIME0
+		TIME1["$THERMALDEVICES"]=$LNTIME1
+		STARTTEMP["$THERMALDEVICES"]=$LNSTARTTEMP
+		STOPTEMP["$THERMALDEVICES"]=$LNSTOPTEMP
 	done < <( cat "$OPTCFGFILE" | grep -v \# | grep thermal)
 
 	###TEST
 	if [ $DEBUG ]; then
-		for i in `seq 0 $DEVICEN`; do
+		for i in `seq 0 $THERMALDEVICES`; do
 			echo "ID$i: ${DEVICEID[$i]}"
 			echo "TYPE$i: ${TYPE["$i"]}"
 			echo "NAME$i: ${DEVICE["$i"]}"
@@ -130,7 +130,7 @@ function getUptimeOfDevice() {
 	return $DEVICEUPTIME
 }
 
-function whatDevicesShouldBeUpNODT() {
+function thermalLowTarifNODT() {
 	TIMETARIF="TIME$LOWTARIFNUM[@]"
 	local LOCALDEVICEID=-1
 	while read DESIREDUPTIME; do
@@ -155,7 +155,7 @@ function whatDevicesShouldBeUpNODT() {
 	return 0
 }
 
-function whatDevicesShouldBeUpDT() {
+function thermalLowTarifDT() {
 	getTemperature
 
 	if [ $TEMPERATURE -lt $VALLOWTARIFMINTEMP ]; then
@@ -172,24 +172,70 @@ function whatDevicesShouldBeUpDT() {
 	fi
 }
 
-function manageThermalDevices {
-	parseThermalDevice #done
+function manageThermalDevicesLowTarif {
+	
 	if [ "$ISLOWTARIF" = "Y" ]; then
 	verbPrint "LowTarif time is enabled"
 		if [ "$DIRECTTEMP" = "ON" ]; then
 			verbPrint "DirectTemp is ON, enabling temperature-based configuration"
-			whatDevicesShouldBeUpDT
+			thermalLowTarifDT
 		elif [ "$DIRECTTEMP" = "OFF" ]; then
 			verbPrint "DirectTemp is OFF, enabling time-based configuration"
-			whatDevicesShouldBeUpNODT
+			thermalLowTarifNODT
 		else
 			echo "Not able parse configuration, quitting"
 			exit 1
 		fi
 	else
 		verbPrint "Out of lowtarif"
-	fi	
+	fi
 }
+
+function thermalWorks() {
+	local LOCALDEVICEID
+	local LOCALCONSUMPTION
+	local VOID
+	local LOCSTARTTEMP
+	local LOCSTOPTEMP
+	local LOCALDEVICE
+	
+	while read LOCALDEVICEID VOID LOCALDEVICE LOCALCONSUMPTION VOID VOID LOCSTARTTEMP LOCSTOPTEMP; do
+		if [ "${STARTSTOPDEVICES["$LOCALDEVICEID"]}" = "ON" ]; then
+			debugPrint "Device $LOCALDEVICE (id: $LOCALDEVICEID) is already setup to be on, skipping"
+		else
+			if [ $LOCALCONSUMPTION -lt $ENERGYBUCKET ]; then
+				verbPrint "Device  (ID:$LOCALDEVICEID) CONS: ${LOCALCONSUMPTION} < $ENERGYBUCKET"
+				STARTSTOPDEVICES["$LOCALDEVICEID"]=ON
+				updateEnergy $LOCALCONSUMPTION
+			fi
+		fi
+	done < <(cat "$OPTCFGFILE" | grep -v \# | grep thermal | sort -nrk4)
+
+	return 0
+}
+
+function manageThermalDevicesNonLT() {
+	verbPrint "Processing thermal devices. After lowtarif actions the available energy is: $ENERGYBUCKET"
+	if [ "$DIRECTTEMP" = "ON" ]; then
+		verbPrint "DirectTemp is ON, enabling temperature-based configuration"
+		#thermalDT
+	elif [ "$DIRECTTEMP" = "OFF" ]; then
+		verbPrint "DirectTemp is OFF"
+		thermalWorks
+	else
+		echo "Not able parse configuration, quitting"
+		exit 1
+	fi
+	return 0
+}
+
+function manageThermalDevices() {
+	parseThermalDevice
+	manageThermalDevicesLowTarif
+	manageThermalDevicesNonLT
+	return 0
+}
+
 
 function manageGeneralDevices() {
 	return 0
@@ -203,7 +249,7 @@ function initDeviceTable() {
 	verbPrint "Table STARTSTOPDEVICES[] is being initialized with values:"
 	while read ID VOID DEVICENAME VOID; do
 		STARTSTOPDEVICES["$ID"]=OFF
-		verbPrint "$DEVICENAME = ${STARTSTOPDEVICES["$ID"]}"
+		verbPrint "$ID: $DEVICENAME = ${STARTSTOPDEVICES["$ID"]}"
 	done < <( cat "$OPTCFGFILE" | grep -v \# | sed /^$/d)
 	
 }
@@ -211,11 +257,11 @@ function initDeviceTable() {
 function checkDeviceTable() {
 	verbPrint "Current status of table STARTSTOPDEVICES[]:"
 	while read ID VOID DEVICENAME VOID; do
-		verbPrint "$DEVICENAME = ${STARTSTOPDEVICES["$ID"]}"
+		verbPrint "$ID: $DEVICENAME = ${STARTSTOPDEVICES["$ID"]}"
 	done < <( cat "$OPTCFGFILE" | grep -v \# | sed /^$/d)
 }
 
-mainLoop() {
+function mainLoop() {
 	initDeviceTable
 	getLowTarifInfo
 	manageThermalDevices
@@ -248,10 +294,7 @@ while [ $# -gt 0 ]; do
 done
 
 checkUptime
-
 getAvrg
-
-#AVRG=0
 
 ENERGYBUCKET=$AVRG
 
