@@ -1,0 +1,39 @@
+#!/bin/bash
+
+source ~/.FVErc
+source "$FVEBINDIR"/FVEcomFncs
+
+
+function getDeviceNumber() {
+	#usage: getDeviceNumber $COMPONENT
+	local COMPONENT=$1
+	debugPrint "Getting device number for: $COMPONENT"
+	DEVICENUM=$( grep -B1 $COMPONENT /etc/tellstick.conf | head -1 | awk '{print $NF}')
+}
+
+function checkTDstatus() {
+	local TDSTATUS=`sudo service telldusd status | tr -d '!' `
+	if [  "$TDSTATUS" = "telldusd is not running ... failed" ]; then
+		echo "`date +%Y/%M/%d-%H:%M:%S` - Seems telldusd is down? Restarting"
+		sudo service telldusd start 
+		sudo service telldusd status
+		echo ====
+	fi
+	
+	> "$TMPDIR"/FVE.statuses
+	tdtool -l > "$TMPDIR"/FVE.statuses
+}
+
+checkTDstatus
+
+
+while [ $# -gt 0 ]; do
+	case $1 in
+		-h|--help) printHelp; shift;;
+		--off) OFF='Y' ; shift;;
+		-v|--verbose) VERB=Y; VERBOUT='' ; shift;;
+		-d|--debug) VERB=Y; VERBOUT=''; DEBUG=Y ; shift;;
+		-f|--force) FORCE='Y'; shift;;
+		*)  echo "$0: error - unrecognized option $1" 1>&2; exit 1;;
+	esac
+done
