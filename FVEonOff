@@ -24,16 +24,38 @@ function checkTDstatus() {
 	tdtool -l > "$TMPDIR"/FVE.statuses
 }
 
-checkTDstatus
+function mainLoop() {
+	for i in `seq 0 $DEVICESTOTALNUM`; do
+		echo ${DEVICENAME[$i]}: ${DEVICESTATUS[$i]}
+	done
+	return 0
+}
 
+#checkTDstatus
 
+DEVICESTOTALNUM=-1
 while [ $# -gt 0 ]; do
 	case $1 in
 		-h|--help) printHelp; shift;;
-		--off) OFF='Y' ; shift;;
 		-v|--verbose) VERB=Y; VERBOUT='' ; shift;;
 		-d|--debug) VERB=Y; VERBOUT=''; DEBUG=Y ; shift;;
 		-f|--force) FORCE='Y'; shift;;
+		--device) 
+			if [ $# -lt 3 ]; then 
+				echo "Not enough params passed for --device $2"
+				exit 2
+			fi
+			if [ "$3" != 'on' -a "$3" != 'off' ] && [ "$3" != 'ON' -a "$3" != 'OFF' ] ; then
+				echo "3rd parametr may be only 'on/ON' or 'off/OFF'. Passed '$3' for device $2"
+				exit 3
+			fi
+			((++DEVICESTOTALNUM)) 
+			DEVICENAME[$DEVICESTOTALNUM]="$2"
+			DEVICESTATUS[$DEVICESTOTALNUM]=${3,,}
+			shift 3
+			;;
 		*)  echo "$0: error - unrecognized option $1" 1>&2; exit 1;;
 	esac
 done
+
+mainLoop
