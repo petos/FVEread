@@ -16,25 +16,6 @@ function updateEnergy() {
 }
 
 
-function getDeviceNumber() {
-	#usage: getDeviceNumber $COMPONENT
-	local COMPONENT=$1
-	debugPrint "Getting device number for: $COMPONENT"
-	DEVICENUM=$( grep -B1 $COMPONENT /etc/tellstick.conf | head -1 | awk '{print $NF}')
-}
-
-function checkTDstatus() {
-	local TDSTATUS=`sudo service telldusd status | tr -d '!' `
-	if [  "$TDSTATUS" = "telldusd is not running ... failed" ]; then
-		echo "`date +%Y/%M/%d-%H:%M:%S` - Seems telldusd is down? Restarting"
-		sudo service telldusd start 
-		sudo service telldusd status
-		echo ====
-	fi
-	
-	> "$TMPDIR"/FVE.statuses
-	tdtool -l > "$TMPDIR"/FVE.statuses
-}
 
 function printHelp() {
 	echo -e "\nusage: `basename $0` [OPTIONS]
@@ -53,7 +34,7 @@ function getAvrg() {
 	else
 		AVRG=$(expr $(expr $(tail -10 $HISTORYFILE | awk '{print $2}' | sed '/^$/d' | sed ':a;N;$!ba;s/\n/ + /g')) / $(tail -10 $HISTORYFILE | awk '{print $2}' | sed '/^$/d' | wc -l) )	
 	fi
-	debugPrint "Avrg is: $AVRG"
+	verbPrint "Avrg is: $AVRG"
 }
 
 function checkUptime() {
@@ -240,10 +221,11 @@ function enableDisableDevices() {
 }
 
 function initDeviceTable() {
-	verbPrint "Table STARTSTOPDEVICES[] is being initialized with values:"
+	debugPrint "Table STARTSTOPDEVICES[] is being initialized with values:"
 	while read ID VOID DEVICENAME VOID; do
 		STARTSTOPDEVICES["$ID"]=OFF
-		verbPrint "$ID: $DEVICENAME = ${STARTSTOPDEVICES["$ID"]}"
+		STARTSTOPDEVICENAMES["$ID"]="$DEVICENAME"
+		debugPrint "$ID: $DEVICENAME = ${STARTSTOPDEVICES["$ID"]}"
 	done < <( cat "$OPTCFGFILE" | grep -v \# | sed /^$/d)
 	
 }
@@ -255,13 +237,21 @@ function checkDeviceTable() {
 	done < <( cat "$OPTCFGFILE" | grep -v \# | sed /^$/d)
 }
 
+function enableDisableDevices() {
+	for DEVICENUM in $(seq 1 $( expr ${#STARTSTOPDEVICES[@]} - 1)); do
+		verbPrint "Device ${STARTSTOPDEVICENAMES["$DEVICENUM"]} (ID=$DEVICENUM) is being turned ${STARTSTOPDEVICES["$DEVICENUM"]}"
+		FVEonOff --device ${STARTSTOPDEVICENAMES["$DEVICENUM"]} ${STARTSTOPDEVICES["$DEVICENUM"]}
+	done
+	return 0
+}
+
 function mainLoop() {
 	initDeviceTable
 	getLowTarifInfo
 	manageThermalDevices
 	decideOnOff "generic"
-	#~ enableDisableDevices
-	checkDeviceTable
+	enableDisableDevices
+	#checkDeviceTable
 }
 
 
@@ -292,7 +282,7 @@ getAvrg
 
 ENERGYBUCKET=$AVRG
 
-#checkTDstatus
+
 
 mainLoop
 
