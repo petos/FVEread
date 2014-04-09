@@ -216,6 +216,10 @@ if [  1500 -lt $(date +%H%M) ] && [  $(date +%H%M) -lt 1900 ]; then
 	AVRG=$(expr $AVRG - 1000)
 fi
 
+if [ $AVRG -lt 0 ]; then 
+	AVRG=0
+fi
+
 checkTDstatus
 mainLoop
 
