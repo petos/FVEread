@@ -184,22 +184,43 @@ function decideOnOff() {
 	local LOCALDEVICE
 	
 	while read LOCALDEVICEID VOID LOCALDEVICE LOCALCONSUMPTION VOID VOID LOCSTARTTEMP LOCSTOPTEMP; do
-	
+		STARTLOCALCONSUMPTION=$(expr $LOCALCONSUMPTION + $(expr $LOCALCONSUMPTION / 10))
 		if [ "${STARTSTOPDEVICES["$LOCALDEVICEID"]}" = "ON" ]; then
 			debugPrint "Device $LOCALDEVICE (id: $LOCALDEVICEID) is already setup to be on, skipping"
 		else
-			if [ $LOCALCONSUMPTION -lt $ENERGYBUCKET ]; then
+			if [ $STARTLOCALCONSUMPTION -lt $ENERGYBUCKET ]; then
 				if [ "$DIRECTTEMP" = "ON" -a "$FILTER" = "thermal" ]; then
 					if [ "$TEMPERATURE" -lt "$LOCSTOPTEMP" ]; then
 						verbPrint "Device $LOCALDEVICE (ID:$LOCALDEVICEID): $TEMPERATURE is lower than STOP level ($TEMPERATURE < $LOCSTOPTEMP)"
 					else
-						verbPrint "Device $LOCALDEVICE (ID:$LOCALDEVICEID): $TEMPERATURE is more than STOP level ($LOCSTOPTEMP < $TEMPERATURE), skipping."
+						verbPrint "Device $LOCALDEVICE (ID:$LOCALDEVICEID): $TEMPERATURE is more than STOP level ($LOCSTOPTEMP C < $TEMPERATURE C), setting off."
+						STARTSTOPDEVICES["$LOCALDEVICEID"]=OFF
 						continue
 					fi 
 				fi
 				verbPrint "Device $LOCALDEVICE (ID:$LOCALDEVICEID) CONS: ${LOCALCONSUMPTION} < $ENERGYBUCKET"
 				STARTSTOPDEVICES["$LOCALDEVICEID"]=ON
 				updateEnergy $LOCALCONSUMPTION
+			elif [ $ENERGYBUCKET -lt $LOCALCONSUMPTION ]; then
+				verbPrint "Device $LOCALDEVICE (ID:$LOCALDEVICEID) CONS: ${LOCALCONSUMPTION} > $ENERGYBUCKET"
+				STARTSTOPDEVICES["$LOCALDEVICEID"]=OFF
+				
+				
+			elif [ $LOCALCONSUMPTION -le $ENERGYBUCKET ] && [ $ENERGYBUCKET -le $STARTLOCALCONSUMPTION ] ; then
+				verbPrint "Device $LOCALDEVICE (ID:$LOCALDEVICEID) CONS:  ${LOCALCONSUMPTION} < $ENERGYBUCKET < $STARTLOCALCONSUMPTION -- nochange" 
+				#STARTSTOPDEVICES["$LOCALDEVICEID"]=$(FVEonOff --getmystatus --device $LOCALDEVICE )
+				STARTSTOPDEVICES["$LOCALDEVICEID"]=BENOTOUCHE
+				if [ ${STARTSTOPDEVICES["$LOCALDEVICEID"]} = ON ] || [ ${STARTSTOPDEVICES["$LOCALDEVICEID"]} = on ]; then
+					updateEnergy $LOCALCONSUMPTION
+				fi
+			else
+				echo "ERR, not expected this to happens"
+				echo "LOCALDEVICE=$LOCALDEVICE (ID:$LOCALDEVICEID)"
+				echo "ENERGYBUCKET=$ENERGYBUCKET"
+				echo "STARTLOCALCONSUMPTION=$STARTLOCALCONSUMPTION"
+				echo "LOCALCONSUMPTION=$LOCALCONSUMPTION"
+				echo "Stopping"
+				STARTSTOPDEVICES["$LOCALDEVICEID"]=OFF
 			fi
 		fi
 	done < <(cat "$OPTCFGFILE" | grep -v \# | grep "$FILTER" | sort -nrk4)
@@ -221,6 +242,7 @@ function enableDisableDevices() {
 }
 
 function initDeviceTable() {
+	local VOID
 	debugPrint "Table STARTSTOPDEVICES[] is being initialized with values:"
 	while read ID VOID DEVICENAME VOID; do
 		STARTSTOPDEVICES["$ID"]=OFF
@@ -231,6 +253,7 @@ function initDeviceTable() {
 }
 
 function checkDeviceTable() {
+	local VOID
 	verbPrint "Current status of table STARTSTOPDEVICES[]:"
 	while read ID VOID DEVICENAME VOID; do
 		verbPrint "$ID: $DEVICENAME = ${STARTSTOPDEVICES["$ID"]}"
@@ -238,10 +261,11 @@ function checkDeviceTable() {
 }
 
 function enableDisableDevices() {
-	for DEVICENUM in $(seq 1 $( expr ${#STARTSTOPDEVICES[@]} - 1)); do
+	local VOID
+	while read DEVICENUM VOID; do
 		verbPrint "Device ${STARTSTOPDEVICENAMES["$DEVICENUM"]} (ID=$DEVICENUM) is being turned ${STARTSTOPDEVICES["$DEVICENUM"]}"
 		FVEonOff --device ${STARTSTOPDEVICENAMES["$DEVICENUM"]} ${STARTSTOPDEVICES["$DEVICENUM"]}
-	done
+	done < <( cat "$OPTCFGFILE" | grep -v \# | sed /^$/d)
 	return 0
 }
 
@@ -251,7 +275,7 @@ function mainLoop() {
 	manageThermalDevices
 	decideOnOff "generic"
 	enableDisableDevices
-	#checkDeviceTable
+	checkDeviceTable
 }
 
 
