@@ -19,19 +19,39 @@ function checkTDstatus() {
 		sudo service telldusd status
 		echo ====
 	fi
-	
+}
+
+function getTDstatuses() {
 	> "$TMPDIR"/FVE.statuses
 	tdtool -l > "$TMPDIR"/FVE.statuses
 }
 
-function mainLoop() {
+function getStatuses() {
+	checkTDstatus
+	getTDstatuses
+}
+
+
+
+function uninitStatuses() {
+	rm -f "$TMPDIR"/FVE.statuses
+	return $?
+}
+
+function getDeviceStatus() {
+	return 0
+}
+
+function mainSetLoop() {
 	for i in `seq 0 $DEVICESTOTALNUM`; do
 		echo ${DEVICENAME[$i]}: ${DEVICESTATUS[$i]}
 	done
 	return 0
 }
 
-#checkTDstatus
+function mainGetLoop() {
+	return 0
+}
 
 DEVICESTOTALNUM=-1
 while [ $# -gt 0 ]; do
@@ -40,7 +60,8 @@ while [ $# -gt 0 ]; do
 		-v|--verbose) VERB=Y; VERBOUT='' ; shift;;
 		-d|--debug) VERB=Y; VERBOUT=''; DEBUG=Y ; shift;;
 		-f|--force) FORCE='Y'; shift;;
-		--device) 
+		--raw) RAW='Y'; shift;;
+		--setstatus) 
 			if [ $# -lt 3 ]; then 
 				echo "Not enough params passed for --device $2"
 				exit 2
@@ -52,10 +73,31 @@ while [ $# -gt 0 ]; do
 			((++DEVICESTOTALNUM)) 
 			DEVICENAME[$DEVICESTOTALNUM]="$2"
 			DEVICESTATUS[$DEVICESTOTALNUM]=${3,,}
+			TYPE="SET"
 			shift 3
 			;;
+		--getstatus)
+			if [ $# -lt 2 ]; then 
+				echo "Not passed device parametr --getstatus"
+				exit 2
+			fi
+			DEVICENAME="$2"
+			TYPE="GET"
+			shift 2
+			;;
 		*)  echo "$0: error - unrecognized option $1" 1>&2; exit 1;;
+		--init) getStatusses; exit 0;;
+		--destroy) uninitStatuses ;exit 0;;
 	esac
 done
 
-mainLoop
+if [ "$TYPE" = "SET" ]; then
+	mainSetLoop
+elif [ "$TYPE" = "GET" ]; then
+	mainGetLoop
+else
+	verbPrint "No TYPE recognized"
+	exit 0
+fi
+
+
