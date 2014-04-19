@@ -56,7 +56,7 @@ set xrange["$TIMEDATE_YYYYMMDD 00:00:00":"$TIMEDATE_YYYYMM`expr $( date +%d ) + 
 set terminal png
 set output "$TMPDIR/fved.png"
 
-plot "$HISTORYFILE" u 1:2 with lines title 'Raw production', "$HISTORYFILE" u 1:4 with lines title 'Avrg production"
+plot "$HISTORYFILE" u 1:2 with lines title 'Raw production', "$HISTORYFILE" u 1:4 with lines title 'Avrg production'
 EOF
 	
 	gnuplot "$TMPDIR"/FVE.gn 2>/dev/null
