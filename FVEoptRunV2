@@ -266,7 +266,7 @@ function enableDisableDevices() {
 	local VOID
 	while read DEVICENUM VOID; do
 		verbPrint "Device ${STARTSTOPDEVICENAMES["$DEVICENUM"]} (ID=$DEVICENUM) is being turned ${STARTSTOPDEVICES["$DEVICENUM"]}"
-		FVEonOff $VERBOUT --setstatus "${STARTSTOPDEVICENAMES["$DEVICENUM"]}" "${STARTSTOPDEVICES["$DEVICENUM"]}"
+		FVEonOff --setstatus "${STARTSTOPDEVICENAMES["$DEVICENUM"]}" "${STARTSTOPDEVICES["$DEVICENUM"]}"
 	done < <( cat "$OPTCFGFILE" | grep -v \# | sed /^$/d)
 	return 0
 }
