@@ -116,6 +116,10 @@ function thermalLowTarifNODT() {
 	TIMETARIF="TIME$LOWTARIFNUM[@]"
 	local LOCALDEVICEID=-1
 	while read DESIREDUPTIME; do
+		if [ -z "$DESIREDUPTIME" ]; then
+			verbPrint "No thermal device recognized, skipping"
+			return 0
+		fi
 		((++LOCALDEVICEID))
 		if [ $DESIREDUPTIME -gt 0 ]; then
 			debugPrint "Device ${DEVICE["$LOCALDEVICEID"]} in this lowtarif n.$LOWTARIFNUM should be up for $DESIREDUPTIME mins."
