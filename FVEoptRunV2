@@ -235,7 +235,7 @@ function decideOnOff() {
 
 function manageThermalDevices() {
 	parseThermalDevice
-	if [ "$THERMALDEVICES" = 0 ]; then
+	if [ "$THERMALDEVICES" = -1 ]; then
 			verbPrint "No thermal device recognized, skipping"
 			return 0
 	fi
