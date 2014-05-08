@@ -62,8 +62,8 @@ cat > "$HTMLFILE" << EOF
 EOF
 
 grep -v ^\# "$OPTCFGFILE" | while read DEVICE USELESS ; do
-echo "<img src=\"fve.device.$DEVICE.png\" alt=\"Produced this month\"> " >> $HTMLFILE
-echo '</br>' >> $HTMLFILE
+echo "<img src=\"fve.device.$DEVICE.png\" alt=\"Produced this month\"> " >> "$HTMLFILE"
+echo '</br>' >> "$HTMLFILE"
 done
 
 cat >> "$HTMLFILE" << EOF
@@ -82,7 +82,7 @@ cat > "$HTMLPOWERFILE" << EOF
 <h3>Production today: $FVETODAY [kWh]</h3>
 <h3>Devices uptime today:</h3>
 EOF
-grep -v ^\# "$OPTCFGFILE" | while read DEVICE MINCOMP MAXCOMP ; do
+grep -v ^\# "$OPTCFGFILE" | while read DEVICE USELESS ; do
 	local DEVICEDATAFILE="$FVEDATADIR"/"$DEVICE"."$TIMEDATE_YYYYMM"
 	local DEVICEUPTIME=$(grep "$TIMEDATE_YYYYMMDD".*1$ $DEVICEDATAFILE | sort -u | wc -l)
 echo "<h4>Device: $DEVICE was today up: $DEVICEUPTIME [mins]</h4>" >> $HTMLPOWERFILE
@@ -123,6 +123,7 @@ done
 echo '  </tr>' >> "$HTMLOPTFILE"
 echo '</table>' >> "$HTMLOPTFILE"
 
+#Run to update statusses, since the page is generated from scratch. Usually only --update is run.
 FVEoptRun -f
 
 }
@@ -130,11 +131,11 @@ FVEoptRun -f
 function updateLacertaStatus() {
 	ping -q -c 1 -w 1 lacerta >> /dev/null
 	if [ $? = 0 ]; then
-		sed -i s/lacerta-stat-off/lacerta-stat-on/g $HTMLOPTFILE 
+		sed -i s/lacerta-stat-off/lacerta-stat-on/g "$HTMLOPTFILE" 
 		LSTATUS=on
 		#echo "Lacerta is ON" 
 	else
-		sed -i s/lacerta-stat-on/lacerta-stat-off/g $HTMLOPTFILE
+		sed -i s/lacerta-stat-on/lacerta-stat-off/g "$HTMLOPTFILE"
 		LSTATUS=off
 		#echo "Lacerta is OFF"
 	fi
@@ -142,18 +143,18 @@ function updateLacertaStatus() {
 
 function updateTimeStamp() {
 	sed -i '/<\/table>$/,$d' $HTMLOPTFILE
-	echo '</table>' >> $HTMLOPTFILE 
-	echo `date +%Y/%m/%d,%H:%M:%S` >> $HTMLOPTFILE 
+	echo '</table>' >> "$HTMLOPTFILE" 
+	echo `date +%Y/%m/%d,%H:%M:%S` >> "$HTMLOPTFILE" 
 }
 
 
 function checkStatus() {
 	#usage: checkStatus COMPONENT $STATUS
 	#only on|off statusses are allowed
-	COMPONENT=$1
-	STATUS=$2
+	COMPONENT="$1"
+	STATUS="$2"
 	
-	if [ $STATUS != on -a $STATUS != off ]; then
+	if [ "$STATUS" != "on" -a "$STATUS" != "off" ]; then
 		echo "Wrong status!"
 		echo "Received:   $STATUS"
 		echo "Component: $COMPONENT"
@@ -165,9 +166,9 @@ function updateOptFile() {
 	for NUM in $(seq 0 $(expr $DEVICENUM - 1 )); do
 	checkStatus ${DEVICENAME[$NUM]} ${DEVICESTATUS[$NUM]}
 		if [ ${DEVICESTATUS[$NUM]} = on ]; then
-			sed -i s/${DEVICENAME[$NUM]}-off/${DEVICENAME[$NUM]}-on/g $HTMLOPTFILE 
+			sed -i s/${DEVICENAME[$NUM]}-off/${DEVICENAME[$NUM]}-on/g "$HTMLOPTFILE" 
 		elif [ ${DEVICESTATUS[$NUM]} = off ]; then
-			sed -i s/${DEVICENAME[$NUM]}-on/${DEVICENAME[$NUM]}-off/g $HTMLOPTFILE 
+			sed -i s/${DEVICENAME[$NUM]}-on/${DEVICENAME[$NUM]}-off/g "$HTMLOPTFILE" 
 		fi
 	done
 }
