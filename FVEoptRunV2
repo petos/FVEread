@@ -282,7 +282,6 @@ function mainLoop() {
 
 
 
-VERBOUT="2>/dev/null"
 FORCE='N'
 OFF=''
 VERB=''
@@ -296,8 +295,8 @@ while [ $# -gt 0 ]; do
 	case $1 in
 		-h|--help) printHelp; shift;;
 		--off) OFF='Y' ; shift;;
-		-v|--verbose) VERB=Y; VERBOUT='-v' ; shift;;
-		-d|--debug) VERB=Y; VERBOUT=''; DEBUG=Y ; shift;;
+		-v|--verbose) VERB=Y; shift;;
+		-d|--debug) VERB=Y;  DEBUG=Y ; shift;;
 		-f|--force) FORCE='Y'; shift;;
 		*)  echo "$0: error - unrecognized option $1" 1>&2; exit 1;;
 	esac
