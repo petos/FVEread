@@ -122,7 +122,7 @@ function mainGetLoop() {
 	echo $( awk /$DEVICENAMEGET/'{print $NF}' "$TMPDIR"/FVE.statuses | tr '[:upper:]' '[:lower:]' )
 	return 0
 }
-
+VERBOUT="2>/dev/null"
 DEVICESTOTALNUM=-1
 while [ $# -gt 0 ]; do
 	case $1 in
