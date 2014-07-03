@@ -173,6 +173,7 @@ function updateOptFile() {
 	done
 }
 
+echo STARTED
 DEVICENUM=0
 while [ $# -gt 0 ]; do
 	case $1 in
@@ -180,11 +181,31 @@ while [ $# -gt 0 ]; do
 		--defpage) GENDEFPAGE=Y; shift;;
 		--optpage) GENOPTPAGE=Y; shift;;
 		--powerpage) GENPOWERPAGE=Y; shift;;
-		--fvestatus) FVESTATUS="$2"; shift 2;;
-		--current) FVECURRENT="$2"; shift 2;;
-		--today) FVETODAY="$2"; shift 2;;
-		--avrg)	FVEAVRG="$2"; shift 2;;
-
+		--fvestatus) 
+			if  [ $# -lt 2 ]; then 
+				echo "Not enough params passed for --fvestatus"
+				exit 2
+			fi
+			FVESTATUS="$2"; shift 2;;
+		--current) 
+			if  [ $# -lt 2 ]; then 
+				echo "Not enough params passed for --current"
+				exit 2
+			fi
+			FVECURRENT="$2"; shift 2;;
+		--today) 
+			if  [ $# -lt 2 ]; then 
+				echo "Not enough params passed for --today"
+				exit 2
+			fi
+			FVETODAY="$2"; shift 2;;
+		--avrg)
+			if  [ $# -lt 2 ]; then 
+				echo "Not enough params passed for --avrg"
+				exit 2
+			fi
+			FVEAVRG="$2"; 
+			shift 2;;
 		--device) 
 			if [ $# -lt 3 ]; then 
 				echo "Not enough params passed for --device"
@@ -199,6 +220,10 @@ while [ $# -gt 0 ]; do
 		*)  echo "$0: error - unrecognized option $1" 1>&2; exit 1;;
 	esac
 done
+
+
+
+echo AVRG: $FVEAVRG
 
 if [ $# -gt 0 ]; then
 	echo "Unrecognized parametr(s): \"$@\""
