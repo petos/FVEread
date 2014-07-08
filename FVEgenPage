@@ -124,7 +124,7 @@ echo '  </tr>' >> "$HTMLOPTFILE"
 echo '</table>' >> "$HTMLOPTFILE"
 
 #Run to update statusses, since the page is generated from scratch. Usually only --update is run.
-FVEoptRun -f
+FVEoptRunV2 -f
 
 }
 

@@ -193,7 +193,7 @@ while [ $# -gt 0 ]; do
 		-v|--verbose) VERB=Y; VERBPARM="-v" ; shift;;
 		--disable) 
 			disableMe 2>/dev/null
-			FVEoptRun --off
+			FVEoptRunV2 --off
 			shift
 			exit 0
 			;;
