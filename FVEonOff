@@ -32,7 +32,7 @@ function getTDstatuses() {
 }
 
 function initFVEonOff() {
-	#checkTDstatus
+	checkTDstatus
 	getTDstatuses
 }
 
