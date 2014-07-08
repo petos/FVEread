@@ -61,7 +61,7 @@ cat > "$HTMLFILE" << EOF
 <h3>Optimalization of consumption</h3>
 EOF
 
-grep -v ^\# "$OPTCFGFILE" | while read DEVICE USELESS ; do
+grep -v ^\# "$OPTCFGFILE" | while read USELESS USELESS DEVICE USELESS ; do
 echo "<img src=\"fve.device.$DEVICE.png\" alt=\"Produced this month\"> " >> "$HTMLFILE"
 echo '</br>' >> "$HTMLFILE"
 done
@@ -82,7 +82,7 @@ cat > "$HTMLPOWERFILE" << EOF
 <h3>Production today: $FVETODAY [kWh]</h3>
 <h3>Devices uptime today:</h3>
 EOF
-grep -v ^\# "$OPTCFGFILE" | while read DEVICE USELESS ; do
+grep -v ^\# "$OPTCFGFILE" | while read USELESS USELESS DEVICE USELESS ; do
 	local DEVICEDATAFILE="$FVEDATADIR"/"$DEVICE"."$TIMEDATE_YYYYMM"
 	local DEVICEUPTIME=$(grep "$TIMEDATE_YYYYMMDD".*1$ $DEVICEDATAFILE | sort -u | wc -l)
 echo "<h4>Device: $DEVICE was today up: $DEVICEUPTIME [mins]</h4>" >> $HTMLPOWERFILE
@@ -99,7 +99,7 @@ local DEVICE=''
 while read DEVICENAME; do
 	DEVICE[$DEVICENUM]=$DEVICENAME
 	((DEVICENUM++))
-done < <(cat $OPTCFGFILE | grep -v ^\# | sed 's/^$//g' |awk '{print $1}' )
+done < <(cat $OPTCFGFILE | grep -v ^\# | sed 's/^$//g' |awk '{print $3}' )
 
 
 cat > "$HTMLOPTFILE" << EOF
