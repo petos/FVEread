@@ -104,6 +104,8 @@ function opt() {
 	else
 		echo "Unknown parametr for function opt(): $@"
 	fi
+	if [ "$EXPECTEDSTATUS" = "on" ]; then EXPECTEDSTATUSBINARY=1; else EXPECTEDSTATUSBINARY=0; fi
+	echo $TIMEDATE_YYYYMMDDHHmm $EXPECTEDSTATUSBINARY >> $FVEDATADIR/$COMPONENT."$TIMEDATE_YYYYMM"
 }
 
 function mainSetLoop() {
