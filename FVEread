@@ -50,7 +50,7 @@ function getCurrent() {
 }
 
 function getCurrentLs() {
-	local iCURRENT=`cat "$TMPDIR"/FVE.$$.html | grep -A2 'aktu[.]*'|grep ln -A2 | tail -1 `
+	local iCURRENT=`cat "$TMPDIR"/FVE.$$.html | grep -B1 '<td width="30">&nbsp W</td>' | grep -v '<td width="30">&nbsp W</td>' | tail -"$1" | head -1`
 	echo `cleanLine "$iCURRENT"`
 }
 
