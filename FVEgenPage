@@ -162,6 +162,14 @@ function checkStatus() {
 	fi
 }
 
+function checkNumInput() {
+	INPUT="$1"
+	if [ `sed s/[0-9]//g` ]; then
+		echo "Non-numeric input!"
+		exit 2
+	fi
+}
+
 function updateOptFile() {
 	for NUM in $(seq 0 $(expr $DEVICENUM - 1 )); do
 	checkStatus ${DEVICENAME[$NUM]} ${DEVICESTATUS[$NUM]}
@@ -186,24 +194,28 @@ while [ $# -gt 0 ]; do
 				echo "Not enough params passed for --fvestatus"
 				exit 2
 			fi
+			checkNumInput "$2"
 			FVESTATUS="$2"; shift 2;;
 		--current) 
 			if  [ $# -lt 2 ]; then 
 				echo "Not enough params passed for --current"
 				exit 2
 			fi
+			checkNumInput "$2"
 			FVECURRENT="$2"; shift 2;;
 		--today) 
 			if  [ $# -lt 2 ]; then 
 				echo "Not enough params passed for --today"
 				exit 2
 			fi
+			checkNumInput "$2"
 			FVETODAY="$2"; shift 2;;
 		--avrg)
 			if  [ $# -lt 2 ]; then 
 				echo "Not enough params passed for --avrg"
 				exit 2
 			fi
+			checkNumInput "$2"
 			FVEAVRG="$2"; 
 			shift 2;;
 		--device) 

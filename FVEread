@@ -29,7 +29,6 @@ function getAvrg() {
 }
 
 function getFileFromFVE() {
-
 	curl -u $FVEUSERNAME:$FVEPWD http://stridac > "$TMPDIR"/FVE.$$.html 2>/dev/null 
 	if [ $? != 0 ]; then
 		echo "Stridac neni dostupny"
@@ -46,6 +45,11 @@ function cleanLine() {
 }
 
 function getCurrent() {
+	local iCURRENT=`cat "$TMPDIR"/FVE.$$.html | grep -A2 'aktu[.]*'|grep ln -A2 | tail -1 `
+	echo `cleanLine "$iCURRENT"`
+}
+
+function getCurrentLs() {
 	local iCURRENT=`cat "$TMPDIR"/FVE.$$.html | grep -A2 'aktu[.]*'|grep ln -A2 | tail -1 `
 	echo `cleanLine "$iCURRENT"`
 }
@@ -119,8 +123,9 @@ function printDataStdout() {
 	#usage: #printDataStdout 
 
 	echo "My FV: `date`:"
+	#echo "Current production [kW]  = $CURRENT  (L1: $L1, L2: $L2, L3: $L3)"
 	echo "Current production [kW]  = $CURRENT"
-	echo "Avarage production [kW]  = $AVRG"
+	echo "Avarage production [kW]  = $AVRG "
 	echo "Today was produced [kWh] = $TODAY"
 	return 0
 }
@@ -134,6 +139,9 @@ function getData() {
 		FVESTATUS="Down/stopped"
 	else
 		CURRENT="`getCurrent`"
+		L1="`getCurrentLs 1`"
+		L2="`getCurrentLs 2`"
+		L3="`getCurrentLs 3`"
 		TODAY="`getToday`"
 		FVESTATUS="Running"
 	fi
@@ -142,8 +150,9 @@ function getData() {
 
 function genFiles() {
 	#usage: genFiles
-		echo $TIMEDATE_YYYYMMDDHHmm $CURRENT $TODAY $AVRG >> "$HISTORYFILE"
+		echo $TIMEDATE_YYYYMMDDHHmm $CURRENT $TODAY $AVRG $L1 $L2 $L3 >> "$HISTORYFILE"
 
+		#FVEgenPage  --powerpage --current $CURRENT --L1 $L1 --L2 $L2 --L3 $L3 --today $TODAY --fvestatus $FVESTATUS --avrg $AVRG 
 		FVEgenPage  --powerpage --current $CURRENT --today $TODAY --fvestatus $FVESTATUS --avrg $AVRG
 		
 		updateProductionFile
