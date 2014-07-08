@@ -50,7 +50,7 @@ function getCurrent() {
 }
 
 function getCurrentLs() {
-	local iCURRENT=`cat "$TMPDIR"/FVE.$$.html | grep -B1 '<td width="30">&nbsp W</td>' | grep -v '<td width="30">&nbsp W</td>' | tail -"$1" | head -1`
+	local iCURRENT=`cat "$TMPDIR"/FVE.$$.html | grep -B1 '<td width="30">&nbsp W</td>' | grep -v '<td width="30">&nbsp W</td>' | grep -v '-' | tail -"$1" | head -1`
 	echo `cleanLine "$iCURRENT"`
 }
 
@@ -123,8 +123,8 @@ function printDataStdout() {
 	#usage: #printDataStdout 
 
 	echo "My FV: `date`:"
-	#echo "Current production [kW]  = $CURRENT  (L1: $L1, L2: $L2, L3: $L3)"
-	echo "Current production [kW]  = $CURRENT"
+	echo "Current production [kW]  = $CURRENT  (L1: $L1, L2: $L2, L3: $L3)"
+	#echo "Current production [kW]  = $CURRENT"
 	echo "Avarage production [kW]  = $AVRG "
 	echo "Today was produced [kWh] = $TODAY"
 	return 0
@@ -152,8 +152,8 @@ function genFiles() {
 	#usage: genFiles
 		echo $TIMEDATE_YYYYMMDDHHmm $CURRENT $TODAY $AVRG $L1 $L2 $L3 >> "$HISTORYFILE"
 
-		#FVEgenPage  --powerpage --current $CURRENT --L1 $L1 --L2 $L2 --L3 $L3 --today $TODAY --fvestatus $FVESTATUS --avrg $AVRG 
-		FVEgenPage  --powerpage --current $CURRENT --today $TODAY --fvestatus $FVESTATUS --avrg $AVRG
+		FVEgenPage  --powerpage --current $CURRENT --L1 $L1 --L2 $L2 --L3 $L3 --today $TODAY --fvestatus $FVESTATUS --avrg $AVRG 
+		#FVEgenPage  --powerpage --current $CURRENT --today $TODAY --fvestatus $FVESTATUS --avrg $AVRG
 		
 		updateProductionFile
 		

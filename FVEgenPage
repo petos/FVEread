@@ -77,7 +77,7 @@ function genPowerPage() {
 cat > "$HTMLPOWERFILE" << EOF
 <p>Generated on `date +%d/%m/%Y,%H:%M`</p>
 <h3>Current status/health: $FVESTATUS</h3>
-<h3>Power now: $FVECURRENT [W]</h3>
+<h3>Power now: $FVECURRENT [W] (L1: $L1, L2: $L2, L3: $L3)</h3>
 <h3>Average (10m): $FVEAVRG [W]</h3>
 <h3>Production today: $FVETODAY [kWh]</h3>
 <h3>Devices uptime today:</h3>
@@ -163,11 +163,12 @@ function checkStatus() {
 }
 
 function checkNumInput() {
-	INPUT="$1"
-	if [ `sed s/[0-9]//g` ]; then
-		echo "Non-numeric input!"
-		exit 2
-	fi
+	#INPUT="$1"
+	#if [ `sed s/[0-9]//g` ]; then
+	#	echo "Non-numeric input!"
+	#	exit 2
+	#fi
+	return 0
 }
 
 function updateOptFile() {
@@ -210,12 +211,36 @@ while [ $# -gt 0 ]; do
 			checkNumInput "$2"
 			FVETODAY="$2"; shift 2;;
 		--avrg)
-			if  [ $# -lt 2 ]; then 
+			if [ $# -lt 2 ]; then 
 				echo "Not enough params passed for --avrg"
 				exit 2
 			fi
 			checkNumInput "$2"
 			FVEAVRG="$2"; 
+			shift 2;;
+		--L1) 
+			if [ $# -lt 2 ]; then 
+				echo "Not enough params passed for --L1"
+				exit 2
+			fi
+			checkNumInput "$2"
+			L1="$2"; 
+			shift 2;;
+		--L2) 
+			if [ $# -lt 2 ]; then 
+				echo "Not enough params passed for --L2"
+				exit 2
+			fi
+			checkNumInput "$2"
+			L2="$2"; 
+			shift 2;;
+		--L3) 
+			if [ $# -lt 2 ]; then 
+				echo "Not enough params passed for --L3"
+				exit 2
+			fi
+			checkNumInput "$2"
+			L3="$2"; 
 			shift 2;;
 		--device) 
 			if [ $# -lt 3 ]; then 
