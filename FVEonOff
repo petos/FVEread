@@ -12,12 +12,17 @@ function getDeviceNumber() {
 }
 
 function checkTDstatus() {
-	local TDSTATUS=`sudo service telldusd status | tr -d '!' `
-	if [  "$TDSTATUS" = "telldusd is not running ... failed" ]; then
-		echo "`date +%Y/%M/%d-%H:%M:%S` - Seems telldusd is down? Restarting"
-		sudo service telldusd start 
-		sudo service telldusd status
-		echo ====
+#	local TDSTATUS=`sudo service telldusd status | tr -d '!' `
+#	if [  "$TDSTATUS" = "telldusd is not running ... failed" ]; then
+#		echo "`date +%Y/%M/%d-%H:%M:%S` - Seems telldusd is down? Restarting"
+#		sudo service telldusd start 
+#		sudo service telldusd status
+#		echo ====
+#	fi
+	local TDPID=`ps -ef | grep -v bash | grep -v grep |  grep telldusd | awk '{print $2}'`
+	if [ ! "$TDPID" ]; then
+		echo "Seems telldusd is down? Restarting"
+		sudo /sbin/telldusd
 	fi
 }
 
@@ -27,7 +32,7 @@ function getTDstatuses() {
 }
 
 function initFVEonOff() {
-	#checkTDstatus
+	checkTDstatus
 	getTDstatuses
 }
 
@@ -99,6 +104,8 @@ function opt() {
 	else
 		echo "Unknown parametr for function opt(): $@"
 	fi
+	if [ "$EXPECTEDSTATUS" = "on" ]; then EXPECTEDSTATUSBINARY=1; else EXPECTEDSTATUSBINARY=0; fi
+	echo $TIMEDATE_YYYYMMDDHHmm $EXPECTEDSTATUSBINARY >> $FVEDATADIR/$COMPONENT."$TIMEDATE_YYYYMM"
 }
 
 function mainSetLoop() {

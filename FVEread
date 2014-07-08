@@ -185,7 +185,7 @@ function mainLoop() {
 	else
 		genFiles
 		checkFileExist
-		FVEoptRun $VERBPARM
+		FVEoptRunV2 $VERBPARM
 		uploadDataFTP
 	fi
 	cleanFile
@@ -202,7 +202,7 @@ while [ $# -gt 0 ]; do
 		-v|--verbose) VERB=Y; VERBPARM="-v" ; shift;;
 		--disable) 
 			disableMe 2>/dev/null
-			FVEoptRun --off
+			FVEoptRunV2 --off
 			shift
 			exit 0
 			;;

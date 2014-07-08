@@ -19,7 +19,7 @@ exit 0
 function genOnOffDevicesGraphs() {
 	> "$TMPDIR"/FVE.gn
 
-grep -v ^\# "$OPTCFGFILE" | while read DEVICE MINCOMP MAXCOMP ; do
+grep -v ^\# "$OPTCFGFILE" | while read USELESS USELESS DEVICE MINCOMP MAXCOMP ; do
 local DEVICEDATAFILE="$FVEDATADIR"/"$DEVICE"."$TIMEDATE_YYYYMM"
 
 cat> "$TMPDIR"/FVE.gn << EOF

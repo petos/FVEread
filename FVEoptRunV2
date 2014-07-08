@@ -3,7 +3,7 @@
 source ~/.FVErc
 source "$FVEBINDIR"/FVEcomFncs
 
-OPTCFGFILE=$OPTCFGFILE.2
+OPTCFGFILE=$OPTCFGFILE
 OPTCFGLOWFILE="$CFGDIR"/FVEoptRun.low.cfg
 source $OPTCFGLOWFILE
 
@@ -31,6 +31,7 @@ function getAvrg() {
 
 	if [ $OFF ]; then
 		AVRG=0
+		verbPrint "Power management disabled by config"
 	else
 		AVRG=$(expr $(expr $(tail -10 $HISTORYFILE | awk '{print $2}' | sed '/^$/d' | sed ':a;N;$!ba;s/\n/ + /g')) / $(tail -10 $HISTORYFILE | awk '{print $2}' | sed '/^$/d' | wc -l) )	
 	fi
@@ -41,6 +42,7 @@ function getAvrg() {
 function checkUptime() {
 	UPTIME=$(cat /proc/uptime | awk -F '.' '{print $1}')
 	if [ $UPTIME -lt 660 ]; then
+		echo "LOW uptime:disabled due to not enough of data"
 		OFF='Y'
 		FORCE='Y'
 	fi
