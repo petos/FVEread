@@ -53,6 +53,8 @@ cat > "$HTMLFILE" << EOF
 <h3>Graphs:</h3>
 <h4>Today power report:</h4>
 <img src="fved.png" alt="Power today">
+<h4>Today power report (per phase):</h4>
+<img src="fvel.png" alt="Power today (phased)">
 <h4>This month power overview:</h4>
 <img src="fvem.png" alt="Power overview this month">
 <h4>Produced of this month:</h4>

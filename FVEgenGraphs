@@ -62,6 +62,26 @@ EOF
 	gnuplot "$TMPDIR"/FVE.gn 2>/dev/null
 }
 
+function genTodayPhaseGraph() {
+	> "$TMPDIR"/FVE.gn
+
+cat> "$TMPDIR"/FVE.gn << EOF
+set timefmt "%Y%m%d%H%M"
+set xdata time
+set format x "%H:%M"
+set title "Today power\nGenerated on `date +%H:%M`"
+
+set xrange["$TIMEDATE_YYYYMMDD 00:00:00":"$TIMEDATE_YYYYMM`expr $( date +%d ) + 1` 23:59:59"]
+
+set terminal png
+set output "$TMPDIR/fvel.png"
+
+plot "$HISTORYFILE" u 1:5 with lines title 'L1', "$HISTORYFILE" u 1:6 with lines title 'L2', "$HISTORYFILE" u 1:7 with lines title 'L3'
+EOF
+
+	gnuplot "$TMPDIR"/FVE.gn 2>/dev/null
+}
+
 function genMonthlyPowerGraph() {
 	> "$TMPDIR"/FVE.gn
 	
@@ -109,7 +129,9 @@ if [ "$#" = 1 ]; then
 		printHelp
 		exit
 	elif [ "$1" = "--today" ]; then
-		genTodayPowerGraph		
+		genTodayPowerGraph
+	elif [ "$1" = "--phased" ]; then
+		genTodayPhaseGraph
 	elif [ "$1" = "--monthpower" ]; then
 		genMonthlyPowerGraph
 	elif [ "$1" = "--monthtotal" ]; then
@@ -118,6 +140,7 @@ if [ "$#" = 1 ]; then
 		genOnOffDevicesGraphs
 	elif [ "$1" = "--all" ]; then
 		genTodayPowerGraph
+		genTodayPhaseGraph
 		genMonthlyPowerGraph
 		genMonthlyProductionGraph
 		genOnOffDevicesGraphs
