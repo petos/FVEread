@@ -27,22 +27,30 @@ exit 0
 }
 
 function getAvrg() {
-	#Will make average production in last 10 minutes (last 10 lines)
+	#Will make average production in last 10 minutes (last 10 lines)	
+	AVRG=$(expr $(expr $(tail -10 $HISTORYFILE | awk '{print $2}' | sed '/^$/d' | sed ':a;N;$!ba;s/\n/ + /g')) / $(tail -10 $HISTORYFILE | awk '{print $2}' | sed '/^$/d' | wc -l) )	
+	ENERGYBUCKET=$AVRG
+}
 
+function getBucket(){
 	if [ $OFF ]; then
 		AVRG=0
 		verbPrint "Power management disabled by config"
 	else
-		AVRG=$(expr $(expr $(tail -10 $HISTORYFILE | awk '{print $2}' | sed '/^$/d' | sed ':a;N;$!ba;s/\n/ + /g')) / $(tail -10 $HISTORYFILE | awk '{print $2}' | sed '/^$/d' | wc -l) )	
+		if [ $USEAVRGS = "YES" ] && [ $USEAVRGS != 'no' ] && [ $USEAVRGS != 'NO' ] && [ $USEAVRGS != 'N' ]; then
+			getAvrg
+		else
+			ENERGYBUCKET=$(tail -1 $HISTORYFILE | awk '{print $2}' )
+		fi
 	fi
-	verbPrint "Avrg is: $AVRG"
-	ENERGYBUCKET=$AVRG
+	verbPrint "There is $ENERGYBUCKET in Bucket"
+	return 0
 }
 
 function checkUptime() {
 	UPTIME=$(cat /proc/uptime | awk -F '.' '{print $1}')
 	if [ $UPTIME -lt 660 ]; then
-		echo "LOW uptime:disabled due to not enough of data"
+		echo "LOW uptime: disabled due to not enough of data"
 		OFF='Y'
 		FORCE='Y'
 	fi
@@ -187,7 +195,12 @@ function decideOnOff() {
 	local LOCALDEVICE
 	
 	while read LOCALDEVICEID VOID LOCALDEVICE LOCALCONSUMPTION VOID VOID LOCSTARTTEMP LOCSTOPTEMP; do
-		STARTLOCALCONSUMPTION=$(expr $LOCALCONSUMPTION + $(expr $LOCALCONSUMPTION / 10))
+		if [ $USEAVRGS = "YES" ] && [ $USEAVRGS != 'no' ] && [ $USEAVRGS != 'NO' ] && [ $USEAVRGS != 'N' ]; then
+			STARTLOCALCONSUMPTION=$(expr $LOCALCONSUMPTION + $(expr $LOCALCONSUMPTION / 10))
+		else
+			STARTLOCALCONSUMPTION=$LOCALCONSUMPTION
+		fi
+		
 		if [ "${STARTSTOPDEVICES["$LOCALDEVICEID"]}" = "ON" ]; then
 			debugPrint "Device $LOCALDEVICE (id: $LOCALDEVICEID) is already setup to be on, skipping"
 		else
@@ -309,7 +322,7 @@ while [ $# -gt 0 ]; do
 done
 
 checkUptime
-getAvrg
+getBucket
 
 FVEonOff --init
 
