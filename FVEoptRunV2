@@ -35,7 +35,7 @@ function getAvrg() {
 
 function getBucket(){
 	if [ $OFF ]; then
-		AVRG=0
+		ENERGYBUCKET=0
 		verbPrint "Power management disabled by OFF option"
 	else
 		if [ $USEAVRGS = "YES" ] && [ $USEAVRGS != 'no' ] && [ $USEAVRGS != 'NO' ] && [ $USEAVRGS != 'N' ]; then
