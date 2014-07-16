@@ -65,9 +65,10 @@ function cleanFile() {
 	rm -f "$TMPDIR"/fved.png
 	rm -f "$TMPDIR"/fvem.png
 	rm -f "$TMPDIR"/fvep.png
-	rm -f "$TMPDIR"/d"$TIMEDATE_YYYYMMDD".png
-	rm -f "$TMPDIR"/m"$TIMEDATE_YYYYMM".png
-	rm -f "$TMPDIR"/p"$TIMEDATE_YYYYMM".png
+	rm -f "$TMPDIR"/fved"$TIMEDATE_YYYYMMDD".png
+	rm -f "$TMPDIR"/fvem"$TIMEDATE_YYYYMM".png
+	rm -f "$TMPDIR"/fvep"$TIMEDATE_YYYYMM".png
+	rm -f "$TMPDIR"/fvel"$TIMEDATE_YYYYMM".png
 	rm -f "$TMPDIR"/fve.device.*.png
 	rm -f "$TMPDIR"/.fveread.lock
 }
