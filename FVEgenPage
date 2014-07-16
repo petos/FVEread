@@ -120,7 +120,7 @@ cat >> "$HTMLOPTFILE" << EOF
     <td>Designed status:</td>
 EOF
 for NUM in $(seq 0 $(expr $DEVICENUM - 1 )); do
-echo "    <td><img src=${DEVICE[$NUM]}-off.png></td>" >> "$HTMLOPTFILE"
+echo "    <td><img alt=${DEVICE[$NUM]} src=off.png></td>" >> "$HTMLOPTFILE"
 done
 echo '  </tr>' >> "$HTMLOPTFILE"
 echo '</table>' >> "$HTMLOPTFILE"
@@ -130,18 +130,18 @@ FVEoptRunV2 -f
 
 }
 
-function updateLacertaStatus() {
-	ping -q -c 1 -w 1 lacerta >> /dev/null
-	if [ $? = 0 ]; then
-		sed -i s/lacerta-stat-off/lacerta-stat-on/g "$HTMLOPTFILE" 
-		LSTATUS=on
-		#echo "Lacerta is ON" 
-	else
-		sed -i s/lacerta-stat-on/lacerta-stat-off/g "$HTMLOPTFILE"
-		LSTATUS=off
-		#echo "Lacerta is OFF"
-	fi
-}
+#function updateLacertaStatus() {
+	#ping -q -c 1 -w 1 lacerta >> /dev/null
+	#if [ $? = 0 ]; then
+		#sed -i s/lacerta-stat-off/lacerta-stat-on/g "$HTMLOPTFILE" 
+		#LSTATUS=on
+		##echo "Lacerta is ON" 
+	#else
+		#sed -i s/lacerta-stat-on/lacerta-stat-off/g "$HTMLOPTFILE"
+		#LSTATUS=off
+		##echo "Lacerta is OFF"
+	#fi
+#}
 
 function updateTimeStamp() {
 	sed -i '/<\/table>$/,$d' $HTMLOPTFILE
@@ -177,9 +177,11 @@ function updateOptFile() {
 	for NUM in $(seq 0 $(expr $DEVICENUM - 1 )); do
 	checkStatus ${DEVICENAME[$NUM]} ${DEVICESTATUS[$NUM]}
 		if [ ${DEVICESTATUS[$NUM]} = on ]; then
-			sed -i s/${DEVICENAME[$NUM]}-off/${DEVICENAME[$NUM]}-on/g "$HTMLOPTFILE" 
+#			sed -i s/${DEVICENAME[$NUM]}-off/${DEVICENAME[$NUM]}-on/g "$HTMLOPTFILE" 
+			sed -i s/${DEVICENAME[$NUM]}\ src=off/${DEVICENAME[$NUM]}\ src=on/g "$HTMLOPTFILE" 
 		elif [ ${DEVICESTATUS[$NUM]} = off ]; then
-			sed -i s/${DEVICENAME[$NUM]}-on/${DEVICENAME[$NUM]}-off/g "$HTMLOPTFILE" 
+#			sed -i s/${DEVICENAME[$NUM]}-on/${DEVICENAME[$NUM]}-off/g "$HTMLOPTFILE" 
+			sed -i s/${DEVICENAME[$NUM]}\ src=on/${DEVICENAME[$NUM]}\ src=off/g "$HTMLOPTFILE" 			
 		fi
 	done
 }
