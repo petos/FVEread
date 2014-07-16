@@ -28,19 +28,21 @@ exit 0
 
 function getAvrg() {
 	#Will make average production in last 10 minutes (last 10 lines)	
-	AVRG=$(expr $(expr $(tail -10 $HISTORYFILE | awk '{print $2}' | sed '/^$/d' | sed ':a;N;$!ba;s/\n/ + /g')) / $(tail -10 $HISTORYFILE | awk '{print $2}' | sed '/^$/d' | wc -l) )	
+	AVRG=$(expr $(expr $(tail -10 $HISTORYFILE | awk '{print $2}' | sed '/^$/d' | sed ':a;N;$!ba;s/\n/ + /g')) / $(tail -10 $HISTORYFILE | awk '{print $2}' | sed '/^$/d' | wc -l) )
+	verbPrint "AVRG=$AVRG"
 	ENERGYBUCKET=$AVRG
 }
 
 function getBucket(){
 	if [ $OFF ]; then
 		AVRG=0
-		verbPrint "Power management disabled by config"
+		verbPrint "Power management disabled by OFF option"
 	else
 		if [ $USEAVRGS = "YES" ] && [ $USEAVRGS != 'no' ] && [ $USEAVRGS != 'NO' ] && [ $USEAVRGS != 'N' ]; then
 			getAvrg
 		else
 			ENERGYBUCKET=$(tail -1 $HISTORYFILE | awk '{print $2}' )
+			verbPrint "Working with direct power!"
 		fi
 	fi
 	verbPrint "There is $ENERGYBUCKET in Bucket"
