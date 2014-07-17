@@ -18,6 +18,7 @@ function printHelp() {
   --enable    Enable the script in cron
   --off       Turn off all devices and will disable power optimalization
   --on        Will enable power optimalization
+  --reconfig  Reload all config files
 "
 exit 0
 }
@@ -219,6 +220,12 @@ while [ $# -gt 0 ]; do
 		--on)
 			onMe
 			shift
+			;;
+		--reconfig)
+			rm -f "$TMPDIR"/fve*
+			cleanFile
+			echo "Done. Please re-run the FVEread."
+			exit 0
 			;;
 		*)  echo "$0: error - unrecognized option $1" 1>&2; exit 1;;
 	esac
