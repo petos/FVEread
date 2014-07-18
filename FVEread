@@ -203,6 +203,7 @@ while [ $# -gt 0 ]; do
 		-d|--daemon) DAEMON=1; shift;;
 		--stdout) STDOUT="YES" ; shift;;
 		-v|--verbose) VERB=Y; VERBPARM="-v" ; shift;;
+		-d|--debug) VERB=Y; VERBPARM="-d" ; shift;;
 		--disable) 
 			disableMe 2>/dev/null
 			FVEoptRunV2 --off
