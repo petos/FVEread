@@ -215,7 +215,7 @@ while [ $# -gt 0 ]; do
 		-h|--help) printHelp; exit; shift;;
 		--stdout) STDOUT="YES" ; shift;;
 		-v|--verbose) VERB=Y; VERBPARM="-v" ; shift;;
-		-d|--debug) VERB=Y; VERBPARM="-d" ; shift;;
+		-d|--debug) VERB=Y; DEBUG=Y; VERBPARM="-d" ; shift;;
 		--disable) 
 			disableMe 2>/dev/null
 			FVEoptRunV2 --off
