@@ -40,7 +40,6 @@ function getFileFromFVE() {
 }
 
 function cleanLine() {
-	debugPrint "FNC: cleanLine"
 	local LINE=$1
 	echo $LINE | sed 's/<\/td>//g' | sed 's/&nbsp//g' | tr -d ' ' | \
 	sed 's/xxx/0/g' | tr -dc '[:print:]'
