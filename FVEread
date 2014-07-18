@@ -9,8 +9,6 @@ function printHelp() {
   --help|-h   Print this help message
   -v          Talky version
   --stdout    Will not update webpage, but print just output to stdout
-  --daemon|-d Enable auto-refresh, otherwise the script will issue only 
-              one iteration.
   
   CAUTION: this are permanent changes and must be reverted via the oposite
            command!!!
@@ -24,12 +22,14 @@ exit 0
 }
 
 function getAvrg() {
+	debugPrint "FNC: getAvrg"
 	#Will make average production in last 10 minutes (last 10 lines)
 	AVRG=$(expr $(expr $(tail -10 $HISTORYFILE | awk '{print $2}' | sed '/^$/d' | sed ':a;N;$!ba;s/\n/ + /g')) / $(tail -10 $HISTORYFILE | awk '{print $2}' | sed '/^$/d' | wc -l) )	
 	verbPrint "Avrg is: $AVRG"
 }
 
 function getFileFromFVE() {
+	debugPrint "FNC: getFileFromFVE"
 	curl -u $FVEUSERNAME:$FVEPWD http://stridac > "$TMPDIR"/FVE.$$.html 2>/dev/null 
 	if [ $? != 0 ]; then
 		echo "Stridac neni dostupny"
@@ -40,6 +40,7 @@ function getFileFromFVE() {
 }
 
 function cleanLine() {
+	debugPrint "FNC: cleanLine"
 	local LINE=$1
 	echo $LINE | sed 's/<\/td>//g' | sed 's/&nbsp//g' | tr -d ' ' | \
 	sed 's/xxx/0/g' | tr -dc '[:print:]'
@@ -61,6 +62,7 @@ function getToday() {
 }
 
 function cleanFile() {
+	debugPrint "FNC: cleanFile"
 	rm -f "$TMPDIR"/FVE.$$.html
 	#rm -f "$TMPDIR"/FVE.gn
 	rm -f "$TMPDIR"/fved.png
@@ -75,6 +77,7 @@ function cleanFile() {
 }
 
 function checkRunningStatus() {
+	debugPrint "FNC: checkRunningStatus"
 	if [ -e "$TMPDIR"/.fveread.lock ]; then
 		echo "Already running, quiting."
 		exit 0
@@ -85,6 +88,7 @@ function checkRunningStatus() {
 
 function updateProductionFile() {
 	#usage: genProductionFiles 
+	debugPrint "FNC: updateProductionFile"
 	
 	#DATE="$TIMEDATE_YYYYMMDD"
 
@@ -95,18 +99,20 @@ function updateProductionFile() {
 }
  
 function checkFileExist() {
+	debugPrint "FNC: checkFileExist"
+	if [ ! -e $HTMLFILE ]; then
+		FVEgenPage --defpage
+	fi
 	if [ ! -e "$HTMLOPTFILE" ]; then
 		FVEgenPage --optpage
 	fi
 	if [ `cat $HTMLOPTFILE | wc -l` -le 1 ]; then
 		FVEgenPage --optpage
 	fi
-	if [ ! -e $HTMLFILE ]; then
-		FVEgenPage --defpage
-	fi
 }
 
 function uploadDataFTP() {
+	debugPrint "FNC: uploadDataFTP"
 	#usage: uploadDataFTP
 	
 	lftp -u "$FTPUSERNAME",$FTPPASSWD -e "mput -O "$HTMLDESTDIR" $TMPDIR/fvem.png $TMPDIR/fvel.png $TMPDIR/fve.device.*.png $TMPDIR/fved.png $TMPDIR/fvep.png $HTMLPOWERFILE $HTMLOPTFILE $HTMLFILE && bye" $HTMLSERVER >> /dev/null
@@ -126,6 +132,7 @@ function uploadDataFTP() {
 }
 
 function printDataStdout() {
+	debugPrint "FNC: printDataStdout"
 	#usage: #printDataStdout 
 
 	echo "My FV: `date`:"
@@ -138,6 +145,7 @@ function printDataStdout() {
 
 
 function getData() {
+	debugPrint "FNC: getData"
 	getFileFromFVE 
 	if [ $? = 1 ]; then
 		CURRENT="-0"
@@ -155,6 +163,7 @@ function getData() {
 }
 
 function genFiles() {
+	debugPrint "FNC: genFiles"
 	#usage: genFiles
 		echo $TIMEDATE_YYYYMMDDHHmm $CURRENT $TODAY $AVRG $L1 $L2 $L3 >> "$HISTORYFILE"
 
@@ -183,6 +192,7 @@ function offMe() {
 }
 
 function mainLoop() {
+	debugPrint "FNC: mainLoop"
 	checkRunningStatus
 	getData
 	
@@ -203,7 +213,6 @@ VERB=''
 while [ $# -gt 0 ]; do
 	case $1 in
 		-h|--help) printHelp; exit; shift;;
-		-d|--daemon) DAEMON=1; shift;;
 		--stdout) STDOUT="YES" ; shift;;
 		-v|--verbose) VERB=Y; VERBPARM="-v" ; shift;;
 		-d|--debug) VERB=Y; VERBPARM="-d" ; shift;;
@@ -234,14 +243,5 @@ while [ $# -gt 0 ]; do
 		*)  echo "$0: error - unrecognized option $1" 1>&2; exit 1;;
 	esac
 done
-
-if [ $DAEMON ]; then
-	while true; do
-		while [ `date +%S` != "01" ]; do
-			sleep 1
-		done
-		mainLoop
-	done
-else 
-	mainLoop
-fi
+debugPrint "SCRIPT: FVEread"
+mainLoop
