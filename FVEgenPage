@@ -47,7 +47,7 @@ cat > "$HTMLFILE" << EOF
 
 <body>
 
-<iframe src="$FVEHTMLPOWERNAME" width="640" height="340"></iframe>
+<iframe src="$FVEHTMLPOWERNAME" width="640" height="380"></iframe>
 
 
 <h3>Graphs:</h3>
