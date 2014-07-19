@@ -11,14 +11,14 @@ function printHelp() {
   --help|-h   Print this help message
   -v          Talky version
 
-  --backup [ALL]   
+  --backup [all]   
 			  Create backup and push to FTP
-			  If ALL is passed, all configuration and data of FVEread 
+			  If 'all' is passed, all configuration and data of FVEread 
 			  will be downloaded from server, but not restored! This must
 			  be done manually!              
-  --restorebckp [ALL]
+  --restorebckp [all]
               Restore from backup
-              If ALL is passed, all parts of configuration and data of FVEread
+              If 'all' is passed, all parts of configuration and data of FVEread
               will be backuped.
   --restoreDate <DATE>
                Date of backup to be used when restoring. Otherwise the
