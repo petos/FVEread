@@ -1,6 +1,0 @@
-#EXAMPLE SETUP
-#for 2 devices, called example1 and example2
-#example1 is started when production is between 1000 and 1500 watt
-#example2 is started when production is more than 1400
-example1 1000 1500
-example2 1400
