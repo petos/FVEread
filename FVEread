@@ -192,7 +192,6 @@ function offMe() {
 
 function mainLoop() {
 	debugPrint "FNC: mainLoop"
-	checkRunningStatus
 	getData
 	
 	if [ "$STDOUT" ]; then
@@ -201,6 +200,7 @@ function mainLoop() {
 		genFiles
 		checkFileExist
 		FVEoptRunV2 $VERBPARM
+		checkRunningStatus
 		uploadDataFTP
 	fi
 	cleanFile
