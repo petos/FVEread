@@ -72,7 +72,7 @@ function realStatus(){
 		return 9
 	fi
 	debugPrint "$COMPONENT [$DEVICENUM] = should be: $EXPECTEDSTATUS, is $STATUS"
-	if [ "$STATUS" = "$EXPECTEDSTATUS" ]; then
+	if [ "$STATUS" = "$EXPECTEDSTATUS" -a "$EXPECTEDSTATUS" != 'off' -a ! $FORCE ]; then
 		verbPrint "OK, nothing to change"
 		return 1
 	else
@@ -129,6 +129,8 @@ function mainGetLoop() {
 	echo $( awk /$DEVICENAMEGET/'{print $NF}' "$TMPDIR"/FVE.statuses | tr '[:upper:]' '[:lower:]' )
 	return 0
 }
+
+FORCE=''
 VERBOUT="2>/dev/null"
 DEVICESTOTALNUM=-1
 while [ $# -gt 0 ]; do
