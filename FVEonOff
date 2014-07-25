@@ -72,10 +72,11 @@ function realStatus(){
 		return 9
 	fi
 	debugPrint "$COMPONENT [$DEVICENUM] = should be: $EXPECTEDSTATUS, is $STATUS"
-	if [ "$STATUS" = "$EXPECTEDSTATUS" -a "$EXPECTEDSTATUS" != 'off' -a ! $FORCE ]; then
+	if [ "$STATUS" = "$EXPECTEDSTATUS" -a "$EXPECTEDSTATUS" != 'off' -a "$FORCE" != 'Y' ]; then
 		verbPrint "OK, nothing to change"
 		return 1
 	else
+		verbPrint "Device $COMPONENT with id $DEVICENUM is being turned $EXPECTEDSTATUS"
 		ERRMSG=$(tdtool --${EXPECTEDSTATUS,,} $DEVICENUM $VERBOUT )
 		if [ "$?" != "0" ]; then
 			echo "Problem with tdtool. Failed with message:"
