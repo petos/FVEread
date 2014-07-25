@@ -287,7 +287,7 @@ function enableDisableDevices() {
 	local VOID
 	while read DEVICENUM VOID; do
 		verbPrint "Device ${STARTSTOPDEVICENAMES["$DEVICENUM"]} (ID=$DEVICENUM) is being turned ${STARTSTOPDEVICES["$DEVICENUM"]}"
-		FVEonOff --setstatus "${STARTSTOPDEVICENAMES["$DEVICENUM"]}" "${STARTSTOPDEVICES["$DEVICENUM"]}"
+		FVEonOff $VERBPARM --setstatus "${STARTSTOPDEVICENAMES["$DEVICENUM"]}" "${STARTSTOPDEVICES["$DEVICENUM"]}"
 		sleep 2
 	done < <( cat "$OPTCFGFILE" | grep -v \# | sed /^$/d)
 	return 0
@@ -307,6 +307,7 @@ function mainLoop() {
 FORCE='N'
 OFF=''
 VERB=''
+VERBPARM=''
 DEBUG=''
 
 if [ "$FVEOPTONOFF" = "OFF" ]; then
@@ -317,7 +318,7 @@ while [ $# -gt 0 ]; do
 	case $1 in
 		-h|--help) printHelp; shift;;
 		--off) OFF='Y' ; shift;;
-		-v|--verbose) VERB=Y; shift;;
+		-v|--verbose) VERB=Y; VERBPARM='-v'; shift;;
 		-d|--debug) VERB=Y;  DEBUG=Y ; shift;;
 		-f|--force) FORCE='Y'; shift;;
 		*)  echo "$0: error - unrecognized option $1" 1>&2; exit 1;;
