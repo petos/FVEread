@@ -251,12 +251,20 @@ function decideOnOff() {
 }
 
 function manageThermalDevices() {
+	
 	parseThermalDevice
+	
 	if [ "$THERMALDEVICES" = -1 ]; then
 			verbPrint "No thermal device recognized, skipping"
 			return 0
 	fi
-	manageThermalDevicesLowTarif
+	if [ FVEOPTVACATION = "OFF" ]; then
+		manageThermalDevicesLowTarif
+	elif [ FVEOPTVACATION = "ON" ]; then
+		verbPrint "Vacation-mode enabled, no time-based on-off actions"
+	else
+		echo "Vacation is not ON nor OFF. Perhaps not up-to-date FVErc?"
+	fi
 	
 	verbPrint "Processing thermal devices. After lowtarif actions the available energy is: $ENERGYBUCKET"
 	decideOnOff "thermal"

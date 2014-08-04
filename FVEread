@@ -235,6 +235,14 @@ while [ $# -gt 0 ]; do
 			onMe
 			shift
 			;;
+		--vacstart)
+			sed -i -e'/FVEOPTVACATION/s/"OFF"/"ON"/g' ~/.FVErc
+			shift
+			;;
+		--vacstop) 
+			sed -i -e'/FVEOPTVACATION/s/"ON"/"OFF"/g' ~/.FVErc
+			shift
+			;;
 		--reconfig)
 			rm -f "$TMPDIR"/fve*
 			cleanFile
@@ -248,9 +256,9 @@ while [ $# -gt 0 ]; do
 			fi
 			STARTDATE="$2"
 			STOPDATE="$3"
-			echo "/home/fve/FVEread/FVEread --off" > "$TMPDIR"/fvevacation
+			echo "/home/fve/FVEread/FVEread --vacstart" > "$TMPDIR"/fvevacation
 			at -f "$TMPDIR"/fvevacation -t "$STARTDATE"
-			echo "/home/fve/FVEread/FVEread --on" > "$TMPDIR"/fvevacation
+			echo "/home/fve/FVEread/FVEread --vacstop" > "$TMPDIR"/fvevacation
 			at -f "$TMPDIR"/fvevacation -t "$STOPDATE"
 			rm "$TMPDIR"/fvevacation
 			exit 0
