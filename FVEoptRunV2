@@ -258,9 +258,9 @@ function manageThermalDevices() {
 			verbPrint "No thermal device recognized, skipping"
 			return 0
 	fi
-	if [ FVEOPTVACATION = "OFF" ]; then
+	if [ "$FVEOPTVACATION" = "OFF" ]; then
 		manageThermalDevicesLowTarif
-	elif [ FVEOPTVACATION = "ON" ]; then
+	elif [ "$FVEOPTVACATION" = "ON" ]; then
 		verbPrint "Vacation-mode enabled, no time-based on-off actions"
 	else
 		echo "Vacation is not ON nor OFF. Perhaps not up-to-date FVErc?"
