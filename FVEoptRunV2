@@ -4,8 +4,15 @@ source ~/.FVErc
 source "$FVEBINDIR"/FVEcomFncs
 
 OPTCFGFILE=$OPTCFGFILE
-OPTCFGLOWFILE="$CFGDIR"/FVEoptRun.low.cfg
-source $OPTCFGLOWFILE
+if [ -e "$CFGDIR"/FVEoptRun.low.cfg ]; then
+	verbPrint "WARNING: found obsoleted configuration file."
+	verbPrint "Please move all configuratoin from"
+	verbPrint "$CFGDIR/FVEoptRun.low.cfg to ~/.FVErc"
+	verbPrint "and remove file $CFGDIR/FVEoptRun.low.cfg"
+	OPTCFGLOWFILE="$CFGDIR"/FVEoptRun.low.cfg
+	source $OPTCFGLOWFILE
+fi
+
 
 function updateEnergy() {
 	ENERGYBUCKET=$(expr $ENERGYBUCKET - $1)
