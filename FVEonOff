@@ -140,7 +140,6 @@ while [ $# -gt 0 ]; do
 		-v|--verbose) VERB=Y; VERBOUT='' ; shift;;
 		-d|--debug) VERB=Y; VERBOUT=''; DEBUG=Y ; shift;;
 		-f|--force) FORCE='Y'; shift;;
-		--raw) RAW='Y'; shift;;
 		--setstatus) 
 			if [ $# -lt 3 ]; then 
 				echo "Not enough params passed for --device $2"
