@@ -3,6 +3,27 @@
 source ~/.FVErc
 source "$FVEBINDIR"/FVEcomFncs
 
+function printHelp() {
+	echo -e "\nusage: `basename $0` [OPTIONS]
+	-h|--help  prints this help
+	-v         talky output
+	
+	--debug    tells everything it knows
+	--force|-f Sends on/off even if the device is already in desired state
+	
+	--init     prepare list of devices (should be run as first command)
+	--destroy  destroy list of devices (should be run when finished)
+	
+	--getstatus DEVICE
+        Returns the status of the device DEVICE
+    
+	--setstatus DEVICE STATUS
+	    Set the DEVICE to the STATUS. 
+	    
+	    STATUS must be 'on' or 'off'
+"
+exit 0
+}
 
 function getDeviceNumber() {
 	#usage: getDeviceNumber $COMPONENT
