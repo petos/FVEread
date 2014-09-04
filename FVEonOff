@@ -191,7 +191,9 @@ while [ $# -gt 0 ]; do
 	esac
 done
 
-
+if [ "$ALWAYSFORCE" = 'Y' ]; then
+    FORCE='Y'
+fi
 
 if [ "$TYPE" = "SET" ]; then
 	mainSetLoop
