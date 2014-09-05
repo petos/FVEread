@@ -34,7 +34,7 @@ function getFileFromFVE() {
 	debugPrint "FNC: getFileFromFVE"
 	curl -u $FVEUSERNAME:$FVEPWD http://stridac > "$TMPDIR"/FVE.$$.html 2>/dev/null 
 	if [ $? != 0 ]; then
-		echo "Stridac neni dostupny"
+		errorPrint "Stridac neni dostupny"
 		return 1
 	else
 		return 0
@@ -80,7 +80,7 @@ function cleanFile() {
 function checkRunningStatus() {
 	debugPrint "FNC: checkRunningStatus"
 	if [ -e "$TMPDIR"/.fveread.lock ]; then
-		echo "Already running, quiting."
+		errorPrint "Already running, quiting."
 		exit 0
 	fi
 	echo $$ > "$TMPDIR"/.fveread.lock
@@ -246,12 +246,12 @@ while [ $# -gt 0 ]; do
 		--reconfig)
 			rm -f "$TMPDIR"/fve*
 			cleanFile
-			echo "Done. Please re-run the FVEread."
+			errorPrint "Done. Please re-run the FVEread."
 			exit 0
 			;;
 		--vacation)
 			if [ $# -lt 3 ]; then 
-				echo "Not enough params passed for --vacation"
+				errorPrint "Not enough params passed for --vacation"
 				exit 2
 			fi
 			STARTDATE="$2"
@@ -263,7 +263,7 @@ while [ $# -gt 0 ]; do
 			rm "$TMPDIR"/fvevacation
 			exit 0
 			;;
-		*)  echo "$0: error - unrecognized option $1" 1>&2; exit 1;;
+		*)  errorPrint "$0: error - unrecognized option $1" 1>&2; exit 1;;
 	esac
 done
 debugPrint "SCRIPT: FVEread"

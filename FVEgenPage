@@ -157,9 +157,9 @@ function checkStatus() {
 	STATUS="$2"
 	
 	if [ "$STATUS" != "on" -a "$STATUS" != "off" ]; then
-		echo "Wrong status!"
-		echo "Received:   $STATUS"
-		echo "Component: $COMPONENT"
+		errorPrint "Wrong status!"
+		errorPrint "Received:   $STATUS"
+		errorPrint "Component: $COMPONENT"
 		exit 1
 	fi
 }
@@ -195,28 +195,28 @@ while [ $# -gt 0 ]; do
 		--powerpage) GENPOWERPAGE=Y; shift;;
 		--fvestatus) 
 			if  [ $# -lt 2 ]; then 
-				echo "Not enough params passed for --fvestatus"
+				errorPrint "Not enough params passed for --fvestatus"
 				exit 2
 			fi
 			checkNumInput "$2"
 			FVESTATUS="$2"; shift 2;;
 		--current) 
 			if  [ $# -lt 2 ]; then 
-				echo "Not enough params passed for --current"
+				errorPrint "Not enough params passed for --current"
 				exit 2
 			fi
 			checkNumInput "$2"
 			FVECURRENT="$2"; shift 2;;
 		--today) 
 			if  [ $# -lt 2 ]; then 
-				echo "Not enough params passed for --today"
+				errorPrint "Not enough params passed for --today"
 				exit 2
 			fi
 			checkNumInput "$2"
 			FVETODAY="$2"; shift 2;;
 		--avrg)
 			if [ $# -lt 2 ]; then 
-				echo "Not enough params passed for --avrg"
+				errorPrint "Not enough params passed for --avrg"
 				exit 2
 			fi
 			checkNumInput "$2"
@@ -224,7 +224,7 @@ while [ $# -gt 0 ]; do
 			shift 2;;
 		--L1) 
 			if [ $# -lt 2 ]; then 
-				echo "Not enough params passed for --L1"
+				errorPrint "Not enough params passed for --L1"
 				exit 2
 			fi
 			checkNumInput "$2"
@@ -232,7 +232,7 @@ while [ $# -gt 0 ]; do
 			shift 2;;
 		--L2) 
 			if [ $# -lt 2 ]; then 
-				echo "Not enough params passed for --L2"
+				errorPrint "Not enough params passed for --L2"
 				exit 2
 			fi
 			checkNumInput "$2"
@@ -240,7 +240,7 @@ while [ $# -gt 0 ]; do
 			shift 2;;
 		--L3) 
 			if [ $# -lt 2 ]; then 
-				echo "Not enough params passed for --L3"
+				errorPrint "Not enough params passed for --L3"
 				exit 2
 			fi
 			checkNumInput "$2"
@@ -248,7 +248,7 @@ while [ $# -gt 0 ]; do
 			shift 2;;
 		--device) 
 			if [ $# -lt 3 ]; then 
-				echo "Not enough params passed for --device"
+				errorPrint "Not enough params passed for --device"
 				exit 2
 			fi
 			DEVICENAME[$DEVICENUM]="$2"
@@ -262,7 +262,7 @@ while [ $# -gt 0 ]; do
 done
 
 if [ $# -gt 0 ]; then
-	echo "Unrecognized parametr(s): \"$@\""
+	errorPrint "Unrecognized parametr(s): \"$@\""
 fi
 
 if [ $VEBROSE ]; then
@@ -270,7 +270,7 @@ if [ $VEBROSE ]; then
 fi
 
 if [ -z $GENDEFPAGE ] && [ -z $GENOPTPAGE ] && [ -z $GENPOWERPAGE ] && [ -z $UPDATE ]; then
-	echo "one of commands must be used:
+	errorPrint "one of commands must be used:
 	defpage,optpage,powerpage,update
 	GENDEFPAGE: $GENDEFPAGE
 	GENOPTPAGE: $GENOPTPAGE
@@ -289,7 +289,7 @@ fi
 
 if [ $GENPOWERPAGE ]; then
 	if [ -z $FVECURRENT ] || [ -z $FVETODAY ] || [ -z $FVESTATUS ] || [ -z $FVEAVRG ] ; then
-		echo "--current, --today, --avrg and --fvestatus are mandatorry for --powerpage parameter"
+		errorPrint "--current, --today, --avrg and --fvestatus are mandatorry for --powerpage parameter"
 		printLoadedParams
 	else
 		genPowerPage

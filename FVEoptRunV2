@@ -52,7 +52,7 @@ function getBucket(){
 function checkUptime() {
 	UPTIME=$(cat /proc/uptime | awk -F '.' '{print $1}')
 	if [ $UPTIME -lt 660 ]; then
-		echo "LOW uptime: disabled due to not enough of data"
+		errorPrint "LOW uptime: disabled due to not enough of data"
 		OFF='Y'
 		FORCE='Y'
 	fi
@@ -103,14 +103,14 @@ function parseThermalDevice() {
 	###TEST
 	if [ $DEBUG ]; then
 		for i in `seq 0 $THERMALDEVICES`; do
-			echo "ID$i: ${DEVICEID[$i]}"
-			echo "TYPE$i: ${TYPE["$i"]}"
-			echo "NAME$i: ${DEVICE["$i"]}"
-			echo "CONS$i: ${CONSUMPTION["$i"]}"
-			echo "TIM1$i: ${TIME0["$i"]}"
-			echo "TIM2$i: ${TIME1["$i"]}"
-			echo "RTTM$i: ${STARTTEMP["$i"]}"
-			echo "TPTM$i: ${STOPTEMP["$i"]}"
+			debugPrint "ID$i: ${DEVICEID[$i]}"
+			debugPrint "TYPE$i: ${TYPE["$i"]}"
+			debugPrint "NAME$i: ${DEVICE["$i"]}"
+			debugPrint "CONS$i: ${CONSUMPTION["$i"]}"
+			debugPrint "TIM1$i: ${TIME0["$i"]}"
+			debugPrint "TIM2$i: ${TIME1["$i"]}"
+			debugPrint "RTTM$i: ${STARTTEMP["$i"]}"
+			debugPrint "TPTM$i: ${STOPTEMP["$i"]}"
 		done
 	fi
 	###ENDTEST
@@ -177,7 +177,7 @@ function manageThermalDevicesLowTarif {
 			verbPrint "DirectTemp is OFF, enabling time-based configuration"
 			thermalLowTarifNODT
 		else
-			echo "Not able parse configuration, quitting"
+			errorPrint "Not able parse configuration, quitting"
 			exit 1
 		fi
 	else
@@ -229,7 +229,7 @@ function decideOnOff() {
 				local STATUS
 				STATUS=$(FVEonOff --raw --getstatus $LOCALDEVICE )
 				if [ $? != 0 ]; then
-					echo "$LOCALDEVICE (ID:$LOCALDEVICEID) was not recognized in TelDus configuration"
+					errorPrint "$LOCALDEVICE (ID:$LOCALDEVICEID) was not recognized in TelDus configuration"
 					continue
 				fi
 				STARTSTOPDEVICES["$LOCALDEVICEID"]="$STATUS"
@@ -237,12 +237,12 @@ function decideOnOff() {
 					updateEnergy $LOCALCONSUMPTION
 				fi
 			else
-				echo "ERR, not expected this to happens"
-				echo "LOCALDEVICE=$LOCALDEVICE (ID:$LOCALDEVICEID)"
-				echo "ENERGYBUCKET=$ENERGYBUCKET"
-				echo "STARTLOCALCONSUMPTION=$STARTLOCALCONSUMPTION"
-				echo "LOCALCONSUMPTION=$LOCALCONSUMPTION"
-				echo "Stopping"
+				errorPrint "ERR, not expected this to happens"
+				errorPrint "LOCALDEVICE=$LOCALDEVICE (ID:$LOCALDEVICEID)"
+				errorPrint "ENERGYBUCKET=$ENERGYBUCKET"
+				errorPrint "STARTLOCALCONSUMPTION=$STARTLOCALCONSUMPTION"
+				errorPrint "LOCALCONSUMPTION=$LOCALCONSUMPTION"
+				errorPrint "Stopping"
 				STARTSTOPDEVICES["$LOCALDEVICEID"]=OFF
 			fi
 		fi
@@ -263,7 +263,7 @@ function manageThermalDevices() {
 	elif [ FVEOPTVACATION = "ON" ]; then
 		verbPrint "Vacation-mode enabled, no time-based on-off actions"
 	else
-		echo "Vacation is not ON nor OFF. Perhaps not up-to-date FVErc?"
+		errorPrint "Vacation is not ON nor OFF. Perhaps not up-to-date FVErc?"
 	fi
 	
 	verbPrint "Processing thermal devices. After lowtarif actions the available energy is: $ENERGYBUCKET"
@@ -329,7 +329,7 @@ while [ $# -gt 0 ]; do
 		-v|--verbose) VERB=Y; VERBPARM='-v'; shift;;
 		-d|--debug) VERB=Y;  DEBUG=Y ; shift;;
 		-f|--force) FORCE='Y'; shift;;
-		*)  echo "$0: error - unrecognized option $1" 1>&2; exit 1;;
+		*)  errorPrint "$0: error - unrecognized option $1" 1>&2; exit 1;;
 	esac
 done
 
