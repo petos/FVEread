@@ -3,6 +3,27 @@
 source ~/.FVErc
 source "$FVEBINDIR"/FVEcomFncs
 
+function printHelp() {
+	echo -e "\nusage: `basename $0` [OPTIONS]
+	-h|--help  prints this help
+	-v         talky output
+	
+	--debug    tells everything it knows
+	--force|-f Sends on/off even if the device is already in desired state
+	
+	--init     prepare list of devices (should be run as first command)
+	--destroy  destroy list of devices (should be run when finished)
+	
+	--getstatus DEVICE
+        Returns the status of the device DEVICE
+    
+	--setstatus DEVICE STATUS
+	    Set the DEVICE to the STATUS. 
+	    
+	    STATUS must be 'on' or 'off'
+"
+exit 0
+}
 
 function getDeviceNumber() {
 	#usage: getDeviceNumber $COMPONENT
@@ -140,7 +161,6 @@ while [ $# -gt 0 ]; do
 		-v|--verbose) VERB=Y; VERBOUT='' ; shift;;
 		-d|--debug) VERB=Y; VERBOUT=''; DEBUG=Y ; shift;;
 		-f|--force) FORCE='Y'; shift;;
-		--raw) RAW='Y'; shift;;
 		--setstatus) 
 			if [ $# -lt 3 ]; then 
 				errorPrint "Not enough params passed for --device $2"
@@ -171,7 +191,9 @@ while [ $# -gt 0 ]; do
 	esac
 done
 
-
+if [ "$ALWAYSFORCE" = 'Y' ]; then
+    FORCE='Y'
+fi
 
 if [ "$TYPE" = "SET" ]; then
 	mainSetLoop

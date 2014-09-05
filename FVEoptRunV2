@@ -4,8 +4,15 @@ source ~/.FVErc
 source "$FVEBINDIR"/FVEcomFncs
 
 OPTCFGFILE=$OPTCFGFILE
-OPTCFGLOWFILE="$CFGDIR"/FVEoptRun.low.cfg
-source $OPTCFGLOWFILE
+if [ -e "$CFGDIR"/FVEoptRun.low.cfg ]; then
+	verbPrint "WARNING: found obsoleted configuration file."
+	verbPrint "Please move all configuratoin from"
+	verbPrint "$CFGDIR/FVEoptRun.low.cfg to ~/.FVErc"
+	verbPrint "and remove file $CFGDIR/FVEoptRun.low.cfg"
+	OPTCFGLOWFILE="$CFGDIR"/FVEoptRun.low.cfg
+	source $OPTCFGLOWFILE
+fi
+
 
 function updateEnergy() {
 	ENERGYBUCKET=$(expr $ENERGYBUCKET - $1)
@@ -258,9 +265,9 @@ function manageThermalDevices() {
 			verbPrint "No thermal device recognized, skipping"
 			return 0
 	fi
-	if [ FVEOPTVACATION = "OFF" ]; then
+	if [ "$FVEOPTVACATION" = "OFF" ]; then
 		manageThermalDevicesLowTarif
-	elif [ FVEOPTVACATION = "ON" ]; then
+	elif [ "$FVEOPTVACATION" = "ON" ]; then
 		verbPrint "Vacation-mode enabled, no time-based on-off actions"
 	else
 		errorPrint "Vacation is not ON nor OFF. Perhaps not up-to-date FVErc?"
