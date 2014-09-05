@@ -104,6 +104,7 @@ function realStatus(){
 			errorPrint "\"$ERRMSG\""
 			return 9
 		else
+			verbPrint "$ERRMSG"
 			return 0
 		fi
 	fi

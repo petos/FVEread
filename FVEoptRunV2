@@ -234,7 +234,7 @@ function decideOnOff() {
 			elif [ $LOCALCONSUMPTION -le $ENERGYBUCKET ] && [ $ENERGYBUCKET -le $STARTLOCALCONSUMPTION ] ; then
 				verbPrint "Device $LOCALDEVICE (ID:$LOCALDEVICEID) CONS:  ${LOCALCONSUMPTION} < $ENERGYBUCKET < $STARTLOCALCONSUMPTION -- nochange" 
 				local STATUS
-				STATUS=$(FVEonOff --raw --getstatus $LOCALDEVICE )
+				STATUS=$(FVEonOff $VERBPARM --raw --getstatus $LOCALDEVICE )
 				if [ $? != 0 ]; then
 					errorPrint "$LOCALDEVICE (ID:$LOCALDEVICEID) was not recognized in TelDus configuration"
 					continue
