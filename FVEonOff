@@ -42,7 +42,7 @@ function checkTDstatus() {
 #	fi
 	local TDPID=`ps -ef | grep -v bash | grep -v grep |  grep telldusd | awk '{print $2}'`
 	if [ ! "$TDPID" ]; then
-		echo "Seems telldusd is down? Restarting"
+		errorPrint "Seems telldusd is down? Restarting"
 		sudo /sbin/telldusd
 	fi
 }
@@ -100,10 +100,11 @@ function realStatus(){
 		verbPrint "Device $COMPONENT with id $DEVICENUM is being turned $EXPECTEDSTATUS"
 		ERRMSG=$(tdtool --${EXPECTEDSTATUS,,} $DEVICENUM $VERBOUT )
 		if [ "$?" != "0" ]; then
-			echo "Problem with tdtool. Failed with message:"
-			echo "\"$ERRMSG\""
+			errorPrint "Problem with tdtool. Failed with message:"
+			errorPrint "\"$ERRMSG\""
 			return 9
 		else
+			verbPrint "$ERRMSG"
 			return 0
 		fi
 	fi
@@ -124,7 +125,7 @@ function opt() {
 			FVEgenPage --update --device $COMPONENT $EXPECTEDSTATUS
 		fi
 	else
-		echo "Unknown parametr for function opt(): $@"
+		errorPrint "Unknown parametr for function opt(): $@"
 	fi
 	if [ "$EXPECTEDSTATUS" = "on" ]; then EXPECTEDSTATUSBINARY=1; else EXPECTEDSTATUSBINARY=0; fi
 	echo $TIMEDATE_YYYYMMDDHHmm $EXPECTEDSTATUSBINARY >> $FVEDATADIR/$COMPONENT."$TIMEDATE_YYYYMM"
@@ -163,11 +164,11 @@ while [ $# -gt 0 ]; do
 		-f|--force) FORCE='Y'; shift;;
 		--setstatus) 
 			if [ $# -lt 3 ]; then 
-				echo "Not enough params passed for --device $2"
+				errorPrint "Not enough params passed for --device $2"
 				exit 2
 			fi
 			if [ "${3,,}" != 'on' -a "${3,,}" != 'off' -a "${3,,}" != 'notd' ] ; then
-				echo "3rd parametr may be only 'on/ON' or 'off/OFF'. Passed '$3' for device $2"
+				errorPrint "3rd parametr may be only 'on/ON' or 'off/OFF'. Passed '$3' for device $2"
 				exit 3
 			fi
 			((++DEVICESTOTALNUM)) 
@@ -178,7 +179,7 @@ while [ $# -gt 0 ]; do
 			;;
 		--getstatus)
 			if [ $# -lt 2 ]; then 
-				echo "Not passed device parametr --getstatus"
+				errorPrint "Not passed device parametr --getstatus"
 				exit 2
 			fi
 			DEVICENAMEGET="$2"
@@ -187,7 +188,7 @@ while [ $# -gt 0 ]; do
 			;;
 		--init) initFVEonOff; exit 0;;
 		--destroy) uninitStatuses ;exit 0;;
-		*)  echo "$0: error - unrecognized option $1" 1>&2; exit 1;;
+		*)  errorPrint "$0: error - unrecognized option $1" 1>&2; exit 1;;
 	esac
 done
 
@@ -200,7 +201,7 @@ if [ "$TYPE" = "SET" ]; then
 elif [ "$TYPE" = "GET" ]; then
 	mainGetLoop
 else
-	verbPrint "No TYPE recognized"
+	errorPrint "No TYPE recognized"
 	exit 0
 fi
 

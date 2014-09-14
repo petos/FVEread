@@ -145,7 +145,7 @@ if [ "$#" = 1 ]; then
 		genMonthlyProductionGraph
 		genOnOffDevicesGraphs
 	else
-		echo "Non supported parametr $1"
+		errorPrint "Non supported parametr $1"
 		exit 1
 	fi
 else
