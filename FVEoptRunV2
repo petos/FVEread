@@ -157,8 +157,6 @@ function thermalLowTarifNODT() {
 }
 
 function thermalLowTarifDT() {
-	getTemperature
-
 	if [ $TEMPERATURE -lt $VALLOWTARIFMINTEMP ]; then
 		verbPrint "Temperature in thermal device is lower than minimum requested. $TEMPERATURE < $VALLOWTARIFMINTEMP"
 		local LOCALDEVICEID=-1
@@ -193,6 +191,7 @@ function manageThermalDevicesLowTarif {
 }
 
 function decideOnOff() {
+	debugPrint "FNC: decideOnOff"
 	local FILTER="$1"
 	
 	local LOCALDEVICEID
@@ -318,6 +317,9 @@ function enableDisableDevices() {
 function mainLoop() {
 	initDeviceTable
 	getLowTarifInfo
+	if [ $DIRECTTEMP = "ON" ]; then 
+		getTemperature
+	fi
 	manageThermalDevices
 	decideOnOff "generic"
 	enableDisableDevices
