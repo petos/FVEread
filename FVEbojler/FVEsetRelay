@@ -15,6 +15,7 @@ function errorPrint() {
 		echo "`date +%Y.%m.%d/%H:%M`: $1"
 }
 
+function getOpts() {
 if [ -e ~/config/FVERelays ]; then
     CONFIGFILE=/home/fve/config/FVERelays
 elif [ -e ./FVERelays ]; then
@@ -32,6 +33,7 @@ else
     errorPrint "No FVEPinPortMap config file was found!"
     exit 4
 fi
+}
 
 function printHelp() {
 	echo -e "\nusage: FVEsetRelay {RELAY STATUS}
@@ -56,7 +58,7 @@ function setupPorts() {
         debugPrint "Seting pin ${PORTPINMAP[$PORT - 1 ]} for port $PORT to OUT"
         gpio -1 mode ${PORTPINMAP[$PORT - 1 ]} OUT
         if [ $? = 0 ]; then
-            debugPrint "OK, port is ON"
+            debugPrint "OK, port is set to output"
         else
             errorPrint "Something went wrong in initializing of pin ${PORTPINMAP[$PORT - 1 ]}!"
             exit 1
@@ -64,7 +66,7 @@ function setupPorts() {
         debugPrint "Seting pin ${PORTPINMAP[$PORT - 1 ]} for port $PORT to $DEVICESTATUS"
         gpio -1 write ${PORTPINMAP[$PORT - 1 ]} $DEVICESTATUS
         if [ $? = 0 ]; then
-            debugPrint "OK, port is ON"
+            verbPrint "OK, port is configured to value $DEVICESTATUS"
         else
             errorPrint "Something went wrong when tried to setup pin ${PORTPINMAP[$PORT - 1 ]} to $DEVICESTATUS!"            
         fi
@@ -76,14 +78,13 @@ function mainLoop() {
     setupPorts
 }
 
-FORCE=''
-VERBOUT="2>/dev/null"
+getOpts
+
 while [ $# -gt 0 ]; do
 	case $1 in
 		-h|--help) printHelp; shift;;
 		-v|--verbose) VERB=Y; VERBOUT='' ; shift;;
 		-d|--debug) VERB=Y; VERBOUT=''; DEBUG=Y ; shift;;
-		-f|--force) FORCE='Y'; shift;;
         --device)
             if [ $# -lt 3 ]; then 
 				errorPrint "Not passed devices status"
@@ -103,5 +104,9 @@ done
 if [ -z "$DEVICENAME" ]; then
     errorPrint "DEVICE must be passed"
     exit 3
+fi
+if ( ! grep -w $DEVICENAME $CONFIGFILE > /dev/null ); then
+    errorPrint "Device does not exists in config"
+    exit 1
 fi
 mainLoop
