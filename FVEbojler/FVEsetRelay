@@ -66,7 +66,7 @@ function setupPorts() {
         debugPrint "Seting pin ${PORTPINMAP[$PORT - 1 ]} for port $PORT to $DEVICESTATUS"
         gpio -1 write ${PORTPINMAP[$PORT - 1 ]} $DEVICESTATUS
         if [ $? = 0 ]; then
-            verbPrint "OK, port is configured to value $DEVICESTATUS"
+            verbPrint "OK, port $PORT (PIN ${PORTPINMAP[$PORT - 1 ]}) is configured to value $DEVICESTATUS"
         else
             errorPrint "Something went wrong when tried to setup pin ${PORTPINMAP[$PORT - 1 ]} to $DEVICESTATUS!"            
         fi
