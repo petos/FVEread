@@ -95,7 +95,7 @@ while [ $# -gt 0 ]; do
 				exit 3
 			fi
             DEVICENAME="$2"
-            DEVICESTATUS=$(echo "${3,,}" | sed s/on/1/g | sed s/off/0/g)
+            DEVICESTATUS=$(echo "${3,,}" | sed s/on/0/g | sed s/off/1/g)
             shift 3;;
         *)  echo "$0: error - unrecognized option $1"; exit 1;;
 	esac
