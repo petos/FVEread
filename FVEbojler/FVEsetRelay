@@ -52,22 +52,21 @@ function retreivePINS() {
 }
 
 function setupPorts() {
-    debugPrint "FNC: initPorts"
-    for PIN in $(retreivePINS $DEVICENAME); do
-        debugPrint "Seting pin ${PORTPINMAP[$PIN]} for port $PIN to OUT"
-        gpio -1 mode ${PORTPINMAP[$PIN]} OUT
+    for PORT in $(retreivePINS $DEVICENAME); do
+        debugPrint "Seting pin ${PORTPINMAP[$PORT - 1 ]} for port $PORT to OUT"
+        gpio -1 mode ${PORTPINMAP[$PORT - 1 ]} OUT
         if [ $? = 0 ]; then
             debugPrint "OK, port is ON"
         else
-            errorPrint "Something went wrong in initializing of pin ${PORTPINMAP[$PIN]}!"
+            errorPrint "Something went wrong in initializing of pin ${PORTPINMAP[$PORT - 1 ]}!"
             exit 1
         fi
-        debugPrint "Seting pin ${PORTPINMAP[$PIN]} for port $PIN to $DEVICESTATUS"
-        gpio -1 write ${PORTPINMAP[$PIN]} $DEVICESTATUS
+        debugPrint "Seting pin ${PORTPINMAP[$PORT - 1 ]} for port $PORT to $DEVICESTATUS"
+        gpio -1 write ${PORTPINMAP[$PORT - 1 ]} $DEVICESTATUS
         if [ $? = 0 ]; then
             debugPrint "OK, port is ON"
         else
-            errorPrint "Something went wrong when tried to setup pin ${PORTPINMAP[$PIN]} to $DEVICESTATUS!"            
+            errorPrint "Something went wrong when tried to setup pin ${PORTPINMAP[$PORT - 1 ]} to $DEVICESTATUS!"            
         fi
     done
 }
