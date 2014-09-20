@@ -1,0 +1,97 @@
+#!/bin/bash
+
+if [ -e ./FVERelays ]; then
+    CONFIGFILE=./FVERelays
+elif [ -e /home/fve/config/FVERelays ]; then
+    CONFIGFILE=/home/fve/config/FVERelays
+fi
+
+function debugPrint() {
+	if [ $DEBUG ]; then
+		echo "$1"
+	fi
+}
+
+function verbPrint() {
+	if [ $VERB ]; then
+		echo "$1"
+	fi
+}
+
+function errorPrint() {
+		echo "`date +%Y.%m.%d/%H:%M`: $1"
+}
+
+function printHelp() {
+	echo -e "\nusage: FVEsetRelay {RELAY STATUS}
+	-h|--help  prints this help
+	-v         talky output
+	
+	--debug    tells everything it knows
+	--force|-f Sends on/off even if the device is already in desired state
+	
+    RELAY must be one of configured   
+	STATUS must be 'on' or 'off'
+"
+exit 0
+}
+
+function retreivePINS() {
+    echo $(grep -w $DEVICENAME $CONFIGFILE | awk '{print $2}' | tr ',' ' ')
+}
+
+function setupPorts() {
+    debugPrint "FNC: initPorts"
+    for PIN in $(retreivePINS $DEVICENAME); do
+        debugPrint "Seting pin ${PORTPINMAP[$PIN]} for port $PORT to OUT"
+        gpio -1 mode ${PORTPINMAP[$PIN]} OUT
+        if [ $? = 0 ]; then
+            debugPrint "OK, port is ON"
+        else
+            errorPrint "Something went wrong in initializing of pin ${PORTPINMAP[$PIN]}!"
+            exit 1
+        fi
+        debugPrint "Seting pin ${PORTPINMAP[$PIN]} for port $PORT to $DEVICESTATUS"
+        gpio -1 write ${PORTPINMAP[$PIN]} $DEVICESTATUS
+        if [ $? = 0 ]; then
+            debugPrint "OK, port is ON"
+        else
+            errorPrint "Something went wrong when tried to setup pin ${PORTPINMAP[$PIN]} to $DEVICESTATUS!"            
+        fi
+    done
+}
+
+function mainLoop() {
+    verbPrint "Setting device $DEVICENAME to $DEVICESTATUS"
+    setupPorts
+}
+
+FORCE=''
+VERBOUT="2>/dev/null"
+while [ $# -gt 0 ]; do
+	case $1 in
+		-h|--help) printHelp; shift;;
+		-v|--verbose) VERB=Y; VERBOUT='' ; shift;;
+		-d|--debug) VERB=Y; VERBOUT=''; DEBUG=Y ; shift;;
+		-f|--force) FORCE='Y'; shift;;
+        --device)
+            if [ $# -lt 3 ]; then 
+				errorPrint "Not passed devices status"
+				exit 2
+            fi
+            if [ "${3,,}" != 'on' -a "${3,,}" != 'off' -a "${3,,}" != 'notd' ] ; then
+				errorPrint "3rd parametr may be only 'on/ON' or 'off/OFF'. Passed '$3' for device $2"
+				exit 3
+			fi
+            DEVICENAME="$2"
+            DEVICESTATUS=$(echo "${3,,}" | sed s/on/1/g | sed s/off/0/g)
+            shift 3;;
+        *)  echo "$0: error - unrecognized option $1"; exit 1;;
+	esac
+done
+
+if [ -z "$DEVICENAME" ]; then
+    errorPrint "DEVICE must be passed"
+    exit 3
+fi
+mainLoop
