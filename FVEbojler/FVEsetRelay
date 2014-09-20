@@ -1,11 +1,4 @@
 #!/bin/bash
-
-if [ -e ./FVERelays ]; then
-    CONFIGFILE=./FVERelays
-elif [ -e /home/fve/config/FVERelays ]; then
-    CONFIGFILE=/home/fve/config/FVERelays
-fi
-
 function debugPrint() {
 	if [ $DEBUG ]; then
 		echo "$1"
@@ -21,6 +14,24 @@ function verbPrint() {
 function errorPrint() {
 		echo "`date +%Y.%m.%d/%H:%M`: $1"
 }
+
+if [ -e ~/config/FVERelays ]; then
+    CONFIGFILE=/home/fve/config/FVERelays
+elif [ -e ./FVERelays ]; then
+    CONFIGFILE=./FVERelays
+else
+    errorPrint "No FVERelays config file was found!"
+    exit 4
+fi
+
+if [ -e ~/config/FVEPinPortMap ]; then
+    source ~/config/FVEPinPortMap
+elif [ -e ./FVEPinPortMap ]; then
+    source ./FVEPinPortMap
+else
+    errorPrint "No FVEPinPortMap config file was found!"
+    exit 4
+fi
 
 function printHelp() {
 	echo -e "\nusage: FVEsetRelay {RELAY STATUS}
@@ -43,7 +54,7 @@ function retreivePINS() {
 function setupPorts() {
     debugPrint "FNC: initPorts"
     for PIN in $(retreivePINS $DEVICENAME); do
-        debugPrint "Seting pin ${PORTPINMAP[$PIN]} for port $PORT to OUT"
+        debugPrint "Seting pin ${PORTPINMAP[$PIN]} for port $PIN to OUT"
         gpio -1 mode ${PORTPINMAP[$PIN]} OUT
         if [ $? = 0 ]; then
             debugPrint "OK, port is ON"
@@ -51,7 +62,7 @@ function setupPorts() {
             errorPrint "Something went wrong in initializing of pin ${PORTPINMAP[$PIN]}!"
             exit 1
         fi
-        debugPrint "Seting pin ${PORTPINMAP[$PIN]} for port $PORT to $DEVICESTATUS"
+        debugPrint "Seting pin ${PORTPINMAP[$PIN]} for port $PIN to $DEVICESTATUS"
         gpio -1 write ${PORTPINMAP[$PIN]} $DEVICESTATUS
         if [ $? = 0 ]; then
             debugPrint "OK, port is ON"

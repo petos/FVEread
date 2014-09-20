@@ -1,0 +1,2 @@
+#list of all used/connected PINs in order for Relay ports!
+PORTPINMAP=( 15 18 19 22 21 24 23 26 )
