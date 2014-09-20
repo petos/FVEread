@@ -6,18 +6,16 @@ TIMEDATE_YYYYMMDDHHmm=$(date +%Y%m%d%H%M)
 
 function debugPrint() {
 	if [ $DEBUG ]; then
-		echo "date +%H:%M:%S: $1"
+		echo "$1"
 	fi
 }
 
 function verbPrint() {
 	if [ $VERB ]; then
-		echo "`date +%H:%M:%S`: $1"
+		echo "$1"
 	fi
 }
 
 function errorPrint() {
-	if [ $VERB ]; then
-		echo "$TIMEDATE_YYYYMMDDHHmm: $1"
-	fi
+	echo "$TIMEDATE_YYYYMMDDHHmm: $1"
 }
