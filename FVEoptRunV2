@@ -319,6 +319,9 @@ function mainLoop() {
 	getLowTarifInfo
 	if [ $DIRECTTEMP = "ON" ]; then 
 		getTemperature
+        if [ -z $TEMPERATURE ]; then
+            DIRECTTEMP=OFF
+        fi
 	fi
 	manageThermalDevices
 	decideOnOff "generic"
