@@ -1,0 +1,101 @@
+#!/bin/bash
+
+source ~/.FVErc
+source "$FVEBINDIR"/FVEcomFncs
+
+TRIMMED=${FVEHTMLPOWERNAME%.html}
+FVEPOWERNAMEHIST=$TRIMMED.$TIMEDATE_YYYYMMDD.html
+
+TRIMMED=${HTMLFILENAME%.html}
+HISTFILENAME=$TRIMMED.$TIMEDATE_YYYYMMDD.html
+
+function printHelp() {
+	echo -e "\nusage: FVEhistPage [OPTIONS]
+	-v         talky output
+	--debug    tells everything it knows
+"
+exit 0
+}
+
+
+function makeHistFiles() {
+    debugPrint "FNC: makeHistFiles"
+    mv "$TMPDIR"/fved.png "$HISTDIR"/fved."$TIMEDATE_YYYYMMDD".png
+	mv "$TMPDIR"/fvel.png "$HISTDIR"/fvel."$TIMEDATE_YYYYMMDD".png
+	mv "$TMPDIR"/fvem.png "$HISTDIR"/fvem."$TIMEDATE_YYYYMM".png
+	mv "$TMPDIR"/fvep.png "$HISTDIR"/fvep."$TIMEDATE_YYYYMM".png
+	mv "$TMPDIR"/fve.device.*.png "$HISTDIR"
+	for FILE in "$HISTDIR"/fve.device.*.png; do 
+		TRIMMED=${FILE%.png}
+		mv $TRIMMED{.png,."$TIMEDATE_YYYYMMDD".png}
+	done
+    
+    cp "$TPMDIR"/"$FVEHTMLPOWERNAME" "$HISTDIR"/"$FVEPOWERNAMEHIST"
+    
+    debugPrint "FNC: makeHistFiles - done"
+    return 0
+}
+
+function genDayPage() {
+    debugPrint "FNC: genDayPage"
+    makeHistFiles
+    
+   debugPrint "genDayPage: generating page" 	
+cat > "$HISTDIR"/"$HISTFILENAME" << EOF
+<!DOCTYPE html>
+<html>
+<head>
+<title>FVE overview for $TIMEDATE_YYYYMMDD</title>
+</head>
+
+<body>
+
+<iframe src="$FVEPOWERNAMEHIST" width="640" height="380"></iframe>
+
+
+<h3>Graphs:</h3>
+<h4>Power report for $TIMEDATE_YYYYMMDD:</h4>
+<img src="fved.$TIMEDATE_YYYYMMDD.png" alt="Power today">
+<h4>Power report (per phase) for $TIMEDATE_YYYYMMDD:</h4>
+<img src="fvel.$TIMEDATE_YYYYMMDD.png" alt="Power today (phased)">
+<h4>Month power overview for $TIMEDATE_YYYYMM:</h4>
+<img src="fvem.$TIMEDATE_YYYYMM.png" alt="Power overview for $TIMEDATE_YYYYMM">
+<h4>Produced on month for $TIMEDATE_YYYYMM:</h4>
+<img src="fvep.$TIMEDATE_YYYYMM.png" alt="Produced in month $TIMEDATE_YYYYMM">
+
+<h3>Optimalization of consumption</h3>
+EOF
+
+grep -v ^\# "$OPTCFGFILE" | while read USELESS USELESS DEVICE USELESS ; do
+echo "<img src=\"fve.device.$DEVICE.$TIMEDATE_YYYYMMDD.png\" alt=\"Produced this month\"> " >> "$HISTDIR"/"$HISTFILENAME"
+echo '</br>' >> "$HISTDIR"/"$HISTFILENAME"
+done
+    
+    return 0
+}
+
+function uploadHistToFTP() {
+	debugPrint "FNC: uploadHistToFTP"
+
+	lftp -u "$FTPUSERNAME",$FTPPASSWD -e "mput -O $HTMLDESTDIR/fve.hist/ $HISTDIR/$HISTFILENAME $HISTDIR/fvem*.png $HISTDIR/fvel*.png $HISTDIR/fve.device.*.png $HISTDIR/fvep.*.png $HISTDIR/fved.*.png && bye" $HTMLSERVER >> /dev/null 
+	verbPrint "FTPupload of history files done"
+	return 0
+}
+
+function mailLoop() {
+    #~ genNavigationPage
+    genDayPage
+    uploadHistToFTP
+    return 0
+}
+
+while [ $# -gt 0 ]; do
+	case $1 in
+		-h|--help) printHelp; shift;;
+		-v|--verbose) VERB=Y; VERBPARM='-v'; shift;;
+		-d|--debug) VERB=Y;  DEBUG=Y ; shift;;
+		*)  errorPrint "$0: error - unrecognized option $1" 1>&2; exit 1;;
+	esac
+done
+
+mainLoop

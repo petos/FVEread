@@ -25,6 +25,8 @@ PATH=$PATH:~/bin
 ALWAYSFORCE=Y
 
 FVEDATADIR=~/fve
+FVEHISTDIR=~/FVEhistory/
+
 PRODUCTIONFILE="$FVEDATADIR"/production.`date +%Y%m`
 HISTORYFILE="$FVEDATADIR"/history.`date +%Y%m`
 
