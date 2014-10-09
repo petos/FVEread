@@ -76,7 +76,7 @@ done
 function uploadHistToFTP() {
 	debugPrint "FNC: uploadHistToFTP"
 
-	lftp -u "$FTPUSERNAME",$FTPPASSWD -e "mput -O $HTMLDESTDIR/fve.hist/ $HISTDIR/$HISTFILENAME $HISTDIR/fvem*.png $HISTDIR/fvel*.png $HISTDIR/fve.device.*.png $HISTDIR/fvep.*.png $HISTDIR/fved.*.png && bye" $HTMLSERVER >> /dev/null 
+	lftp -u "$FTPUSERNAME",$FTPPASSWD -e "mput -O $HTMLDESTDIR/fve.hist/ $HISTDIR/$HISTFILENAME $HISTDIR/$FVEPOWERNAMEHIST $HISTDIR/fvem*.png $HISTDIR/fvel*.png $HISTDIR/fve.device.*.png $HISTDIR/fvep.*.png $HISTDIR/fved.*.png && bye" $HTMLSERVER >> /dev/null 
 	verbPrint "FTPupload of history files done"
 	return 0
 }
