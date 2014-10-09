@@ -193,6 +193,19 @@ function offMe() {
         sed -i -e'/FVEOPTONOFF/s/"ON"/"OFF"/g' ~/.FVErc
 }
 
+function genHist() {
+	debugPrint "FNC: genHist"
+	if [ `date +%H%M` = '2358' ]; then
+		verbPrint "Time is 23:58, time to generate history page"
+		HISTORY=Y
+	fi
+	if [ $HISTORY ]; then
+		verbPrint "Generating history"
+		FVEhistPage $VERBPARM $DEBUGPARM
+	fi
+}
+
+
 function mainLoop() {
 	debugPrint "FNC: mainLoop"
 	getData
@@ -206,18 +219,21 @@ function mainLoop() {
 		checkRunningStatus
 		uploadDataFTP
 	fi
+
 	cleanFile
 }
 
 VERBPARM=''
 VERB=''
+HISTORY=''
 
 while [ $# -gt 0 ]; do
 	case $1 in
 		-h|--help) printHelp; exit; shift;;
 		--stdout) STDOUT="YES" ; shift;;
 		-v|--verbose) VERB=Y; VERBPARM="-v" ; shift;;
-		-d|--debug) VERB=Y; DEBUG=Y; VERBPARM="-d" ; shift;;
+		-d|--debug) VERB=Y; DEBUG=Y; DEBUGPARM="-d -v" ; shift;;
+		--history) HISTORY=Y; shift ;;
 		--disable) 
 			disableMe 2>/dev/null
 			FVEoptRunV2 --off
