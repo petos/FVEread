@@ -219,7 +219,7 @@ function mainLoop() {
 		checkRunningStatus
 		uploadDataFTP
 	fi
-
+	genHist
 	cleanFile
 }
 
