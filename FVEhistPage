@@ -6,7 +6,7 @@ source "$FVEBINDIR"/FVEcomFncs
 TRIMMED=${FVEHTMLPOWERNAME%.html}
 FVEPOWERNAMEHIST=$TRIMMED.$TIMEDATE_YYYYMMDD.html
 
-TRIMMED=${HTMLFILENAME%.html}
+TRIMMED=${FVEHTMLNAME%.html}
 HISTFILENAME=$TRIMMED.$TIMEDATE_YYYYMMDD.html
 
 function printHelp() {
@@ -20,17 +20,16 @@ exit 0
 
 function makeHistFiles() {
     debugPrint "FNC: makeHistFiles"
-    mv "$TMPDIR"/fved.png "$HISTDIR"/fved."$TIMEDATE_YYYYMMDD".png
-	mv "$TMPDIR"/fvel.png "$HISTDIR"/fvel."$TIMEDATE_YYYYMMDD".png
-	mv "$TMPDIR"/fvem.png "$HISTDIR"/fvem."$TIMEDATE_YYYYMM".png
-	mv "$TMPDIR"/fvep.png "$HISTDIR"/fvep."$TIMEDATE_YYYYMM".png
-	mv "$TMPDIR"/fve.device.*.png "$HISTDIR"
-	for FILE in "$HISTDIR"/fve.device.*.png; do 
+    cp "$TMPDIR"/fved.png "$HISTDIR"/fved."$TIMEDATE_YYYYMMDD".png
+	cp "$TMPDIR"/fvel.png "$HISTDIR"/fvel."$TIMEDATE_YYYYMMDD".png
+	cp "$TMPDIR"/fvem.png "$HISTDIR"/fvem."$TIMEDATE_YYYYMM".png
+	cp "$TMPDIR"/fvep.png "$HISTDIR"/fvep."$TIMEDATE_YYYYMM".png
+	for FILE in "$TMPDIR"/fve.device.*.png; do 
 		TRIMMED=${FILE%.png}
-		mv $TRIMMED{.png,."$TIMEDATE_YYYYMMDD".png}
+		cp $TRIMMED.png $HISTDIR/$(basename $TRIMMED."$TIMEDATE_YYYYMMDD".png)
 	done
     
-    cp "$TPMDIR"/"$FVEHTMLPOWERNAME" "$HISTDIR"/"$FVEPOWERNAMEHIST"
+    cp "$TMPDIR"/"$FVEHTMLPOWERNAME" "$HISTDIR"/"$FVEPOWERNAMEHIST"
     
     debugPrint "FNC: makeHistFiles - done"
     return 0
@@ -82,7 +81,7 @@ function uploadHistToFTP() {
 	return 0
 }
 
-function mailLoop() {
+function mainLoop() {
     #~ genNavigationPage
     genDayPage
     uploadHistToFTP
