@@ -130,19 +130,6 @@ FVEoptRunV2 -f
 
 }
 
-#function updateLacertaStatus() {
-	#ping -q -c 1 -w 1 lacerta >> /dev/null
-	#if [ $? = 0 ]; then
-		#sed -i s/lacerta-stat-off/lacerta-stat-on/g "$HTMLOPTFILE" 
-		#LSTATUS=on
-		##echo "Lacerta is ON" 
-	#else
-		#sed -i s/lacerta-stat-on/lacerta-stat-off/g "$HTMLOPTFILE"
-		#LSTATUS=off
-		##echo "Lacerta is OFF"
-	#fi
-#}
-
 function updateTimeStamp() {
 	sed -i '/<\/table>$/,$d' $HTMLOPTFILE
 	echo '</table>' >> "$HTMLOPTFILE" 
