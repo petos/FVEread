@@ -59,13 +59,21 @@ cat > "$HTMLFILE" << EOF
 <img src="fvem.png" alt="Power overview this month">
 <h4>Produced of this month:</h4>
 <img src="fvep.png" alt="Produced this month">
-
-<h3>Optimalization of consumption</h3>
 EOF
 
+if [ "$DIRECTTEMP" = "ON" ]; then
+	echo "<h4>Today temperature:</h4>" >> "$HTMLFILE" 
+	echo "Temperature is: $(tail -1 $TEMPERATUREFILE | awk '{print $2}') C" >> "$HTMLFILE" 
+	echo '</br>' >> "$HTMLFILE"
+	echo '<img src="fvet.png" alt="Today temperature flowchart">' >> "$HTMLFILE" 
+	echo '</br>' >> "$HTMLFILE"
+fi
+
+echo '<h3>Optimalization of consumption</h3>' >> "$HTMLFILE" 
+
 grep -v ^\# "$OPTCFGFILE" | while read USELESS USELESS DEVICE USELESS ; do
-echo "<img src=\"fve.device.$DEVICE.png\" alt=\"Produced this month\"> " >> "$HTMLFILE"
-echo '</br>' >> "$HTMLFILE"
+	echo "<img src=\"fve.device.$DEVICE.png\" alt=\"Produced this month\"> " >> "$HTMLFILE"
+	echo '</br>' >> "$HTMLFILE"
 done
 
 cat >> "$HTMLFILE" << EOF

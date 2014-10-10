@@ -118,6 +118,9 @@ function uploadDataFTP() {
 	#usage: uploadDataFTP
 	
 	lftp -u "$FTPUSERNAME",$FTPPASSWD -e "mput -O "$HTMLDESTDIR" $TMPDIR/fvem.png $TMPDIR/fvel.png $TMPDIR/fve.device.*.png $TMPDIR/fved.png $TMPDIR/fvep.png $HTMLPOWERFILE $HTMLOPTFILE $HTMLFILE && bye" $HTMLSERVER >> /dev/null
+	if [ "$DIRECTTEMP" = "ON" ]; then 
+		lftp -u "$FTPUSERNAME",$FTPPASSWD -e "mput -O "$HTMLDESTDIR" $TMPDIR/fvet.png && bye" $HTMLSERVER >> /dev/null
+	fi
 
     #~ Functionality moved to FVEhistPage script
 	#~ mv "$TMPDIR"/fved.png "$TMPDIR"/fved"$TIMEDATE_YYYYMMDD".png
@@ -176,6 +179,9 @@ function genFiles() {
 		updateProductionFile
 		
 		FVEgenGraphs --all
+		if [ "$DIRECTTEMP" = "ON" ]; then
+			FVEgenGraphs --temp
+		fi
 }
 
 function disableMe() {

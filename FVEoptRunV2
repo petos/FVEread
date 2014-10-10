@@ -68,6 +68,7 @@ function checkUptime() {
 function getTemperature() {
 	TEMPERATURE=$(ssh fvetempersensor  "sudo ~/FVEgetTemp")
 	verbPrint "Temperature on thermal devices is $TEMPERATURE"
+	echo "$TIMEDATE_YYYYMMDDHHmm $TEMPERATURE" >> $TEMPERATUREFILE
 }
 
 function getLowTarifInfo() {
