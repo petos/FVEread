@@ -44,6 +44,8 @@ FVEOPTVACATION="OFF"
 
 #FVEoptRun low tarif configuration
 DIRECTTEMP=OFF
+
+TEMPERATUREFILE="$FVEDATADIR"/temperature.`date +%Y%m$d`.dat
 #if OFF, then STARTTEMP in FVEoptRun.cfg represents time all thermal-devices should be ON on 1st lowtarif
 VALLOWTARIFMINTEMP=45
 VALLOWTARIFMAXTEMP=60
