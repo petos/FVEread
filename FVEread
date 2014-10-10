@@ -9,6 +9,7 @@ function printHelp() {
   --help|-h   Print this help message
   -v          Talky version
   --stdout    Will not update webpage, but print just output to stdout
+  --history   Generate history page also out of schedule (scheduled time is 23:58)
   
   CAUTION: this are permanent changes and must be reverted via the oposite
            command!!!
