@@ -16,23 +16,25 @@ function errorPrint() {
 }
 
 function getOpts() {
-if [ -e ~/config/FVERelays ]; then
-    CONFIGFILE=/home/fve/config/FVERelays
-elif [ -e ./FVERelays ]; then
-    CONFIGFILE=./FVERelays
-else
-    errorPrint "No FVERelays config file was found!"
-    exit 4
-fi
+    #check for FVERelays configuration
+    if [ -e ~/config/FVERelays ]; then
+        CONFIGFILE=/home/fve/config/FVERelays
+    elif [ -e ./FVERelays ]; then
+        CONFIGFILE=./FVERelays
+    else
+        errorPrint "No FVERelays config file was found!"
+        exit 4
+    fi
 
-if [ -e ~/config/FVEPinPortMap ]; then
-    source ~/config/FVEPinPortMap
-elif [ -e ./FVEPinPortMap ]; then
-    source ./FVEPinPortMap
-else
-    errorPrint "No FVEPinPortMap config file was found!"
-    exit 4
-fi
+    #check for FVEPinPortMap configuration
+    if [ -e ~/config/FVEPinPortMap ]; then
+        source ~/config/FVEPinPortMap
+    elif [ -e ./FVEPinPortMap ]; then
+        source ./FVEPinPortMap
+    else
+        errorPrint "No FVEPinPortMap config file was found!"
+        exit 4
+    fi
 }
 
 function printHelp() {
