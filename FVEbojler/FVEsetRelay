@@ -80,7 +80,6 @@ function mainLoop() {
 }
 
 function listAll() {
-    echo Configured devices:
     grep -v \^# $CONFIGFILE | awk '{print $1}'
 }
 
