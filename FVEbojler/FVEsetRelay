@@ -38,11 +38,12 @@ fi
 function printHelp() {
 	echo -e "\nusage: FVEsetRelay {RELAY STATUS}
 	-h|--help  prints this help
+
 	-v         talky output
-	
-	--debug    tells everything it knows
-	--force|-f Sends on/off even if the device is already in desired state
-	
+    --debug    tells everything it knows
+
+    --list     list all configured devices
+
     RELAY must be one of configured   
 	STATUS must be 'on' or 'off'
 "
@@ -78,6 +79,11 @@ function mainLoop() {
     setupPorts
 }
 
+function listAll() {
+    echo Configured devices:
+    grep -v \^# $CONFIGFILE | awk '{print $1}'
+}
+
 getOpts
 
 while [ $# -gt 0 ]; do
@@ -85,6 +91,7 @@ while [ $# -gt 0 ]; do
 		-h|--help) printHelp; shift;;
 		-v|--verbose) VERB=Y; VERBOUT='' ; shift;;
 		-d|--debug) VERB=Y; VERBOUT=''; DEBUG=Y ; shift;;
+		-l|--list) listAll; exit 0; shift;;
         --device)
             if [ $# -lt 3 ]; then 
 				errorPrint "Not passed devices status"
