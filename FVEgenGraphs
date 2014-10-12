@@ -12,6 +12,7 @@ function printHelp() {
   --monthpower Gen monthly power graph 
   --monthtotal Gen monthly production graph
   --onoff      Gen overview of ON/OFF all devices
+  --temperature  Gen temperature overview for the day
 "
 exit 0
 }

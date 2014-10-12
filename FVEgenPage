@@ -172,10 +172,8 @@ function updateOptFile() {
 	for NUM in $(seq 0 $(expr $DEVICENUM - 1 )); do
 	checkStatus ${DEVICENAME[$NUM]} ${DEVICESTATUS[$NUM]}
 		if [ ${DEVICESTATUS[$NUM]} = on ]; then
-#			sed -i s/${DEVICENAME[$NUM]}-off/${DEVICENAME[$NUM]}-on/g "$HTMLOPTFILE" 
 			sed -i s/${DEVICENAME[$NUM]}\ src=off/${DEVICENAME[$NUM]}\ src=on/g "$HTMLOPTFILE" 
 		elif [ ${DEVICESTATUS[$NUM]} = off ]; then
-#			sed -i s/${DEVICENAME[$NUM]}-on/${DEVICENAME[$NUM]}-off/g "$HTMLOPTFILE" 
 			sed -i s/${DEVICENAME[$NUM]}\ src=on/${DEVICENAME[$NUM]}\ src=off/g "$HTMLOPTFILE" 			
 		fi
 	done

@@ -57,16 +57,22 @@ function getBucket(){
 }
 
 function checkUptime() {
-	UPTIME=$(cat /proc/uptime | awk -F '.' '{print $1}')
-	if [ $UPTIME -lt 660 ]; then
-		errorPrint "LOW uptime: disabled due to not enough of data"
-		OFF='Y'
-		FORCE='Y'
-	fi
+    if [ $USEAVRGS = NO ]; then
+        return 0
+    else
+        UPTIME=$(cat /proc/uptime | awk -F '.' '{print $1}')
+        if [ $UPTIME -lt 660 ]; then
+            errorPrint "LOW uptime: disabled due to not enough of data"
+            OFF='Y'
+            FORCE='Y'
+        fi
+    fi
 }
 
 function getTemperature() {
 	TEMPERATURE=$(ssh fvetempersensor  "sudo ~/FVEgetTemp")
+    if [ -z $TEMPERATURE ]; then TEMPERATURE=0; fi
+    
 	verbPrint "Temperature on thermal devices is $TEMPERATURE"
 	echo "$TIMEDATE_YYYYMMDDHHmm $TEMPERATURE" >> $TEMPERATUREFILE
 }

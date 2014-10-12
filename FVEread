@@ -121,19 +121,7 @@ function uploadDataFTP() {
 	if [ "$DIRECTTEMP" = "ON" ]; then 
 		lftp -u "$FTPUSERNAME",$FTPPASSWD -e "mput -O "$HTMLDESTDIR" $TMPDIR/fvet.png && bye" $HTMLSERVER >> /dev/null
 	fi
-
-    #~ Functionality moved to FVEhistPage script
-	#~ mv "$TMPDIR"/fved.png "$TMPDIR"/fved"$TIMEDATE_YYYYMMDD".png
-	#~ mv "$TMPDIR"/fvel.png "$TMPDIR"/fvel"$TIMEDATE_YYYYMMDD".png
-	#~ mv "$TMPDIR"/fvem.png "$TMPDIR"/fvem"$TIMEDATE_YYYYMM".png
-	#~ mv "$TMPDIR"/fvep.png "$TMPDIR"/fvep"$TIMEDATE_YYYYMM".png
-	#~ for FILE in "$TMPDIR"/fve.device.*.png; do 
-		#~ TRIMMED=${FILE%.png}
-		#~ mv $TRIMMED{.png,."$TIMEDATE_YYYYMMDD".png} 
-	#~ done
-	#~ 
-	#~ lftp -u "$FTPUSERNAME",$FTPPASSWD -e "mput -O "$HTMLDESTDIR"/fve.hist/ $TMPDIR/fvem*.png $TMPDIR/fvel*.png $TMPDIR/fve.device.*.png $TMPDIR/fvep*.png $TMPDIR/fved"$TIMEDATE_YYYYMMDD".png && bye" $HTMLSERVER >> /dev/null 
-	#~ 
+    debugPrint "upload data to FTP is done"
 	return 0
 }
 
@@ -143,7 +131,6 @@ function printDataStdout() {
 
 	echo "My FV: `date`:"
 	echo "Current production [kW]  = $CURRENT  (L1: $L1, L2: $L2, L3: $L3)"
-	#echo "Current production [kW]  = $CURRENT"
 	echo "Avarage production [kW]  = $AVRG "
 	echo "Today was produced [kWh] = $TODAY"
 	return 0
@@ -174,7 +161,6 @@ function genFiles() {
 		echo $TIMEDATE_YYYYMMDDHHmm $CURRENT $TODAY $AVRG $L1 $L2 $L3 >> "$HISTORYFILE"
 
 		FVEgenPage  --powerpage --current $CURRENT --L1 $L1 --L2 $L2 --L3 $L3 --today $TODAY --fvestatus $FVESTATUS --avrg $AVRG 
-		#FVEgenPage  --powerpage --current $CURRENT --today $TODAY --fvestatus $FVESTATUS --avrg $AVRG
 		
 		updateProductionFile
 		
