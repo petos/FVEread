@@ -1,0 +1,96 @@
+#!/bin/bash
+source ~/.bashrc
+function debugPrint() {
+	if [ $DEBUG ]; then
+		echo "$1"
+	fi
+}
+
+function verbPrint() {
+	if [ $VERB ]; then
+		echo "$1"
+	fi
+}
+
+function errorPrint() {
+		echo "`date +%Y.%m.%d/%H:%M`: $1"
+}
+
+function printHelp() {
+	echo -e "\nusage: FVEsetRelay [-c COUNT] [-w WAIT] [-d DESTINATION]
+    
+    This is intended to be run via CRON:
+    * * * * * <PATHTO>/FVEhealtCheck >> ~/logFile
+    
+    -c|--count Number of ping packets to be sent
+               [default: 1]
+    -w|--wait  Time to packet must be returned before told to be lost
+               [default: 1]
+    --dest  Destination to be checked 
+               [default: fvechecker -- must be resolved by DNS or in hosts]
+	-h|--help  prints this help
+"
+exit 0
+}
+
+function pingTest() {
+    debugPrint "Running ping"
+    ping -c $PNGC -w $PNGW $DEST 1>/dev/null
+    PINGANS="$?"
+    verbPrint "Ping done, exit status $PINGANS"
+    if [ $PINGANS = 0 ]; then
+        debugPrint "Ping was answered, everything is OK"
+        return 0
+    else
+        errorPrint "Destination $DEST failed to answer PING. Turning off"
+        while read DEVICE; do
+            verbPrint "Turning off device $DEVICE"
+            ~/FVEsetRelay -v --device $DEVICE off
+        done < <( ~/FVEsetRelay --list )
+        return 1
+    fi
+}
+
+function mainLoop() {
+    debugPrint "Running ping test"
+    pingTest
+    return $?
+}
+
+PNGC=1
+PNGW=1
+DEST=fvechecker
+VERBOUT='-q'
+
+while [ $# -gt 0 ]; do
+	case $1 in
+		-h|--help) printHelp; shift;;
+        -v|--verbose) VERB=Y; VERBOUT='' ; shift;;
+		-d|--debug) VERB=Y; VERBOUT=''; DEBUG=Y ; shift;;
+        -c|--count) 
+            if [ $# -lt 2 ]; then 
+				errorPrint "Param was not passed for count"
+				exit 2
+            fi
+            PNGC=$1
+            shift 2;;
+        -w|--wait)  
+            if [ $# -lt 2 ]; then 
+				errorPrint "Param was not passed for wait"
+				exit 2
+            fi
+            PNGW=$1
+            shift 2;;
+        --dest|--destination) 
+            if [ $# -lt 2 ]; then 
+				errorPrint "Param was not passed for destination"
+				exit 2
+            fi
+            DEST=$2; 
+            shift 2;;
+        *)  echo "$0: error - unrecognized option $1"; exit 1;;
+	esac
+done
+
+mainLoop
+exit $?
