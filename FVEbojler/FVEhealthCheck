@@ -20,7 +20,7 @@ function printHelp() {
 	echo -e "\nusage: FVEsetRelay [-c COUNT] [-w WAIT] [-d DESTINATION]
     
     This is intended to be run via CRON:
-    * * * * * <PATHTO>/FVEhealtCheck >> ~/logFile
+    * * * * * <PATHTO>/FVEhealthCheck >> ~/logFile
     
     -c|--count Number of ping packets to be sent
                [default: 1]
@@ -45,7 +45,7 @@ function pingTest() {
         errorPrint "Destination $DEST failed to answer PING. Turning off"
         while read DEVICE; do
             verbPrint "Turning off device $DEVICE"
-            ~/FVEsetRelay -v --device $DEVICE off
+            sudo su - fve -c "~/FVEsetRelay -v --device $DEVICE off"
         done < <( ~/FVEsetRelay --list )
         return 1
     fi
