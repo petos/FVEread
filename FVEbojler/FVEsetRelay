@@ -38,7 +38,7 @@ function getOpts() {
 }
 
 function printHelp() {
-	echo -e "\nusage: FVEsetRelay {RELAY STATUS}
+	echo -e "\nusage: FVEsetRelay {--device RELAY STATUS}
 	-h|--help  prints this help
 
 	-v         talky output
