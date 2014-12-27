@@ -1,3 +1,4 @@
+TIMEDATE_YYYY=$(date +%Y)
 TIMEDATE_YYYYMM=$(date +%Y%m)
 TIMEDATE_YYYYMMDD=$(date +%Y%m%d)
 
