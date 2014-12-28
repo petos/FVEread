@@ -11,27 +11,30 @@ HISTFILENAME=$TRIMMED.$TIMEDATE_YYYYMMDD.html
 HISTFILENAMETRIMMED=$TRIMMED
 
 function printHelp() {
-	echo -e "\nusage: FVEhistPage [OPTIONS]
-	-v         talky output
-	--debug    tells everything it knows
-"
-exit 0
+    echo -e "\nusage: FVEhistPage [OPTIONS]
+    -v          talky output
+    --debug     tells everything it knows
+
+    -m|--month  will generate page for this month
+    -y|--year   will generate page for this year
+    "
+    exit 0
 }
 
 
 function makeHistFiles() {
     debugPrint "FNC: makeHistFiles"
     cp "$TMPDIR"/fved.png "$HISTDIR"/fved."$TIMEDATE_YYYYMMDD".png
-	cp "$TMPDIR"/fvel.png "$HISTDIR"/fvel."$TIMEDATE_YYYYMMDD".png
-	cp "$TMPDIR"/fvem.png "$HISTDIR"/fvem."$TIMEDATE_YYYYMM".png
-	cp "$TMPDIR"/fvep.png "$HISTDIR"/fvep."$TIMEDATE_YYYYMM".png
-	for FILE in "$TMPDIR"/fve.device.*.png; do 
-		TRIMMED=${FILE%.png}
-		cp $TRIMMED.png $HISTDIR/$(basename $TRIMMED."$TIMEDATE_YYYYMMDD".png)
-	done
-    
+    cp "$TMPDIR"/fvel.png "$HISTDIR"/fvel."$TIMEDATE_YYYYMMDD".png
+    cp "$TMPDIR"/fvem.png "$HISTDIR"/fvem."$TIMEDATE_YYYYMM".png
+    cp "$TMPDIR"/fvep.png "$HISTDIR"/fvep."$TIMEDATE_YYYYMM".png
+    for FILE in "$TMPDIR"/fve.device.*.png; do 
+	TRIMMED=${FILE%.png}
+	cp $TRIMMED.png $HISTDIR/$(basename $TRIMMED."$TIMEDATE_YYYYMMDD".png)
+    done
+
     cp "$TMPDIR"/"$FVEHTMLPOWERNAME" "$HISTDIR"/"$FVEPOWERNAMEHIST"
-    
+
     debugPrint "FNC: makeHistFiles - done"
     return 0
 }
@@ -66,33 +69,36 @@ cat > "$HISTDIR"/"$HISTFILENAME" << EOF
 <h3>Optimalization of consumption</h3>
 EOF
 
-grep -v ^\# "$OPTCFGFILE" | while read USELESS USELESS DEVICE USELESS ; do
-echo "<img src=\"fve.device.$DEVICE.$TIMEDATE_YYYYMMDD.png\" alt=\"Produced this month\"> " >> "$HISTDIR"/"$HISTFILENAME"
-echo '</br>' >> "$HISTDIR"/"$HISTFILENAME"
-done
+    grep -v ^\# "$OPTCFGFILE" | while read USELESS USELESS DEVICE USELESS ; do
+    echo "<img src=\"fve.device.$DEVICE.$TIMEDATE_YYYYMMDD.png\" alt=\"Produced this month\"> " >> "$HISTDIR"/"$HISTFILENAME"
+    echo '</br>' >> "$HISTDIR"/"$HISTFILENAME"
+    done
     
     return 0
 }
 
 function uploadHistToFTP() {
-	debugPrint "FNC: uploadHistToFTP"
+    debugPrint "FNC: uploadHistToFTP"
+    
     verbPrint "FTPupload of history files..."
-	lftp -u "$FTPUSERNAME",$FTPPASSWD -e "mput -O ${HTMLDESTDIR}/fve.hist/ $HISTDIR/$HISTFILENAME $HISTDIR/$FVEPOWERNAMEHIST $HISTDIR/fvem*.png $HISTDIR/fvel*.png $HISTDIR/fve.device.*.png $HISTDIR/fvep.*.png $HISTDIR/fved.*.png && bye" $HTMLSERVER >> /dev/null 
-	verbPrint "FTPupload of history files DONE"
-	if [ MAKEMTH = Y ]; then
-        verbPrint "FTPupload month file..."
-        lftp -u "$FTPUSERNAME",$FTPPASSWD -e "mput -O ${HTMLDESTDIR}/fve.hist/ ${HISTDIR}/${TIMEDATE_YYYYMM}.html && bye" $HTMLSERVER >> /dev/null 
-        verbPrint "FTPupload of month file DONE"
+    lftp -u "$FTPUSERNAME",$FTPPASSWD -e "mput -O ${HTMLDESTDIR}/fve.hist/ $HISTDIR/$HISTFILENAME $HISTDIR/$FVEPOWERNAMEHIST $HISTDIR/fvem*.png $HISTDIR/fvel*.png $HISTDIR/fve.device.*.png $HISTDIR/fvep.*.png $HISTDIR/fved.*.png && bye" $HTMLSERVER >> /dev/null 
+    verbPrint "FTPupload of history files DONE"
+    
+    if [ "$MAKEMTH" = "Y" ]; then
+	verbPrint "FTPupload month file..."
+	lftp -u "$FTPUSERNAME",$FTPPASSWD -e "mput -O ${HTMLDESTDIR}/fve.hist/ ${HISTDIR}/${TIMEDATE_YYYYMM}.html && bye" $HTMLSERVER >> /dev/null 
+	verbPrint "FTPupload of month file DONE"
     fi
-    if [ MAKEYEAR = Y ]; then
-        verbPrint "FTPuploading year file..."
-        lftp -u "$FTPUSERNAME",$FTPPASSWD -e "mput -O ${HTMLDESTDIR}/fve.hist/ ${HISTDIR}/${TIMEDATE_YYYY}.html && bye" $HTMLSERVER >> /dev/null 
-        verbPrint "FTPupload of year file DONE"
+    if [ "$MAKEYEAR" = "Y" ]; then
+	verbPrint "FTPuploading year file..."
+	lftp -u "$FTPUSERNAME",$FTPPASSWD -e "mput -O ${HTMLDESTDIR}/fve.hist/ ${HISTDIR}/${TIMEDATE_YYYY}.html && bye" $HTMLSERVER >> /dev/null 
+	verbPrint "FTPupload of year file DONE"
     fi
     return 0
 }
 
 function genMthPage() {
+    verbPrint "Creating mth page: $HISTDIR/$TIMEDATE_YYYYMM.html"
     cat > "$HISTDIR"/"$TIMEDATE_YYYYMM".html << EOF
 <!DOCTYPE html>
 <html>
@@ -103,8 +109,8 @@ function genMthPage() {
 EOF
     DAYSINMTH=$(date -d "$(date +%m)/1 + 1 month - 1 day" "+%d")
     for DAY in $(seq -w $DAYSINMTH); do
-        local FILENAMELOC=${HISTFILENAMETRIMMED}.${TIMEDATE_YYYYMM}${DAY}.html
-        echo "<a href=\"$FILENAMELOC\"> $FILENAMELOC </a></br> " >> "$HISTDIR"/"$TIMEDATE_YYYYMM".html
+	local FILENAMELOC=${HISTFILENAMETRIMMED}.${TIMEDATE_YYYYMM}${DAY}.html
+	echo "<a href=\"$FILENAMELOC\"> $FILENAMELOC </a></br> " >> "$HISTDIR"/"$TIMEDATE_YYYYMM".html
     done
 cat >> "$HISTDIR"/"$TIMEDATE_YYYYMM".html << EOF
 </body>
@@ -123,8 +129,8 @@ function genYearPage() {
 <body>
 EOF
     for MTH in $(seq -w 12); do
-        local FILENAMELOC=${TIMEDATE_YYYY}${MTH}.html
-        echo "<a href=\"$FILENAMELOC\"> $FILENAMELOC </a></br> " >> "$HISTDIR"/"$TIMEDATE_YYYY".html
+	local FILENAMELOC=${TIMEDATE_YYYY}${MTH}.html
+	echo "<a href=\"$FILENAMELOC\"> $FILENAMELOC </a></br> " >> "$HISTDIR"/"$TIMEDATE_YYYY".html
     done
 cat >> "$HISTDIR"/"$TIMEDATE_YYYY".html << EOF
 </body>
@@ -135,8 +141,8 @@ EOF
 
 function mainLoop() {
     genDayPage
-    if [ MAKEMTH = Y ]; then genMthPage; fi
-    if [ MAKEYEAR = Y ]; then genYearPage; fi
+    if [ "$MAKEMTH" = "Y" ]; then genMthPage; fi
+    if [ "$MAKEYEAR" = "Y" ]; then genYearPage; fi
     uploadHistToFTP
     return 0
 }
@@ -147,14 +153,14 @@ if [ $(date +%d) = 01 ]; then MAKEMTH=Y; fi
 if [ $(date +%m) = 01 ]; then MAKEYEAR=Y; fi
 
 while [ $# -gt 0 ]; do
-	case $1 in
-		-h|--help) printHelp; shift;;
-		-v|--verbose) VERB=Y; VERBPARM='-v'; shift;;
-		-d|--debug) VERB=Y;  DEBUG=Y ; shift;;
-		-m|--month) MAKEMTH=Y ; shift;;
-		-y|--year) MAKEYEAR=Y ; shift;;
-		*)  errorPrint "$0: error - unrecognized option $1" 1>&2; exit 1;;
-	esac
+    case $1 in
+	-h|--help) printHelp; shift;;
+	-v|--verbose) VERB=Y; VERBPARM='-v'; shift;;
+	-d|--debug) VERB=Y;  DEBUG=Y ; shift;;
+	-m|--month) MAKEMTH=Y ; shift;;
+	-y|--year) MAKEYEAR=Y ; shift;;
+	*)  errorPrint "$0: error - unrecognized option $1" 1>&2; exit 1;;
+    esac
 done
 
 mainLoop
