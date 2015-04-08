@@ -1,0 +1,24 @@
+#!/bin/bash
+
+echo Content-type: text/html
+echo ""
+
+if [ $1 ]; then
+    #echo "$1" | tr -d '\' | tr '^' '\n' 
+    echo \<br\>
+    while read LINE; do 
+	DEVICE=$(echo $LINE| awk -F ':' '{print $1}' )
+	ACTION=$(echo $LINE| awk -F ':' '{print $2}' )
+    done < <( echo "$1" ) 
+
+    echo "$DEVICE turn $ACTION"
+    echo \<br\>
+    if [ -x /home/petos/tools/FVEread/FVEsetOpt ]; then
+	/home/petos/tools/FVEread/FVEsetOpt --html --device $DEVICE --action $ACTION
+    else
+	echo You are not allowed to run this! 
+	echo \<br\>
+    fi
+fi
+echo '<FORM><INPUT Type="button" VALUE="Back" onClick="history.go(-1);return true;"></FORM>'
+
