@@ -128,7 +128,7 @@ cat >> "$HTMLOPTFILE" << EOF
     <td>Designed status:</td>
 EOF
 for NUM in $(seq 0 $(expr $DEVICENUM - 1 )); do
-echo "    <td><a href=\"cgi-bin/HTFVEchange?${DEVICE[$NUM]}:on><img alt=${DEVICE[$NUM]} src=off.png></a></td>" >> "$HTMLOPTFILE"
+echo "    <td><a href=\"cgi-bin/HTFVEchange?${DEVICE[$NUM]}:on\"><img alt=${DEVICE[$NUM]} src=off.png></a></td>" >> "$HTMLOPTFILE"
 done
 echo '  </tr>' >> "$HTMLOPTFILE"
 echo '</table>' >> "$HTMLOPTFILE"
