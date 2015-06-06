@@ -19,7 +19,7 @@ function printHelp() {
   --restorebckp [all]
               Restore from backup
               If 'all' is passed, all parts of configuration and data of FVEread
-              will be backuped.
+              will be restored.
   --restoreDate <DATE>
                Date of backup to be used when restoring. Otherwise the
                latest is being used. 
@@ -35,7 +35,8 @@ function createBackup() {
 	tar -czf "$TMPDIR"/fvedata."$DATE".tar.gz *."$TIMEDATE_YYYYMM"
 	popd > /dev/null
 	cp "$TMPDIR"/fvedata."$DATE".tar.gz "$TMPDIR"/fvedata.latest.tar.gz
-	lftp -u "$FTPUSERNAME",$FTPPASSWD -e "put -O "$HTMLDESTDIR"/fve.hist/ "$TMPDIR"/fvedata."$DATE".tar.gz "$TMPDIR"/fvedata.latest.tar.gz && bye" $HTMLSERVER >> /dev/null
+    
+        lftp -u "$FTPUSERNAME",$FTPPASSWD -e "put -O "$HTMLDESTDIR"/fve.hist/ "$TMPDIR"/fvedata."$DATE".tar.gz "$TMPDIR"/fvedata.latest.tar.gz && bye" $HTMLSERVER >> /dev/null
 }
 
 function createFullBackup() {

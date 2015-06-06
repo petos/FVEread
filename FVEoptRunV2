@@ -138,11 +138,40 @@ function getUptimeOfDevice() {
 	return $DEVICEUPTIME
 }
 
+function checkLocalSetupDevice(){
+	local DEVICENAME="$1"
+	
+	#No local change
+	return 0
+	
+	#Expected to be ON
+	return 1
+	
+	
+	#expected to be OFF
+}
+
 function thermalLowTarifNODT() {
 	TIMETARIF="TIME$LOWTARIFNUM[@]"
 	local LOCALDEVICEID=-1
 	while read DESIREDUPTIME; do
 		((++LOCALDEVICEID))
+		
+		checkLocalSetupDevice ${DEVICE["$LOCALDEVICEID"]}
+		RETVAL=$?
+		if [ $RETVAL = 0 ]; then
+			debugPrint "Device ${DEVICE["$LOCALDEVICEID"]} was not localy changed"
+		elif [ $RETVAL = 1 ]; then
+			debugPrint "Device ${DEVICE["$LOCALDEVICEID"]} was localy changed to ON"
+			STARTSTOPDEVICES["${DEVICEID["$LOCALDEVICEID"]}"]=ON
+			updateEnergy ${CONSUMPTION["$LOCALDEVICEID"]}
+			continue
+		elif [ $RETVAL = 2 ]; then
+			debugPrint "Device ${DEVICE["$LOCALDEVICEID"]} was localy changed to ON"
+			STARTSTOPDEVICES["${DEVICEID["$LOCALDEVICEID"]}"]=OFF
+			continue
+		fi
+		
 		if [ $DESIREDUPTIME -gt 0 ]; then
 			debugPrint "Device ${DEVICE["$LOCALDEVICEID"]} in this lowtarif n.$LOWTARIFNUM should be up for $DESIREDUPTIME mins."
 			getUptimeOfDevice ${DEVICE["$LOCALDEVICEID"]}
@@ -210,6 +239,8 @@ function decideOnOff() {
 	local LOCALDEVICE
 	
 	while read LOCALDEVICEID VOID LOCALDEVICE LOCALCONSUMPTION VOID VOID LOCSTARTTEMP LOCSTOPTEMP; do
+
+		
 
         debugPrint "LOCALDEVICEID=$LOCALDEVICEID".
         debugPrint "LOCALDEVICE=$LOCALDEVICE".
