@@ -19,7 +19,7 @@ function printHelp() {
   --on        Will enable power optimalization
   --reconfig  Reload all config files
   --vacation START STOP
-				Format: [YY]MMDDhhmm
+				Format: YYYY-MM-DD
 "
 exit 0
 }
@@ -266,10 +266,19 @@ while [ $# -gt 0 ]; do
 			fi
 			STARTDATE="$2"
 			STOPDATE="$3"
+			
 			echo "/home/fve/FVEread/FVEread --vacstart" > "$TMPDIR"/fvevacation
-			at -f "$TMPDIR"/fvevacation -t "$STARTDATE"
+			at -f "$TMPDIR"/fvevacation teatime "$STARTDATE"
+			
+			echo "/home/fve/FVEread/FVEread --off" > "$TMPDIR"/fvevacation
+			at -f "$TMPDIR"/fvevacation teatime "$STARTDATE" + 1 minutes
+			
+			echo "/home/fve/FVEread/FVEread --on" > "$TMPDIR"/fvevacation
+			at -f "$TMPDIR"/fvevacation teatime "$STOPDATE" - 2 days
+			
 			echo "/home/fve/FVEread/FVEread --vacstop" > "$TMPDIR"/fvevacation
-			at -f "$TMPDIR"/fvevacation -t "$STOPDATE"
+			at -f "$TMPDIR"/fvevacation teatime "$STOPDATE"
+			
 			rm "$TMPDIR"/fvevacation
 			exit 0
 			;;

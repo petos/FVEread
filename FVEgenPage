@@ -128,7 +128,7 @@ cat >> "$HTMLOPTFILE" << EOF
     <td>Designed status:</td>
 EOF
 for NUM in $(seq 0 $(expr $DEVICENUM - 1 )); do
-echo "    <td><img alt=${DEVICE[$NUM]} src=off.png></td>" >> "$HTMLOPTFILE"
+echo "    <td><a href=\"cgi-bin/HTFVEchange?${DEVICE[$NUM]}:on><img alt=${DEVICE[$NUM]} src=off.png></a></td>" >> "$HTMLOPTFILE"
 done
 echo '  </tr>' >> "$HTMLOPTFILE"
 echo '</table>' >> "$HTMLOPTFILE"
@@ -173,8 +173,10 @@ function updateOptFile() {
 	checkStatus ${DEVICENAME[$NUM]} ${DEVICESTATUS[$NUM]}
 		if [ ${DEVICESTATUS[$NUM]} = on ]; then
 			sed -i s/${DEVICENAME[$NUM]}\ src=off/${DEVICENAME[$NUM]}\ src=on/g "$HTMLOPTFILE" 
+			sed -i s/?${DEVICENAME[$NUM]}:off/?${DEVICENAME[$NUM]}:on/g "$HTMLOPTFILE" 
 		elif [ ${DEVICESTATUS[$NUM]} = off ]; then
-			sed -i s/${DEVICENAME[$NUM]}\ src=on/${DEVICENAME[$NUM]}\ src=off/g "$HTMLOPTFILE" 			
+			sed -i s/${DEVICENAME[$NUM]}\ src=on/${DEVICENAME[$NUM]}\ src=off/g "$HTMLOPTFILE" 
+			sed -i s/?${DEVICENAME[$NUM]}:on/?${DEVICENAME[$NUM]}:off/g "$HTMLOPTFILE" 			
 		fi
 	done
 }
