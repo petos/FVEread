@@ -186,7 +186,7 @@ function getData() {
 function genFiles() {
 	debugPrint "FNC: genFiles"
 	#usage: genFiles
-		echo $TIMEDATE_YYYYMMDDHHmm $CURRENT $TODAY $AVRG $L1 $L2 $L3 $rawTOTAL>> "$HISTORYFILE"
+		echo $TIMEDATE_YYYYMMDDHHmm $CURRENT $TODAY $AVRG $L1 $L2 $L3 $LASTRAWTODAY>> "$HISTORYFILE"
 
 		FVEgenPage  --powerpage --current $CURRENT --L1 $L1 --L2 $L2 --L3 $L3 --today $TODAY --fvestatus $FVESTATUS --avrg $AVRG 
 		
