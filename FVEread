@@ -62,7 +62,7 @@ function getToday() {
 	#local iTODAY=`cat "$TMPDIR"/FVE.$$.html | grep -A2 'denn[.]*'|grep energie -A2 | tail -1`
 	#echo `cleanLine "$iTODAY"`
 	lastTODAY=$(grep $TIMEDATE_YYYYMMDD "$HISTORYFILE" | awk '{print $1" "$3}' | sort -u | awk '{print $2}' | tail -1)
-	local iTODAY=$(python -c "print $lastTODAY + $CURRENT / 60" )
+	local iTODAY=$(python -c "print $lastTODAY + $CURRENT / 60 / 1000" )
 	echo $iTODAY
 }
 
