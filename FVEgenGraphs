@@ -57,7 +57,7 @@ set xrange["$TIMEDATE_YYYYMMDD 00:00:00":"$TIMEDATE_YYYYMM`expr $( date +%d ) + 
 set terminal png
 set output "$TMPDIR/fved.png"
 
-plot "$HISTORYFILE" u 1:2 with lines title 'Raw production', "$HISTORYFILE" u 1:4 with lines title 'Avrg production', 1500 with lines title "1,5 kW, 3300 with lines title "3,3 kW""
+plot "$HISTORYFILE" u 1:2 with lines title 'Raw production', "$HISTORYFILE" u 1:4 with lines title 'Avrg production', 1500 with lines title "1,5 kW", 3300 with lines title "3,3 kW"
 EOF
 	
 	gnuplot "$TMPDIR"/FVE.gn 2>/dev/null
@@ -100,7 +100,7 @@ set xrange["$TIMEDATE_YYYYMMDD 00:00:00":"$TIMEDATE_YYYYMM`expr $( date +%d ) + 
 set terminal png
 set output "$TMPDIR/fvel.png"
 
-plot "$HISTORYFILE" u 1:5 with lines title 'L1', "$HISTORYFILE" u 1:6 with lines title 'L2', "$HISTORYFILE" u 1:7 with lines title 'L3', 500 with lines title "0,5 kW, , 1100 with lines title "1,1 kW"
+plot "$HISTORYFILE" u 1:5 with lines title 'L1', "$HISTORYFILE" u 1:6 with lines title 'L2', "$HISTORYFILE" u 1:7 with lines title 'L3', 500 with lines title "0,5 kW", 1100 with lines title "1,1 kW"
 EOF
 
 	gnuplot "$TMPDIR"/FVE.gn 2>/dev/null
