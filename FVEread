@@ -234,6 +234,7 @@ function genHist() {
 
 function mainLoop() {
 	debugPrint "FNC: mainLoop"
+	checkRunningStatus
 	getData
 	
 	if [ "$STDOUT" ]; then
@@ -242,7 +243,6 @@ function mainLoop() {
 		genFiles
 		checkFileExist
 		FVEoptRunV2 $VERBPARM $DEBUGPARM
-		checkRunningStatus
 		uploadDataFTP
 	fi
 	genHist
