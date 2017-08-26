@@ -109,8 +109,13 @@ function cleanFile() {
 function checkRunningStatus() {
 	debugPrint "FNC: checkRunningStatus"
 	if [ -e "$TMPDIR"/.fveread.lock ]; then
-		errorPrint "Already running, quiting."
-		exit 0
+		if ( pgrep -F "$TMPDIR"/.fveread.lock ); then
+			errorPrint "Already running, quiting."
+			exit 0
+		else
+			debugPrint "Staled lock found, cleaning"
+			rm -f "$TMPDIR"/.fveread.lock
+		fi
 	fi
 	echo $$ > "$TMPDIR"/.fveread.lock
 }
