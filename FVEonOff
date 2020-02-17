@@ -194,6 +194,7 @@ done
 
 if [ "$ALWAYSFORCE" = 'Y' ]; then
     FORCE='Y'
+    debugPrint "Setting FORCE=Y since ALWAYSFORCE is set to true"
 fi
 
 if [ "$TYPE" = "SET" ]; then
