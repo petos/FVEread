@@ -43,7 +43,7 @@ function checkTDstatus() {
 	local TDPID=`ps -ef | grep -v bash | grep -v grep |  grep telldusd | awk '{print $2}'`
 	if [ ! "$TDPID" ]; then
 		errorPrint "Seems telldusd is down? Restarting"
-		sudo /sbin/telldusd
+		sudo telldusd
 	fi
 }
 
@@ -99,7 +99,7 @@ function realStatus(){
 	else
 		verbPrint "Device $COMPONENT with id $DEVICENUM is being turned $EXPECTEDSTATUS"
 		#this is nasty hack, till I found proper setup of udev rules
-		if $( ! getfacl /dev/gpiomem 2>/dev/null | grep -qv fve ); then
+		if $( ! getfacl /dev/gpiomem 2>/dev/null | grep -q fve ); then
 			sudo chown root:fve /dev/gpiomem
 			sudo chmod g+rw /dev/gpiomem
 		fi
