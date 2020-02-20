@@ -98,6 +98,7 @@ function realStatus(){
 		return 1
 	else
 		verbPrint "Device $COMPONENT with id $DEVICENUM is being turned $EXPECTEDSTATUS"
+		FVEGPIO --pin "$DEVICENUM" --value "$EXPECTEDSTATUS"
 		ERRMSG=$(tdtool --${EXPECTEDSTATUS,,} $DEVICENUM $VERBOUT )
 		if [ "$?" != "0" ]; then
 			errorPrint "Problem with tdtool. Failed with message:"

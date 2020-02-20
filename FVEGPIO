@@ -1,0 +1,29 @@
+#!/bin/env python3
+import RPi.GPIO as GPIO
+import argparse
+GPIO.setmode(GPIO.BOARD)
+GPIO.setwarnings(False)
+
+def parseArgs():
+    parser = argparse.ArgumentParser(prog='pyGPIO', description='Set/unset GPIO pins on server.')
+    parser.add_argument('--pin', nargs=1, required=True, action='store', 
+                        help='PIN to work with')
+    parser.add_argument('--value', nargs=1, required=True, action='store', 
+                        help='on/off')
+    parser.add_argument('--debug', required=False, action='store_true', default=['False'], help='Run in debug mode')
+    return parser.parse_args()
+
+
+def main():
+	args = parseArgs()
+	PIN=args.pin[0]
+	GPIO.setup(int(PIN), GPIO.OUT)
+	if args.value[0] == "on":
+		output_value = GPIO.HIGH
+	if args.value[0] == "off":
+		output_value = GPIO.LOW
+	
+	GPIO.output(int(PIN), output_value )
+
+main()
+
