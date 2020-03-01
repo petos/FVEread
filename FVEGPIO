@@ -8,22 +8,39 @@ def parseArgs():
     parser = argparse.ArgumentParser(prog='pyGPIO', description='Set/unset GPIO pins on server.')
     parser.add_argument('--pin', nargs=1, required=True, action='store', 
                         help='PIN to work with')
-    parser.add_argument('--value', nargs=1, required=True, action='store', 
+    parser.add_argument('--value', nargs=1, required=False, action='store', 
                         help='on/off')
+    parser.add_argument('--mode', nargs=1, required=True, action='store', 
+                        help='get/set, if get, then return value ')
     parser.add_argument('--debug', required=False, action='store_true', default=['False'], help='Run in debug mode')
     return parser.parse_args()
 
+def setMode(VALUE,PIN):
+    GPIO.setup(PIN, GPIO.OUT)
+    if VALUE == "on":
+        output_value = GPIO.LOW
+    if VALUE == "off":
+        output_value = GPIO.HIGH
+    GPIO.output(int(PIN), output_value)
+
+def getMode(PIN):
+    GPIO.setup(PIN, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+    if GPIO.input(PIN) == GPIO.HIGH:
+        print("on")
+    else:
+        print("off")
+
 
 def main():
-	args = parseArgs()
-	PIN=args.pin[0]
-	GPIO.setup(int(PIN), GPIO.OUT)
-	if args.value[0] == "on":
-		output_value = GPIO.LOW
-	if args.value[0] == "off":
-		output_value = GPIO.HIGH
-	
-	GPIO.output(int(PIN), output_value )
+    args = parseArgs()
+    PIN=int(args.pin[0])
+    VALUE=args.value[0]
+    MODE=args.mode[0]
+
+    if ( MODE == "set" ):
+        setMode(VALUE,PIN)
+    elif ( MODE == "get" ):
+        getMode(PIN)
 
 main()
 
