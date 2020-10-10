@@ -192,18 +192,18 @@ function thermalLowTarifNODT() {
 }
 
 function thermalLowTarifDT() {
-	if [ $TEMPERATURE -lt $VALLOWTARIFMINTEMP ]; then
-		verbPrint "Temperature in thermal device is lower than minimum requested. $TEMPERATURE < $VALLOWTARIFMINTEMP"
-		local LOCALDEVICEID=-1
-		while read DEVICENAME; do
-			((++LOCALDEVICEID))
+    local LOCALDEVICEID=-1
+    while read DEVICENAME; do
+        ((++LOCALDEVICEID))
+        if [ $TEMPERATURE -lt ${STARTTEMP["$LOCALDEVICEID"]} ] ; then
+            verbPrint "Temperature in thermal device $DEVICENAME (ID:$LOCALDEVICEID) is lower than minimum requested: ${STARTTEMP["$LOCALDEVICEID"]} < $TEMPERATURE "
 			verbPrint "STARTING DEVICE $DEVICENAME"
 			STARTSTOPDEVICES["${DEVICEID[$LOCALDEVICEID]}"]=ON
 			updateEnergy ${CONSUMPTION["$LOCALDEVICEID"]}
-		done < <( cat "$OPTCFGFILE" | grep -v \# | awk /thermal/'{print $3}' ) 
-	else 
-		verbPrint "Temperature in thermal device is over minimum requested. $VALLOWTARIFMINTEMP < $TEMPERATURE"
-	fi
+        else
+            verbPrint "Temperature in thermal device $DEVICENAME (ID:$LOCALDEVICEID) is over minimum requested, NOT starting it. ${STARTTEMP["$LOCALDEVICEID"]} < $TEMPERATURE"
+        fi
+    done < <( cat "$OPTCFGFILE" | grep -v \# | awk /thermal/'{print $3}' )
 }
 
 function manageThermalDevicesLowTarif {
