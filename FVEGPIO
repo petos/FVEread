@@ -26,21 +26,23 @@ def setMode(VALUE,PIN):
 def getMode(PIN):
     GPIO.setup(PIN, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
     if GPIO.input(PIN) == GPIO.HIGH:
-        print("on")
-    else:
         print("off")
+    else:
+        print("on")
 
 
 def main():
     args = parseArgs()
     PIN=int(args.pin[0])
-    VALUE=args.value[0]
     MODE=args.mode[0]
 
     if ( MODE == "set" ):
+        VALUE=args.value[0]
         setMode(VALUE,PIN)
     elif ( MODE == "get" ):
         getMode(PIN)
+    else:
+        print("ERROR in --mode set")
+        exit(1)
 
 main()
-
