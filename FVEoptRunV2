@@ -70,8 +70,7 @@ function checkUptime() {
 }
 
 function getTemperature() {
-	TEMPERATURE=$(ssh fvetempersensor  "sudo ~/FVEgetTemp")
-    if [ -z $TEMPERATURE ]; then TEMPERATURE=0; fi
+	TEMPERATURE=$(/home/fve/FVEread/FVEgetTemp.py )
     
 	verbPrint "Temperature on thermal devices is $TEMPERATURE"
 	echo "$TIMEDATE_YYYYMMDDHHmm $TEMPERATURE" >> $TEMPERATUREFILE
@@ -355,7 +354,8 @@ function enableDisableDevices() {
 function mainLoop() {
 	initDeviceTable
 	getLowTarifInfo
-	if [ $DIRECTTEMP = "ON" ]; then 
+	if [ $DIRECTTEMP = "ON" ]; then
+        TEMPERATURE=''
 		getTemperature
         if [ -z $TEMPERATURE ]; then
             DIRECTTEMP=OFF
