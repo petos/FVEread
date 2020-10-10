@@ -84,7 +84,7 @@ function getLowTarifInfo() {
 	local LOWTARIFN
 	local TIMEDATEHHmm=$(date +%H%M)
 	
-    if [ $DIRECTLOW = "ON" ]; then
+    if [ "$DIRECTLOW" ] && [ "$DIRECTLOW" = "ON" ]; then
         if [ "$(FVEGPIO --pin $DIRECTLOWPIN --mode get)" = "on" ]; then
             debugPrint "DirectLowTarif was detected"
             ISLOWTARIF=Y
