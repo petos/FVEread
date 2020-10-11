@@ -71,9 +71,9 @@ cat> "$TMPDIR"/FVE.gn << EOF
 set timefmt "%Y%m%d%H%M"
 set xdata time
 set format x "%H:%M"
-set title "Today power\nGenerated on `date +%H:%M`"
+set title "Temperature graph\nGenerated on `date +%H:%M`"
 
-set xrange["$TIMEDATE_YYYYMMDD 00:00:00":"$TIMEDATE_YYYYMM`expr $( date +%d ) + 1` 23:59:59"]
+set xrange["$(date -d yesterday +"%Y%m%d %H:%M:00")":"$( date -d "tomorrow" +"%Y%m%d %H:%M:00" )"]
 
 set terminal png
 set output "$TMPDIR/fvet.png"

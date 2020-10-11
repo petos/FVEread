@@ -209,7 +209,7 @@ function thermalLowTarifDT() {
     local LOCALDEVICEID=-1
     while read DEVICENAME; do
         ((++LOCALDEVICEID))
-        if [ $TEMPERATURE -lt ${STARTTEMP["$LOCALDEVICEID"]} ] ; then
+        if (( $( echo "$TEMPERATURE < ${STARTTEMP[$LOCALDEVICEID]}" | bc -l ) )) ; then
             verbPrint "Temperature in thermal device $DEVICENAME (ID:$LOCALDEVICEID) is lower than minimum requested: ${STARTTEMP["$LOCALDEVICEID"]} < $TEMPERATURE "
 			verbPrint "STARTING DEVICE $DEVICENAME"
 			STARTSTOPDEVICES["${DEVICEID[$LOCALDEVICEID]}"]=ON
