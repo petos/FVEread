@@ -52,20 +52,19 @@ cat > "$HTMLFILE" << EOF
 
 <h3>Graphs:</h3>
 <h4>Today power report:</h4>
-<img src="fved.png" alt="Power today">
+<a href=fved.png><img src="fved.png" alt="Power today"></a>
 <h4>Today power report (per phase):</h4>
-<img src="fvel.png" alt="Power today (phased)">
+<a href=fvel.png><img src="fvel.png" alt="Power today (phased)"></a>
 <h4>This month power overview:</h4>
-<img src="fvem.png" alt="Power overview this month">
+<a href=fvem.png><img src="fvem.png" alt="Power overview this month"></a>
 <h4>Produced of this month:</h4>
-<img src="fvep.png" alt="Produced this month">
+<a href=fvep.png><img src="fvep.png" alt="Produced this month"></a>
 EOF
 
 if [ "$DIRECTTEMP" = "ON" ]; then
 	echo "<h4>Today temperature:</h4>" >> "$HTMLFILE" 
-	echo "Temperature is: $(tail -1 $TEMPERATUREFILE | awk '{print $2}') C" >> "$HTMLFILE" 
 	echo '</br>' >> "$HTMLFILE"
-	echo '<img src="fvet.png" alt="Today temperature flowchart">' >> "$HTMLFILE" 
+	echo '<a href=fvet.png><img src="fvet.png" alt="Today temperature flowchart"></a>' >> "$HTMLFILE" 
 	echo '</br>' >> "$HTMLFILE"
 fi
 
@@ -97,6 +96,7 @@ grep -v ^\# "$OPTCFGFILE" | while read USELESS USELESS DEVICE USELESS ; do
 	local DEVICEUPTIME=$(grep "$TIMEDATE_YYYYMMDD".*1$ $DEVICEDATAFILE | sort -u | wc -l)
 echo "<h4>Device: $DEVICE was today up: $DEVICEUPTIME [mins]</h4>" >> $HTMLPOWERFILE
 done
+[ "$DIRECTTEMP" = "ON" ] && echo "<h3>Temperature is: $TEMPERATURE</h3>" >> $HTMLPOWERFILE
 }
 
 function genOptsPage() {
@@ -255,6 +255,8 @@ while [ $# -gt 0 ]; do
 		*)  echo "$0: error - unrecognized option $1" 1>&2; exit 1;;
 	esac
 done
+
+[ "$DIRECTTEMP" = "ON" ] && TEMPERATURE="$(tail -1 $TEMPERATUREFILE | awk '{print $2}')"
 
 if [ $# -gt 0 ]; then
 	errorPrint "Unrecognized parametr(s): \"$@\""

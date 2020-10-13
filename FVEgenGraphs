@@ -73,7 +73,7 @@ set xdata time
 set format x "%H:%M"
 set title "Temperature graph\nGenerated on `date +%H:%M`"
 
-set xrange["$(date -d yesterday +"%Y%m%d %H:%M:00")":"$( date -d "tomorrow" +"%Y%m%d %H:%M:00" )"]
+set xrange["$(date -d yesterday +"%Y%m%d%H:%M")":"$( date -d "now + 2 hour" +"%Y%m%d%H:%M" )"]
 
 set terminal png
 set output "$TMPDIR/fvet.png"
