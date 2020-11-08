@@ -32,28 +32,28 @@ function getDeviceNumber() {
 	DEVICENUM=$( grep -B1 $COMPONENT /etc/tellstick.conf | head -1 | awk '{print $NF}')
 }
 
-function checkTDstatus() {
-#	local TDSTATUS=`sudo service telldusd status | tr -d '!' `
-#	if [  "$TDSTATUS" = "telldusd is not running ... failed" ]; then
-#		echo "`date +%Y/%M/%d-%H:%M:%S` - Seems telldusd is down? Restarting"
-#		sudo service telldusd start 
-#		sudo service telldusd status
-#		echo ====
-#	fi
-	local TDPID=`ps -ef | grep -v bash | grep -v grep |  grep telldusd | awk '{print $2}'`
-	if [ ! "$TDPID" ]; then
-		errorPrint "Seems telldusd is down? Restarting"
-		sudo telldusd
-	fi
-}
+#~ function checkTDstatus() {
+#~ #	local TDSTATUS=`sudo service telldusd status | tr -d '!' `
+#~ #	if [  "$TDSTATUS" = "telldusd is not running ... failed" ]; then
+#~ #		echo "`date +%Y/%M/%d-%H:%M:%S` - Seems telldusd is down? Restarting"
+#~ #		sudo service telldusd start 
+#~ #		sudo service telldusd status
+#~ #		echo ====
+#~ #	fi
+	#~ local TDPID=`ps -ef | grep -v bash | grep -v grep |  grep telldusd | awk '{print $2}'`
+	#~ if [ ! "$TDPID" ]; then
+		#~ errorPrint "Seems telldusd is down? Restarting"
+		#~ sudo telldusd
+	#~ fi
+#~ }
 
 function getTDstatuses() {
 	> "$TMPDIR"/FVE.statuses
-	tdtool -l > "$TMPDIR"/FVE.statuses 
+	#tdtool -l > "$TMPDIR"/FVE.statuses 
 }
 
 function initFVEonOff() {
-	checkTDstatus
+	#checkTDstatus
 	getTDstatuses
 }
 
@@ -88,7 +88,7 @@ function realStatus(){
 	fi
 
 	local STATUS=$( awk /$COMPONENT/'{print $NF}' "$TMPDIR"/FVE.statuses | tr '[:upper:]' '[:lower:]' )
-	if [ -z "$STATUS" ]; then
+	if [ -z "$STATUS" ] && [ "$FORCE" != 'Y' ]; then
 		verbPrint "Error in getting real status, skipping"
 		return 9
 	fi
@@ -104,15 +104,15 @@ function realStatus(){
 			sudo chmod g+rw /dev/gpiomem
 		fi
 		FVEGPIO --pin 1"$DEVICENUM" --value "$EXPECTEDSTATUS" --mode set
-		ERRMSG=$(tdtool --${EXPECTEDSTATUS,,} $DEVICENUM $VERBOUT )
-		if [ "$?" != "0" ]; then
-			errorPrint "Problem with tdtool. Failed with message:"
-			errorPrint "\"$ERRMSG\""
-			return 9
-		else
-			verbPrint "$ERRMSG"
-			return 0
-		fi
+		#~ ERRMSG=$(tdtool --${EXPECTEDSTATUS,,} $DEVICENUM $VERBOUT )
+		#~ if [ "$?" != "0" ]; then
+			#~ errorPrint "Problem with tdtool. Failed with message:"
+			#~ errorPrint "\"$ERRMSG\""
+			#~ return 9
+		#~ else
+			#~ verbPrint "$ERRMSG"
+			#~ return 0
+		#~ fi
 	fi
 }
 
