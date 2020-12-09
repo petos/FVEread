@@ -10,37 +10,57 @@ def parseArgs():
                         help='PIN to work with')
     parser.add_argument('--value', nargs=1, required=False, action='store', 
                         help='on/off')
+    parser.add_argument('--type', nargs=1, required=True, action='store', 
+                        help='relay/power')
     parser.add_argument('--mode', nargs=1, required=True, action='store', 
                         help='get/set, if get, then return value ')
     parser.add_argument('--debug', required=False, action='store_true', default=['False'], help='Run in debug mode')
     return parser.parse_args()
 
-def setMode(VALUE,PIN):
+def setMode(VALUE,PIN,TYPE):
     GPIO.setup(PIN, GPIO.OUT)
-    if VALUE == "on":
-        output_value = GPIO.LOW
-    if VALUE == "off":
-        output_value = GPIO.HIGH
+    if TYPE == "relay":
+        if VALUE == "on":
+            output_value = GPIO.LOW
+        if VALUE == "off":
+            output_value = GPIO.HIGH
+    elif ( TYPE == "power" ):
+        if VALUE == "on":
+            output_value = GPIO.HIGH
+        if VALUE == "off":
+            output_value = GPIO.LOW
+    else:
+        print("ERROR in --type")
+        exit(1)
     GPIO.output(int(PIN), output_value)
 
-def getMode(PIN):
+def getMode(PIN,TYPE):
     GPIO.setup(PIN, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
-    if GPIO.input(PIN) == GPIO.HIGH:
-        print("off")
+    if ( TYPE == "relay" ):
+        if GPIO.input(PIN) == GPIO.HIGH:
+            print("off")
+        else:
+            print("on")
+    elif ( TYPE == "power" ):      
+        if GPIO.input(PIN) == GPIO.HIGH:
+            print("on")
+        else:
+            print("off")
     else:
-        print("on")
-
+        print("ERROR in --type")
+        exit(1)
 
 def main():
     args = parseArgs()
     PIN=int(args.pin[0])
     MODE=args.mode[0]
+    TYPE=args.type[0]
 
     if ( MODE == "set" ):
         VALUE=args.value[0]
-        setMode(VALUE,PIN)
+        setMode(VALUE,PIN,TYPE)
     elif ( MODE == "get" ):
-        getMode(PIN)
+        getMode(PIN,TYPE)
     else:
         print("ERROR in --mode set")
         exit(1)

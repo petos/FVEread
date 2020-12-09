@@ -103,7 +103,7 @@ function realStatus(){
 			sudo chown root:fve /dev/gpiomem
 			sudo chmod g+rw /dev/gpiomem
 		fi
-		FVEGPIO --pin 1"$DEVICENUM" --value "$EXPECTEDSTATUS" --mode set
+		FVEGPIO --pin 1"$DEVICENUM" --value "$EXPECTEDSTATUS" --mode set --type relay
 		ERRMSG=$(tdtool --${EXPECTEDSTATUS,,} $DEVICENUM $VERBOUT )
 		if [ "$?" != "0" ]; then
 			errorPrint "Problem with tdtool. Failed with message:"
