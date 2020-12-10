@@ -70,7 +70,15 @@ function checkUptime() {
 }
 
 function getTemperature() {
-	TEMPERATURE=$(/home/fve/FVEread/FVEgetTemp.py )
+    TEMPERATURE="0.0"
+    TEMPERATURE=$(/home/fve/FVEread/FVEgetTemp.py --pin $DIRECTTEMPPIN)
+    while [ $TEMPERATURE = "0.0" ]; do
+        FVEGPIO --pin $DIRECTTEMPPIN --mode set --value off --type power
+        wait 2
+        FVEGPIO --pin $DIRECTTEMPPIN --mode set --value on --type power
+        wait 2
+        TEMPERATURE=$(/home/fve/FVEread/FVEgetTemp.py --pin $DIRECTTEMPPIN)
+    done
     
 	verbPrint "Temperature on thermal devices is $TEMPERATURE"
 	echo "$TIMEDATE_YYYYMMDDHHmm $TEMPERATURE" >> $TEMPERATUREFILE
