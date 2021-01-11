@@ -234,6 +234,13 @@ function genHist() {
 	fi
 }
 
+function fixPerms() {
+    #this is nasty hack, till I found proper setup of udev rules
+    if $( ! getfacl /dev/gpiomem 2>/dev/null | grep -q fve ); then
+        sudo chown root:fve /dev/gpiomem
+        sudo chmod g+rw /dev/gpiomem
+    fi
+}
 
 function mainLoop() {
 	debugPrint "FNC: mainLoop"
