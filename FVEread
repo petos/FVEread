@@ -244,6 +244,7 @@ function fixPerms() {
 
 function mainLoop() {
 	debugPrint "FNC: mainLoop"
+    fixPerms
 	checkRunningStatus
 	getData
 	
