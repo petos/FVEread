@@ -280,7 +280,8 @@ function decideOnOff() {
 		else
 			if [ $STARTLOCALCONSUMPTION -lt $ENERGYBUCKET ]; then
 				if [ "$DIRECTTEMP" = "ON" -a "$FILTER" = "thermal" ]; then
-					if [ "$TEMPERATURE" -lt "$LOCSTOPTEMP" ]; then
+					#if [ "$TEMPERATURE" -lt "$LOCSTOPTEMP" ]; then
+					if (( $( echo "$TEMPERATURE < $LOCSTOPTEMP" | bc -l ) )); then
 						verbPrint "Device $LOCALDEVICE (ID:$LOCALDEVICEID): $TEMPERATURE is lower than STOP level ($TEMPERATURE < $LOCSTOPTEMP)"
 					else
 						verbPrint "Device $LOCALDEVICE (ID:$LOCALDEVICEID): $TEMPERATURE is more than STOP level ($LOCSTOPTEMP C < $TEMPERATURE C), setting off."
