@@ -41,11 +41,12 @@ FVEBINDIR=~/FVEread
 USEAVRGS='NO'
 
 FVEOPTVACATION="OFF"
-DIRECTLOW=OFF
+DIRECTLOW=ON
 DIRECTLOWPIN=7
 
 #FVEoptRun low tarif configuration
-DIRECTTEMP=OFF
+DIRECTTEMP=ON
+TOPTEMPID=123456abc
 
 TEMPERATUREFILE="$FVEDATADIR"/temperature.`date +%Y%m$d`.dat
 #if OFF, then STARTTEMP in FVEoptRun.cfg represents time all thermal-devices should be ON on 1st lowtarif

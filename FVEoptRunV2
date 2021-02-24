@@ -71,7 +71,7 @@ function checkUptime() {
 
 function getTemperature() {
     TEMPERATURE="0.0"
-    TEMPERATURE=$(/home/fve/FVEread/FVEgetTemp.py --pin $DIRECTTEMPPIN)
+    TEMPERATURE=$(/home/fve/FVEread/FVEgetTemp.py --pin $DIRECTTEMPPIN --ID $TOPTEMPID)
     while [ $TEMPERATURE = "0.0" ]; do
         FVEGPIO --pin $DIRECTTEMPPIN --mode set --value off --type power
         wait 2
