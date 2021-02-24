@@ -7,7 +7,8 @@ import argparse
 
 def parseArgs():
     parser = argparse.ArgumentParser(prog='pyGPIO', description='Set/unset GPIO pins on server.')
-    parser.add_argument('--pin', nargs=1, required=True, action='store', help='PIN to work with')
+    parser.add_argument('--pin', nargs=1, required=True, action='store', help='PIN cycle the power')
+    parser.add_argument('--ID', nargs=1, required=False, action='store', help='ID in /sys/bus/w1/devices/. There is 28- prefix, value means behind the 28-prefix')
     PIN=parser.parse_args().pin[0]
     return parser.parse_args()
 
@@ -31,11 +32,17 @@ def read_temp():
 
 args = parseArgs()
 PIN=int(args.pin[0])
+ID=None
+if args.ID is not None:
+    ID=str(args.ID[0])
                         
 base_dir = '/sys/bus/w1/devices/'
 while True:
     try:
-        device_folder = glob.glob(base_dir + '28*')[0]
+        if ID is not None:
+            device_folder = glob.glob(base_dir + '28-' + ID)[0]
+        else:
+            device_folder = glob.glob(base_dir + '28*')[0]
         break
     except:
         os.system("FVEGPIO --mode set --value off --type power --pin " + str(PIN))
