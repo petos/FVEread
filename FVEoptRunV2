@@ -77,11 +77,16 @@ function getTemperature() {
         wait 2
         FVEGPIO --pin $DIRECTTEMPPIN --mode set --value on --type power
         wait 2
-        TEMPERATURE=$(/home/fve/FVEread/FVEgetTemp.py --pin $DIRECTTEMPPIN)
+        TEMPERATURE=$(/home/fve/FVEread/FVEgetTemp.py --pin $DIRECTTEMPPIN --ID $TOPTEMPID)
     done
+    [ $TOPTEMPID1 ] && TEMPERATURE1=$(/home/fve/FVEread/FVEgetTemp.py --pin $DIRECTTEMPPIN --ID $TOPTEMPID1 )
     
 	verbPrint "Temperature on thermal devices is $TEMPERATURE"
-	echo "$TIMEDATE_YYYYMMDDHHmm $TEMPERATURE" >> $TEMPERATUREFILE
+	if [ TEMPERATURE1 ]; then
+        echo "$TIMEDATE_YYYYMMDDHHmm $TEMPERATURE $TEMPERATURE1" >> $TEMPERATUREFILE
+    else
+        echo "$TIMEDATE_YYYYMMDDHHmm $TEMPERATURE" >> $TEMPERATUREFILE
+    fi
 }
 
 function getLowTarifInfo() {
