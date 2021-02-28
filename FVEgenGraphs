@@ -78,8 +78,13 @@ set xrange["$(date -d yesterday +"%Y%m%d%H:%M")":"$( date -d "now + 2 hour" +"%Y
 set terminal png
 set output "$TMPDIR/fvet.png"
 
-plot "$TEMPERATUREFILE" u 1:2 with lines title 'Temperature'
 EOF
+
+    if [ "$TOPTEMPID1" ]; then
+        echo "plot \"$TEMPERATUREFILE\" u 1:2 with lines title '1st sensor', \"$TEMPERATUREFILE\" u 1:3 with lines title '2nd sensor' " >> "$TMPDIR"/FVE.gn
+    else
+        echo "plot \"$TEMPERATUREFILE\" u 1:2 with lines title 'Temperature' " >> "$TMPDIR"/FVE.gn
+    fi 
 	
 	gnuplot "$TMPDIR"/FVE.gn 2>/dev/null
 }
@@ -180,3 +185,4 @@ else
 fi
 #clean after
 rm -f "$TMPDIR"/FVE.gn
+
