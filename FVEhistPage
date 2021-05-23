@@ -81,16 +81,19 @@ function uploadHistToFTP() {
     debugPrint "FNC: uploadHistToFTP"
     
     verbPrint "FTPupload of history files..."
+    sudo cp -r $HISTDIR/$HISTFILENAME $HISTDIR/$FVEPOWERNAMEHIST $HISTDIR/fvem*.png $HISTDIR/fvel*.png $HISTDIR/fve.device.*.png $HISTDIR/fvep.*.png $HISTDIR/fved.*.png /var/www/lighttpd/fve.hist/
     lftp -u "$FTPUSERNAME",$FTPPASSWD -e "mput -O ${HTMLDESTDIR}/fve.hist/ $HISTDIR/$HISTFILENAME $HISTDIR/$FVEPOWERNAMEHIST $HISTDIR/fvem*.png $HISTDIR/fvel*.png $HISTDIR/fve.device.*.png $HISTDIR/fvep.*.png $HISTDIR/fved.*.png && bye" $HTMLSERVER >> /dev/null 
     verbPrint "FTPupload of history files DONE"
     
     if [ "$MAKEMTH" = "Y" ]; then
 	verbPrint "FTPupload month file..."
+	sudo cp ${HISTDIR}/${TIMEDATE_YYYYMM}.html /var/www/lighttpd/fve.hist/
 	lftp -u "$FTPUSERNAME",$FTPPASSWD -e "mput -O ${HTMLDESTDIR}/fve.hist/ ${HISTDIR}/${TIMEDATE_YYYYMM}.html && bye" $HTMLSERVER >> /dev/null 
 	verbPrint "FTPupload of month file DONE"
     fi
     if [ "$MAKEYEAR" = "Y" ]; then
 	verbPrint "FTPuploading year file..."
+	sudo cp ${HISTDIR}/${TIMEDATE_YYYY}.html /var/www/lighttpd/fve.hist/
 	lftp -u "$FTPUSERNAME",$FTPPASSWD -e "mput -O ${HTMLDESTDIR}/fve.hist/ ${HISTDIR}/${TIMEDATE_YYYY}.html && bye" $HTMLSERVER >> /dev/null 
 	verbPrint "FTPupload of year file DONE"
     fi

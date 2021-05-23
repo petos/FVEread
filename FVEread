@@ -150,8 +150,10 @@ function uploadDataFTP() {
 	debugPrint "FNC: uploadDataFTP"
 	#usage: uploadDataFTP
 	
+	sudo cp $TMPDIR/fvem.png $TMPDIR/fvel.png $TMPDIR/fve.device.*.png $TMPDIR/fved.png $TMPDIR/fvep.png $HTMLPOWERFILE $HTMLOPTFILE $HTMLFILE /var/www/lighttpd/
 	lftp -u "$FTPUSERNAME",$FTPPASSWD -e "mput -O "$HTMLDESTDIR" $TMPDIR/fvem.png $TMPDIR/fvel.png $TMPDIR/fve.device.*.png $TMPDIR/fved.png $TMPDIR/fvep.png $HTMLPOWERFILE $HTMLOPTFILE $HTMLFILE && bye" $HTMLSERVER >> /dev/null
 	if [ "$DIRECTTEMP" = "ON" ]; then 
+		sudo cp $TMPDIR/fvet.png /var/www/lighttpd/
 		lftp -u "$FTPUSERNAME",$FTPPASSWD -e "mput -O "$HTMLDESTDIR" $TMPDIR/fvet.png && bye" $HTMLSERVER >> /dev/null
 	fi
     debugPrint "upload data to FTP is done"
