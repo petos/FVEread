@@ -48,6 +48,10 @@ DIRECTLOWPIN=7
 DIRECTTEMP=ON
 TOPTEMPID=123456abc
 
+
+LOCALWEBSERVER=true
+LOCALWEBSERVERPATH=/var/www/lighttpd/
+
 TEMPERATUREFILE="$FVEDATADIR"/temperature.`date +%Y%m$d`.dat
 #if OFF, then STARTTEMP in FVEoptRun.cfg represents time all thermal-devices should be ON on 1st lowtarif
 VALLOWTARIFMINTEMP=45
