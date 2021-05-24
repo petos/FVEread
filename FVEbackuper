@@ -36,8 +36,8 @@ function createBackup() {
 	popd > /dev/null
 	cp "$TMPDIR"/fvedata."$DATE".tar.gz "$TMPDIR"/fvedata.latest.tar.gz
     
-       	( "$LOCALWEBSERVER" ) && sudo cp "$TMPDIR"/fvedata."$DATE".tar.gz "$TMPDIR"/fvedata.latest.tar.gz "$LOCALWEBSERVERPATH"/fve.hist/
-        lftp -u "$FTPUSERNAME",$FTPPASSWD -e "put -O "$HTMLDESTDIR"/fve.hist/ "$TMPDIR"/fvedata."$DATE".tar.gz "$TMPDIR"/fvedata.latest.tar.gz && bye" $HTMLSERVER >> /dev/null
+    ( "$LOCALWEBSERVER" ) && sudo cp "$TMPDIR"/fvedata."$DATE".tar.gz "$TMPDIR"/fvedata.latest.tar.gz "$LOCALWEBSERVERPATH"/fve.hist/
+	( "$REMOTEFTPSERVER" ) && lftp -u "$FTPUSERNAME",$FTPPASSWD -e "put -O "$HTMLDESTDIR"/fve.hist/ "$TMPDIR"/fvedata."$DATE".tar.gz "$TMPDIR"/fvedata.latest.tar.gz && bye" $HTMLSERVER >> /dev/null
 }
 
 function createFullBackup() {
@@ -58,7 +58,7 @@ function createFullBackup() {
 	cp "$TMPDIR"/fvedata.full."$DATE".tar.gz "$TMPDIR"/fvedata.full.latest.tar.gz
 
 	( "$LOCALWEBSERVER" ) && sudo cp "$TMPDIR"/fvedata.full."$DATE".tar.gz "$TMPDIR"/fvedata.full.latest.tar.gz "$LOCALWEBSERVERPATH"/fve.hist/
-	lftp -u "$FTPUSERNAME",$FTPPASSWD -e "put -O "$HTMLDESTDIR"/fve.hist/ "$TMPDIR"/fvedata.full."$DATE".tar.gz "$TMPDIR"/fvedata.full.latest.tar.gz && bye" $HTMLSERVER >> /dev/null
+	( "$REMOTEFTPSERVER" ) && lftp -u "$FTPUSERNAME",$FTPPASSWD -e "put -O "$HTMLDESTDIR"/fve.hist/ "$TMPDIR"/fvedata.full."$DATE".tar.gz "$TMPDIR"/fvedata.full.latest.tar.gz && bye" $HTMLSERVER >> /dev/null
 	
 	#rm -fr "$TMPDIR"/fvefullbackup
 	#rm -f "$TMPDIR"/fvedata.full."$DATE".tar.gz 
