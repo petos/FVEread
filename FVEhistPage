@@ -82,19 +82,19 @@ function uploadHistToFTP() {
     
     verbPrint "FTPupload of history files..."
     ( "$LOCALWEBSERVER" ) && sudo cp $HISTDIR/$HISTFILENAME $HISTDIR/$FVEPOWERNAMEHIST $HISTDIR/fvem*.png $HISTDIR/fvel*.png $HISTDIR/fve.device.*.png $HISTDIR/fvep.*.png $HISTDIR/fved.*.png "$LOCALWEBSERVERPATH"/fve.hist/
-    ( "$REMOTEFTPSERVER" ) && lftp --log=/dev/null -u "$FTPUSERNAME",$FTPPASSWD -e "mput -O ${HTMLDESTDIR}/fve.hist/ $HISTDIR/$HISTFILENAME $HISTDIR/$FVEPOWERNAMEHIST $HISTDIR/fvem*.png $HISTDIR/fvel*.png $HISTDIR/fve.device.*.png $HISTDIR/fvep.*.png $HISTDIR/fved.*.png && bye" $HTMLSERVER >> /dev/null 
+    ( "$REMOTEFTPSERVER" ) && lftp -u "$FTPUSERNAME",$FTPPASSWD -e "mput -O ${HTMLDESTDIR}/fve.hist/ $HISTDIR/$HISTFILENAME $HISTDIR/$FVEPOWERNAMEHIST $HISTDIR/fvem*.png $HISTDIR/fvel*.png $HISTDIR/fve.device.*.png $HISTDIR/fvep.*.png $HISTDIR/fved.*.png && bye" $HTMLSERVER >> /dev/null 
     verbPrint "FTPupload of history files DONE"
     
     if [ "$MAKEMTH" = "Y" ]; then
 	verbPrint "FTPupload month file..."
 	( "$LOCALWEBSERVER" ) && sudo cp ${HISTDIR}/${TIMEDATE_YYYYMM}.html "$LOCALWEBSERVERPATH"/fve.hist/
-	( "$REMOTEFTPSERVER" ) && lftp --log=/dev/null -u "$FTPUSERNAME",$FTPPASSWD -e "mput -O ${HTMLDESTDIR}/fve.hist/ ${HISTDIR}/${TIMEDATE_YYYYMM}.html && bye" $HTMLSERVER >> /dev/null 
+	( "$REMOTEFTPSERVER" ) && lftp -u "$FTPUSERNAME",$FTPPASSWD -e "mput -O ${HTMLDESTDIR}/fve.hist/ ${HISTDIR}/${TIMEDATE_YYYYMM}.html && bye" $HTMLSERVER >> /dev/null 
 	verbPrint "FTPupload of month file DONE"
     fi
     if [ "$MAKEYEAR" = "Y" ]; then
 	verbPrint "FTPuploading year file..."
 	( "$LOCALWEBSERVER" ) && sudo cp ${HISTDIR}/${TIMEDATE_YYYY}.html "$LOCALWEBSERVERPATH"/fve.hist/
-	( "$REMOTEFTPSERVER" ) && lftp --log=/dev/null -u "$FTPUSERNAME",$FTPPASSWD -e "mput -O ${HTMLDESTDIR}/fve.hist/ ${HISTDIR}/${TIMEDATE_YYYY}.html && bye" $HTMLSERVER >> /dev/null 
+	( "$REMOTEFTPSERVER" ) && lftp -u "$FTPUSERNAME",$FTPPASSWD -e "mput -O ${HTMLDESTDIR}/fve.hist/ ${HISTDIR}/${TIMEDATE_YYYY}.html && bye" $HTMLSERVER >> /dev/null 
 	verbPrint "FTPupload of year file DONE"
     fi
     return 0
