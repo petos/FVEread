@@ -136,7 +136,17 @@ function parseThermalDevice() {
 		CONSUMPTION["$THERMALDEVICES"]=$LNCONSUMPTION
 		TIME0["$THERMALDEVICES"]=$LNTIME0
 		TIME1["$THERMALDEVICES"]=$LNTIME1
-		STARTTEMP["$THERMALDEVICES"]=$LNSTARTTEMP
+		if [ "$( date +%H )" -lt 12 ]; then
+			debugPrint "Setting temp -10C because it's morning"
+			STARTTEMP["$THERMALDEVICES"]=$(( LNSTARTTEMP - 10 ))
+		else
+			if [ "$(LANG=en  date +%a)" == 'Sun' ]; then
+				debugPrint "Setting temp +8C because it's Sunday"
+				STARTTEMP["$THERMALDEVICES"]=$(( LNSTARTTEMP + 8 ))
+			else
+				STARTTEMP["$THERMALDEVICES"]=$LNSTARTTEMP
+			fi
+		fi
 		STOPTEMP["$THERMALDEVICES"]=$LNSTOPTEMP
 	done < <( cat "$OPTCFGFILE" | grep -v \# | grep thermal)
 
