@@ -59,35 +59,11 @@ function getCurrentLs() {
 }
 
 function getToday() {
-	local iTODAY=`cat "$TMPDIR"/FVE.$$.html | grep -A2 'denn[.]*'|grep energie -A2 | tail -1`
-	rawTOTAL=`cleanLine "$iTODAY"`
-	PREVTIMESTAMP=0
-	PRERAWTODAY=0
-	PRERAWTODAY0=$( grep $TIMEDATE_YYYYMMDD $HISTORYFILE | awk '{print $8}' | head -1) 
-	[ -z $PRERAWTODAY0 ] && PRERAWTODAY0=0
-	LASTRAWTODAY=0
-	TODAY=0
-	while read TIMESTAMP RAWTODAY; do
-		[ -z $RAWTODAY ] && continue;
-		LASTRAWTODAY=$RAWTODAY
-		[ $TIMESTAMP = $PREVTIMESTAMP ] && continue ;
-		PREVTIMESTAMP=$TIMESTAMP
-		if [ $( echo $PRERAWTODAY'<'$RAWTODAY | bc -l ) = 1 ]; then
-			PRERAWTODAY=$RAWTODAY
-			#echo "PRERAWTODAY=$PRERAWTODAY"
-		elif [ $( echo $PRERAWTODAY'>'$RAWTODAY | bc -l ) = 1 ]; then
-			#echo "$RAWTODAY < $PRERAWTODAY"
-			TODAY=$(python -c "print $TODAY + $PRERAWTODAY")
-			PRERAWTODAY=$RAWTODAY
-			#echo $TODAY
-		elif [ $PRERAWTODAY = $RAWTODAY -o $PRERAWTODAY = $RAWTODAY.00 -o $PRERAWTODAY.00 = $RAWTODAY  ]; then 
-			continue
-		else
-			echo "$RAWTODAY |?| $PRERAWTODAY"
-		fi
-	done < <( grep $TIMEDATE_YYYYMMDD $HISTORYFILE | awk '{print $1" "$8}' ) 
-	#echo $LASTRAWTODAY
-	TODAY=$(python -c "print $TODAY + $LASTRAWTODAY - $PRERAWTODAY0")
+	local iTOTALPRODUCED="$(cat "$TMPDIR"/FVE.$$.html | grep -A2 'energie\ celkem' | tail -1)"
+	rawTOTALPRODUCED="$(cleanLine $iTOTALPRODUCED)"
+	local MIDNIGHTTOTAL="$( grep $TIMEDATE_YYYYMMDD $HISTORYFILE | head -1 | awk '{ print $8 }')"
+	[ "$MIDNIGHTTOTAL" ] || MIDNIGHTTOTAL=0
+	TODAY=$(( rawTOTALPRODUCED - MIDNIGHTTOTAL ))
 	verbPrint "TODAY was count as $TODAY"
 }
 
@@ -198,7 +174,7 @@ function getData() {
 function genFiles() {
 	debugPrint "FNC: genFiles"
 	#usage: genFiles
-		echo $TIMEDATE_YYYYMMDDHHmm $CURRENT $TODAY $AVRG $L1 $L2 $L3 $rawTOTAL >> "$HISTORYFILE"
+		echo $TIMEDATE_YYYYMMDDHHmm $CURRENT $TODAY $AVRG $L1 $L2 $L3 $rawTOTALPRODUCED >> "$HISTORYFILE"
 
 		FVEgenPage  --powerpage --current $CURRENT --L1 $L1 --L2 $L2 --L3 $L3 --today $TODAY --fvestatus $FVESTATUS --avrg $AVRG
 		
