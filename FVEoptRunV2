@@ -286,15 +286,16 @@ function updateJSONforDevices() {
 	local DEVICESTATUS=False
 	[ "$6" = ON ] && DEVICESTATUS=True
 
-	echo ",
+	echo "
+	\"$LOCALDEVICE\":
 	{
-		\"deviceName\": \"$LOCALDEVICE\".
+		\"deviceName\": \"$LOCALDEVICE\",
 		\"deviceID\": \"$LOCALDEVICEID\",
 		\"deviceConsumption\": \"$LOCALCONSUMPTION\",
 		\"startTemp\": \"$LOCSTARTTEMP\",
 		\"stopTemp\": \"$LOCSTOPTEMP\",
 		\"deviceUp\": \"$DEVICESTATUS\"
-	}
+	},
 " >> "$FVEAPIFILE"
 
 }
