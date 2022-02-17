@@ -128,7 +128,6 @@ function uploadDataFTP() {
 	
 	( "$LOCALWEBSERVER" ) && sudo cp $TMPDIR/fvem.png $TMPDIR/fvel.png $TMPDIR/fve.device.*.png $TMPDIR/fved.png $TMPDIR/fvep.png $HTMLPOWERFILE $HTMLOPTFILE $HTMLFILE $TMPDIR/api.json "$LOCALWEBSERVERPATH"
 	( "$LOCALWEBSERVER" ) && sudo mv "$LOCALWEBSERVERPATH"/"$FVEHTMLNAME" "$LOCALWEBSERVERPATH"/index.html
-	( "$LOCALWEBSERVER" ) && sudo mv "$LOCALWEBSERVERPATH"/api.json "$LOCALWEBSERVERPATH"/api.json
 	( "$REMOTEFTPSERVER" ) && lftp -u "$FTPUSERNAME",$FTPPASSWD -e "mput -O "$HTMLDESTDIR" $TMPDIR/fvem.png $TMPDIR/fvel.png $TMPDIR/fve.device.*.png $TMPDIR/fved.png $TMPDIR/fvep.png $HTMLPOWERFILE $HTMLOPTFILE $HTMLFILE && bye" $HTMLSERVER >> /dev/null
 
 	if [ "$DIRECTTEMP" = "ON" ]; then 
