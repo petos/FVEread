@@ -312,8 +312,6 @@ function decideOnOff() {
 	local LOCSTOPTEMP
 	local LOCALDEVICE
 
-	echo ', "devices": { ' >> $FVEAPIFILE
-
 	while read LOCALDEVICEID VOID LOCALDEVICE LOCALCONSUMPTION VOID VOID LOCSTARTTEMP LOCSTOPTEMP; do
 
         debugPrint "LOCALDEVICEID=$LOCALDEVICEID"
@@ -378,7 +376,6 @@ function decideOnOff() {
 			fi
 		fi
 	done < <(cat "$OPTCFGFILE" | grep -v \# | grep "$FILTER" | sort -nrk4)
-	echo '}' >> $FVEAPIFILE
 	return 0
 }
 
@@ -443,8 +440,14 @@ function mainLoop() {
             DIRECTTEMP=OFF
         fi
 	fi
+	
+	echo ', "devices": { ' >> "$FVEAPIFILE"
+
 	manageThermalDevices
 	decideOnOff "generic"
+	
+	echo '}' >> "$FVEAPIFILE"
+
 	enableDisableDevices
 	#checkDeviceTable
 }
