@@ -81,18 +81,25 @@ function getTemperature() {
     done
     [ $TOPTEMPID1 ] && TEMPERATURE1=$(/home/fve/FVEread/FVEgetTemp.py --pin $DIRECTTEMPPIN --ID $TOPTEMPID1 )
     
-	verbPrint "Temperature on thermal devices is $TEMPERATURE"
-	if [ TEMPERATURE1 ]; then
+    echo ", \"temperatures\":
+{
+" >> "$FVEAPIFILE"
+    verbPrint "Temperature on thermal devices is $TEMPERATURE"
+    if [ TEMPERATURE1 ]; then
         echo "$TIMEDATE_YYYYMMDDHHmm $TEMPERATURE $TEMPERATURE1" >> $TEMPERATUREFILE
+	echo "\"temperature_0\": $TEMPERATURE, \"temperature_1\": $TEMPERATURE1" >> "$FVEAPIFILE"
     else
         echo "$TIMEDATE_YYYYMMDDHHmm $TEMPERATURE" >> $TEMPERATUREFILE
+	echo "\"temperature_0\": $TEMPERATURE" >> "$FVEAPIFILE"
     fi
+    echo "}" >> "$FVEAPIFILE"
 }
 
 function getLowTarifInfo() {
 	#returns if now we are in Low tarif or not and eventually what low tarif (1st part, 2nd part...)
 	
 	ISLOWTARIF=N
+	LTTFVAL=False
 	LOWTARIFNUM=''
 	local LOWTARIFN
 	local TIMEDATEHHmm=$(date +%H%M)
@@ -120,7 +127,13 @@ function getLowTarifInfo() {
             fi
         done
     fi
-	debugPrint "LowTarif ID: $LOWTARIFNUM: LowTarif=$ISLOWTARIF"
+    debugPrint "LowTarif ID: $LOWTARIFNUM: LowTarif=$ISLOWTARIF"
+    [ "$ISLOWTARIF" = "Y" ] && LTTFVAL=False
+    echo ",
+	\"lowTarif\": {
+		\"lowTarifEnabled\": $LTTFVAL,
+		\"lowTarifID\": \"$LOWTARIFNUM\"
+	}" >> "$FVEAPIFILE"
 }
 
 
@@ -235,6 +248,7 @@ function thermalLowTarifDT() {
         if (( $( echo "$TEMPERATURE < ${STARTTEMP[$LOCALDEVICEID]}" | bc -l ) )) ; then
             verbPrint "Temperature in thermal device $DEVICENAME (ID:$LOCALDEVICEID) is lower than minimum requested: ${STARTTEMP["$LOCALDEVICEID"]} < $TEMPERATURE "
 			verbPrint "STARTING DEVICE $DEVICENAME"
+			#updateJSONforDevices "$DEVICENAME" "$LOCALDEVICEID" "${CONSUMPTION[$LOCALDEVICEID]}" "${STARTTEMP[$LOCALDEVICEID]}" "${STOPTEMP[$LOCALDEVICEID]}" "ON"
 			STARTSTOPDEVICES["${DEVICEID[$LOCALDEVICEID]}"]=ON
 			updateEnergy ${CONSUMPTION["$LOCALDEVICEID"]}
         else
@@ -262,6 +276,29 @@ function manageThermalDevicesLowTarif {
 	fi
 }
 
+function updateJSONforDevices() {
+	local LOCALDEVICE="$1"
+	local LOCALDEVICEID="$2"
+	local LOCALCONSUMPTION="$3"
+	local LOCSTARTTEMP="$4"
+	local LOCSTOPTEMP="$5"
+
+	local DEVICESTATUS=False
+	[ "$6" = ON ] && DEVICESTATUS=True
+
+	echo ",
+	{
+		\"deviceName\": \"$LOCALDEVICE\".
+		\"deviceID\": \"$LOCALDEVICEID\",
+		\"deviceConsumption\": \"$LOCALCONSUMPTION\",
+		\"startTemp\": \"$LOCSTARTTEMP\",
+		\"stopTemp\": \"$LOCSTOPTEMP\",
+		\"deviceUp\": \"$DEVICESTATUS\"
+	}
+" >> "$FVEAPIFILE"
+
+}
+
 function decideOnOff() {
 	debugPrint "FNC: decideOnOff"
 	local FILTER="$1"
@@ -273,13 +310,13 @@ function decideOnOff() {
 	local LOCSTARTTEMP
 	local LOCSTOPTEMP
 	local LOCALDEVICE
-	
+
+	echo ', "devices": { ' >> $FVEAPIFILE
+
 	while read LOCALDEVICEID VOID LOCALDEVICE LOCALCONSUMPTION VOID VOID LOCSTARTTEMP LOCSTOPTEMP; do
 
-		
-
-        debugPrint "LOCALDEVICEID=$LOCALDEVICEID".
-        debugPrint "LOCALDEVICE=$LOCALDEVICE".
+        debugPrint "LOCALDEVICEID=$LOCALDEVICEID"
+        debugPrint "LOCALDEVICE=$LOCALDEVICE"
         debugPrint "LOCALCONSUMPTION=$LOCALCONSUMPTION"
         debugPrint "LOCSTARTTEMP=$LOCSTARTTEMP"
         debugPrint "LOCSTOPTEMP=$LOCSTOPTEMP"
@@ -292,22 +329,27 @@ function decideOnOff() {
 		
 		if [ "${STARTSTOPDEVICES["$LOCALDEVICEID"]}" = "ON" ]; then
 			debugPrint "Device $LOCALDEVICE (id: $LOCALDEVICEID) is already setup to be on, skipping"
+			updateJSONforDevices "$LOCALDEVICE" "$LOCALDEVICEID" "$LOCALCONSUMPTION" "$LOCSTARTTEMP" "$LOCSTOPTEMP" "ON"
 		else
 			if [ $STARTLOCALCONSUMPTION -lt $ENERGYBUCKET ]; then
 				if [ "$DIRECTTEMP" = "ON" -a "$FILTER" = "thermal" ]; then
 					if (( $( echo "$TEMPERATURE < $LOCSTOPTEMP" | bc -l ) )); then
 						verbPrint "Device $LOCALDEVICE (ID:$LOCALDEVICEID): $TEMPERATURE is lower than STOP level ($TEMPERATURE < $LOCSTOPTEMP)"
+						updateJSONforDevices "$LOCALDEVICE" "$LOCALDEVICEID" "$LOCALCONSUMPTION" "$LOCSTARTTEMP" "$LOCSTOPTEMP" "ON"
 					else
 						verbPrint "Device $LOCALDEVICE (ID:$LOCALDEVICEID): $TEMPERATURE is more than STOP level ($LOCSTOPTEMP C < $TEMPERATURE C), setting off."
+						updateJSONforDevices "$LOCALDEVICE" "$LOCALDEVICEID" "$LOCALCONSUMPTION" "$LOCSTARTTEMP" "$LOCSTOPTEMP" "OFF"
 						STARTSTOPDEVICES["$LOCALDEVICEID"]=OFF
 						continue
 					fi 
 				fi
 				verbPrint "Device $LOCALDEVICE (ID:$LOCALDEVICEID) CONS: ${LOCALCONSUMPTION} < $ENERGYBUCKET"
+				updateJSONforDevices "$LOCALDEVICE" "$LOCALDEVICEID" "$LOCALCONSUMPTION" "$LOCSTARTTEMP" "$LOCSTOPTEMP" "ON"
 				STARTSTOPDEVICES["$LOCALDEVICEID"]=ON
 				updateEnergy $LOCALCONSUMPTION
 			elif [ $ENERGYBUCKET -lt $LOCALCONSUMPTION ]; then
 				verbPrint "Device $LOCALDEVICE (ID:$LOCALDEVICEID) CONS: ${LOCALCONSUMPTION} > $ENERGYBUCKET"
+				updateJSONforDevices "$LOCALDEVICE" "$LOCALDEVICEID" "$LOCALCONSUMPTION" "$LOCSTARTTEMP" "$LOCSTOPTEMP" "OFF"
 				STARTSTOPDEVICES["$LOCALDEVICEID"]=OFF
 				
 				
@@ -320,6 +362,7 @@ function decideOnOff() {
 					continue
 				fi
 				STARTSTOPDEVICES["$LOCALDEVICEID"]="$STATUS"
+				updateJSONforDevices "$LOCALDEVICE" "$LOCALDEVICEID" "$LOCALCONSUMPTION" "$LOCSTARTTEMP" "$LOCSTOPTEMP" "$STATUS"
 				if [ "${STARTSTOPDEVICES["$LOCALDEVICEID"]}" = ON ] || [ "${STARTSTOPDEVICES["$LOCALDEVICEID"]}" = on ]; then
 					updateEnergy $LOCALCONSUMPTION
 				fi
@@ -334,6 +377,7 @@ function decideOnOff() {
 			fi
 		fi
 	done < <(cat "$OPTCFGFILE" | grep -v \# | grep "$FILTER" | sort -nrk4)
+	echo '}' >> $FVEAPIFILE
 	return 0
 }
 
@@ -383,7 +427,7 @@ function enableDisableDevices() {
 	while read DEVICENUM VOID; do
 		verbPrint "Device ${STARTSTOPDEVICENAMES["$DEVICENUM"]} (ID=$DEVICENUM) is being turned ${STARTSTOPDEVICES["$DEVICENUM"]}"
 		FVEonOff $DEBUGPARAM $VERBPARM --setstatus "${STARTSTOPDEVICENAMES["$DEVICENUM"]}" "${STARTSTOPDEVICES["$DEVICENUM"]}"
-		sleep 2
+		#sleep 2
 	done < <( cat "$OPTCFGFILE" | grep -v \# | sed /^$/d)
 	return 0
 }
