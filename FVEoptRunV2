@@ -99,7 +99,7 @@ function getLowTarifInfo() {
 	#returns if now we are in Low tarif or not and eventually what low tarif (1st part, 2nd part...)
 	
 	ISLOWTARIF=N
-	LTTFVAL=False
+	local LTTFVAL=False
 	LOWTARIFNUM=''
 	local LOWTARIFN
 	local TIMEDATEHHmm=$(date +%H%M)
@@ -131,9 +131,9 @@ function getLowTarifInfo() {
     [ "$ISLOWTARIF" = "Y" ] && LTTFVAL=False
     echo ",
 	\"lowTarif\": {
-		\"lowTarifEnabled\": \"$LTTFVAL\",
-		\"lowTarifID\": $LOWTARIFNUM
-	}" >> "$FVEAPIFILE"
+		\"lowTarifEnabled\": \"$LTTFVAL\"" >> "$FVEAPIFILE"
+    [ "$LOWTARIFNUM" ] && echo ",\"lowTarifID\": $LOWTARIFNUM" >> "$FVEAPIFILE"
+    echo '}' >> "$FVEAPIFILE"
 }
 
 
@@ -277,15 +277,16 @@ function manageThermalDevicesLowTarif {
 }
 
 function updateJSONforDevices() {
-	local LOCALDEVICE="$1"
-	local LOCALDEVICEID="$2"
-	local LOCALCONSUMPTION="$3"
-	local LOCSTARTTEMP="$4"
-	local LOCSTOPTEMP="$5"
+	local i="$1"
+	local LOCALDEVICE="$2"
+	local LOCALDEVICEID="$3"
+	local LOCALCONSUMPTION="$4"
+	local LOCSTARTTEMP="$5"
+	local LOCSTOPTEMP="$6"
 
 	local DEVICESTATUS=False
-	[ "$6" = ON ] && DEVICESTATUS=True
-
+	[ "$7" = ON ] && DEVICESTATUS=True
+	[ $i -gt 0 ] && echo ',' >> "$FVEAPIFILE"
 	echo "
 	\"$LOCALDEVICE\":
 	{
@@ -295,7 +296,7 @@ function updateJSONforDevices() {
 		\"startTemp\": $LOCSTARTTEMP,
 		\"stopTemp\": $LOCSTOPTEMP,
 		\"deviceUp\": \"$DEVICESTATUS\"
-	},
+	}
 " >> "$FVEAPIFILE"
 
 }
@@ -311,9 +312,9 @@ function decideOnOff() {
 	local LOCSTARTTEMP
 	local LOCSTOPTEMP
 	local LOCALDEVICE
-
+	local i=-1
 	while read LOCALDEVICEID VOID LOCALDEVICE LOCALCONSUMPTION VOID VOID LOCSTARTTEMP LOCSTOPTEMP; do
-
+	((i++))
         debugPrint "LOCALDEVICEID=$LOCALDEVICEID"
         debugPrint "LOCALDEVICE=$LOCALDEVICE"
         debugPrint "LOCALCONSUMPTION=$LOCALCONSUMPTION"
@@ -328,7 +329,7 @@ function decideOnOff() {
 		
 		if [ "${STARTSTOPDEVICES["$LOCALDEVICEID"]}" = "ON" ]; then
 			debugPrint "Device $LOCALDEVICE (id: $LOCALDEVICEID) is already setup to be on, skipping"
-			updateJSONforDevices "$LOCALDEVICE" "$LOCALDEVICEID" "$LOCALCONSUMPTION" "$LOCSTARTTEMP" "$LOCSTOPTEMP" "ON"
+			updateJSONforDevices "$i" "$LOCALDEVICE" "$LOCALDEVICEID" "$LOCALCONSUMPTION" "$LOCSTARTTEMP" "$LOCSTOPTEMP" "ON"
 		else
 			if [ $STARTLOCALCONSUMPTION -lt $ENERGYBUCKET ]; then
 				if [ "$DIRECTTEMP" = "ON" -a "$FILTER" = "thermal" ]; then
