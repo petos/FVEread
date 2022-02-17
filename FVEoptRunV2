@@ -131,8 +131,8 @@ function getLowTarifInfo() {
     [ "$ISLOWTARIF" = "Y" ] && LTTFVAL=False
     echo ",
 	\"lowTarif\": {
-		\"lowTarifEnabled\": $LTTFVAL,
-		\"lowTarifID\": \"$LOWTARIFNUM\"
+		\"lowTarifEnabled\": \"$LTTFVAL\",
+		\"lowTarifID\": $LOWTARIFNUM
 	}" >> "$FVEAPIFILE"
 }
 
@@ -290,10 +290,10 @@ function updateJSONforDevices() {
 	\"$LOCALDEVICE\":
 	{
 		\"deviceName\": \"$LOCALDEVICE\",
-		\"deviceID\": \"$LOCALDEVICEID\",
-		\"deviceConsumption\": \"$LOCALCONSUMPTION\",
-		\"startTemp\": \"$LOCSTARTTEMP\",
-		\"stopTemp\": \"$LOCSTOPTEMP\",
+		\"deviceID\": $LOCALDEVICEID,
+		\"deviceConsumption\": $LOCALCONSUMPTION,
+		\"startTemp\": $LOCSTARTTEMP,
+		\"stopTemp\": $LOCSTOPTEMP,
 		\"deviceUp\": \"$DEVICESTATUS\"
 	},
 " >> "$FVEAPIFILE"
