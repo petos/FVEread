@@ -128,7 +128,7 @@ function getLowTarifInfo() {
         done
     fi
     debugPrint "LowTarif ID: $LOWTARIFNUM: LowTarif=$ISLOWTARIF"
-    [ "$ISLOWTARIF" = "Y" ] && LTTFVAL=False
+    [ "$ISLOWTARIF" = "Y" ] && LTTFVAL=True
     echo ",
 	\"lowTarif\": {
 		\"lowTarifEnabled\": \"$LTTFVAL\"" >> "$FVEAPIFILE"
