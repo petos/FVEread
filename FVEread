@@ -125,8 +125,9 @@ function checkFileExist() {
 function uploadDataFTP() {
 	debugPrint "FNC: uploadDataFTP"
 	#usage: uploadDataFTP
-	
-	( "$LOCALWEBSERVER" ) && sudo cp $TMPDIR/fvem.png $TMPDIR/fvel.png $TMPDIR/fve.device.*.png $TMPDIR/fved.png $TMPDIR/fvep.png $HTMLPOWERFILE $HTMLOPTFILE $HTMLFILE "$LOCALWEBSERVERPATH"
+	jq -c . "$FVEAPIFILE" > "$FVEAPIFILE"1
+	mv "$FVEAPIFILE"1 "$FVEAPIFILE"
+	( "$LOCALWEBSERVER" ) && sudo cp $TMPDIR/fvem.png $TMPDIR/fvel.png $TMPDIR/fve.device.*.png $TMPDIR/fved.png $TMPDIR/fvep.png $HTMLPOWERFILE $HTMLOPTFILE $HTMLFILE $TMPDIR/api.json "$LOCALWEBSERVERPATH"
 	( "$LOCALWEBSERVER" ) && sudo mv "$LOCALWEBSERVERPATH"/"$FVEHTMLNAME" "$LOCALWEBSERVERPATH"/index.html
 	( "$REMOTEFTPSERVER" ) && lftp -u "$FTPUSERNAME",$FTPPASSWD -e "mput -O "$HTMLDESTDIR" $TMPDIR/fvem.png $TMPDIR/fvel.png $TMPDIR/fve.device.*.png $TMPDIR/fved.png $TMPDIR/fvep.png $HTMLPOWERFILE $HTMLOPTFILE $HTMLFILE && bye" $HTMLSERVER >> /dev/null
 
@@ -171,6 +172,25 @@ function getData() {
 	getAvrg
 }
 
+function createAPIfile() {
+	> "$FVEAPIFILE"
+	echo "
+{
+	\"time\": \"$(date --rfc-3339=seconds)\",
+	\"status\": \"$FVESTATUS\",
+	\"power\": {
+		\"current\": $CURRENT,
+		\"L\": {
+			\"L1\": $L1,
+			\"L2\": $L2,
+			\"L3\": $L3
+		},
+		\"today\": $TODAY,
+		\"totalProduction\": $rawTOTALPRODUCED
+	}
+" >> "$FVEAPIFILE"
+}
+
 function genFiles() {
 	debugPrint "FNC: genFiles"
 	#usage: genFiles
@@ -184,6 +204,7 @@ function genFiles() {
 		if [ "$DIRECTTEMP" = "ON" ]; then
 			FVEgenGraphs --temperature
 		fi
+		createAPIfile
 }
 
 function disableMe() {
@@ -234,6 +255,8 @@ function mainLoop() {
 		genFiles
 		checkFileExist
 		FVEoptRunV2 $VERBPARM $DEBUGPARM
+		#Close API json file
+		echo '}' >> "$FVEAPIFILE"
 		uploadDataFTP
 	fi
 	genHist
