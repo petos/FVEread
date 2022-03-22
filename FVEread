@@ -129,11 +129,11 @@ function uploadDataFTP() {
 	mv "$FVEAPIFILE"1 "$FVEAPIFILE"
 	( "$LOCALWEBSERVER" ) && sudo cp $TMPDIR/fvem.png $TMPDIR/fvel.png $TMPDIR/fve.device.*.png $TMPDIR/fved.png $TMPDIR/fvep.png $HTMLPOWERFILE $HTMLOPTFILE $HTMLFILE $TMPDIR/api.json "$LOCALWEBSERVERPATH"
 	( "$LOCALWEBSERVER" ) && sudo mv "$LOCALWEBSERVERPATH"/"$FVEHTMLNAME" "$LOCALWEBSERVERPATH"/index.html
-	( "$REMOTEFTPSERVER" ) && lftp -u "$FTPUSERNAME",$FTPPASSWD -e "set net:timeout 5; set net:max-retries 0; mput -O "$HTMLDESTDIR" $TMPDIR/fvem.png $TMPDIR/fvel.png $TMPDIR/fve.device.*.png $TMPDIR/fved.png $TMPDIR/fvep.png $HTMLPOWERFILE $HTMLOPTFILE $HTMLFILE && bye" $HTMLSERVER >> /dev/null
+	( "$REMOTEFTPSERVER" ) && lftp -u "$FTPUSERNAME",$FTPPASSWD -e "set net:timeout 5; set net:max-retries 0; mput -O $HTMLDESTDIR $TMPDIR/fvem.png $TMPDIR/fvel.png $TMPDIR/fve.device.*.png $TMPDIR/fved.png $TMPDIR/fvep.png $HTMLPOWERFILE $HTMLOPTFILE $HTMLFILE && bye" $HTMLSERVER >> /dev/null
 
 	if [ "$DIRECTTEMP" = "ON" ]; then 
 		( "$LOCALWEBSERVER" ) && sudo cp $TMPDIR/fvet.png "$LOCALWEBSERVERPATH"
-		( "$REMOTEFTPSERVER" ) && lftp -u "$FTPUSERNAME",$FTPPASSWD -e "set net:timeout 5; set net:max-retries 0;  mput -O "$HTMLDESTDIR" $TMPDIR/fvet.png && bye" $HTMLSERVER >> /dev/null
+		( "$REMOTEFTPSERVER" ) && lftp -u "$FTPUSERNAME",$FTPPASSWD -e "set net:timeout 5; set net:max-retries 0;  mput -O $HTMLDESTDIR $TMPDIR/fvet.png && bye" $HTMLSERVER >> /dev/null
 	fi
     debugPrint "upload data to FTP is done"
 	return 0
