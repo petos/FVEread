@@ -49,7 +49,7 @@ function cleanLine() {
 }
 
 function getCurrent() {
-	local iCURRENT=`cat "$TMPDIR"/FVE.$$.html | grep -A2 'aktu[.]*'|grep ln -A2 | tail -1 `
+	local iCURRENT=`cat "$TMPDIR"/FVE.$$.html | grep -A2 'current' | head -3 | tail -1 `
 	echo `cleanLine "$iCURRENT"`
 }
 
@@ -59,12 +59,25 @@ function getCurrentLs() {
 }
 
 function getToday() {
-	local iTOTALPRODUCED="$(cat "$TMPDIR"/FVE.$$.html | grep -A2 'energie\ celkem' | tail -1)"
+	debugPrint "Function getToday $@"
+	local iTOTALPRODUCED="$(cat "$TMPDIR"/FVE.$$.html | grep -A2 'total energy' | tail -1)"
 	rawTOTALPRODUCED="$(cleanLine $iTOTALPRODUCED)"
+	debugPrint "rawTOTALPRODUCED=$rawTOTALPRODUCED"
 	local MIDNIGHTTOTAL="$( grep $TIMEDATE_YYYYMMDD $HISTORYFILE | head -1 | awk '{ print $8 }')"
+	debugPrint "MIDNIGHTTOTAL=$MIDNIGHTTOTAL"
 	[ "$MIDNIGHTTOTAL" ] || MIDNIGHTTOTAL=0
 	TODAY=$(( rawTOTALPRODUCED - MIDNIGHTTOTAL ))
 	verbPrint "TODAY was count as $TODAY"
+	if [ ! -e "$TMPDIR"/FVE.$$.html ]; then
+		errPrint "$TMPDIR/FVE.$$.html is missing"
+		exit 1
+	fi
+	todayProduction="$(cleanLine $(cat "$TMPDIR"/FVE.$$.html | grep -A2 'daily energy' | tail -1)) "
+	debugPrint "todayProduction=$todayProduction"
+	[ -e "$FVEDATADIR"/lastreset.date ] || date -I'seconds' > "$FVEDATADIR"/lastreset.date
+	[ "$todayProduction" = 0 ] && date -I'seconds' > "$FVEDATADIR"/lastreset.date
+	LASTRESET="$(cat "$FVEDATADIR"/lastreset.date)"
+	echo "Done getToday()"
 }
 
 function cleanFile() {
@@ -170,6 +183,7 @@ function getData() {
 		FVESTATUS="Running"
 	fi
 	getAvrg
+	debugPrint "getData() Done"
 }
 
 function createAPIfile() {
@@ -186,7 +200,9 @@ function createAPIfile() {
 			\"L3\": $L3
 		},
 		\"today\": $TODAY,
-		\"totalProduction\": $rawTOTALPRODUCED
+		\"totalProduction\": $rawTOTALPRODUCED,
+		\"todayProduction\": $todayProduction,
+		\"todayProductionLastReset\": \"$LASTRESET\"
 	}
 " >> "$FVEAPIFILE"
 }
