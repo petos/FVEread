@@ -6,7 +6,7 @@ import argparse
 
 
 def parseArgs():
-    parser = argparse.ArgumentParser(prog='pyGPIO', description='Set/unset GPIO pins on server.')
+    parser = argparse.ArgumentParser(prog='FVEgetTemp.py', description='Get temperature from sensor with --ID ID.')
     parser.add_argument('--ID', nargs=1, required=False, action='store', help='ID in /sys/bus/w1/devices/. There is 28- prefix, value means behind the 28-prefix')
     return parser.parse_args()
 
