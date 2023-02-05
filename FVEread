@@ -77,7 +77,6 @@ function getToday() {
 	[ -e "$FVEDATADIR"/lastreset.date ] || date -I'seconds' > "$FVEDATADIR"/lastreset.date
 	[ "$todayProduction" = 0 ] && date -I'seconds' > "$FVEDATADIR"/lastreset.date
 	LASTRESET="$(cat "$FVEDATADIR"/lastreset.date)"
-	echo "Done getToday()"
 }
 
 function cleanFile() {
@@ -139,6 +138,7 @@ function uploadDataFTP() {
 	debugPrint "FNC: uploadDataFTP"
 	#usage: uploadDataFTP
 	jq -c . "$FVEAPIFILE" > "$FVEAPIFILE"1
+	sed -si -e's/True/on/g' -e's/False/off/g' "$FVEAPIFILE"1
 	mv "$FVEAPIFILE"1 "$FVEAPIFILE"
 	( "$LOCALWEBSERVER" ) && sudo cp $TMPDIR/fvem.png $TMPDIR/fvel.png $TMPDIR/fve.device.*.png $TMPDIR/fved.png $TMPDIR/fvep.png $HTMLPOWERFILE $HTMLOPTFILE $HTMLFILE $TMPDIR/api.json "$LOCALWEBSERVERPATH"
 	( "$LOCALWEBSERVER" ) && sudo mv "$LOCALWEBSERVERPATH"/"$FVEHTMLNAME" "$LOCALWEBSERVERPATH"/index.html
