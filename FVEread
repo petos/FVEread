@@ -190,7 +190,7 @@ function createAPIfile() {
 	> "$FVEAPIFILE"
 	echo "
 {
-	\"time\": \"$(date --rfc-3339=seconds)\",
+	\"time\": \"$(date --iso-8601=seconds)\",
 	\"status\": \"$FVESTATUS\",
 	\"power\": {
 		\"current\": $CURRENT,
