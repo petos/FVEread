@@ -328,7 +328,6 @@ function decideOnOff() {
 				if [ "$DIRECTTEMP" = "ON" -a "$FILTER" = "thermal" ]; then
 					if (( $( echo "$TEMPERATURE < $LOCSTOPTEMP" | bc -l ) )); then
 						verbPrint "Device $LOCALDEVICE (ID:$LOCALDEVICEID): $TEMPERATURE is lower than STOP level ($TEMPERATURE < $LOCSTOPTEMP)"
-						#updateJSONforDevices "$i" "$LOCALDEVICE" "$LOCALDEVICEID" "$LOCALCONSUMPTION" "$LOCSTARTTEMP" "$LOCSTOPTEMP" "ON"
 					else
 						verbPrint "Device $LOCALDEVICE (ID:$LOCALDEVICEID): $TEMPERATURE is more than STOP level ($LOCSTOPTEMP C < $TEMPERATURE C), setting off."
 						updateJSONforDevices "$i" "$LOCALDEVICE" "$LOCALDEVICEID" "$LOCALCONSUMPTION" "$LOCSTARTTEMP" "$LOCSTOPTEMP" "OFF"
