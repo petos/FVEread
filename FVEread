@@ -33,7 +33,7 @@ function getAvrg() {
 
 function getFileFromFVE() {
 	debugPrint "FNC: getFileFromFVE"
-	curl -u $FVEUSERNAME:$FVEPWD http://stridac > "$TMPDIR"/FVE.$$.html 2>/dev/null 
+	curl -u $FVEUSERNAME:$FVEPWD $FVEURL > "$TMPDIR"/FVE.$$.html 2>/dev/null 
 	if [ $? != 0 ]; then
 		errorPrint "Stridac neni dostupny"
 		return 1
@@ -48,13 +48,21 @@ function cleanLine() {
 	sed 's/xxx/0/g' | tr -dc '[:print:]'
 }
 
+function getCurrentPiko() {
+	local iCURRENT=0
+	iCURRENT=`cat "$TMPDIR"/FVE.$$.html | grep -A2 'current' | head -3 | tail -1 `
+	echo `cleanLine "$iCURRENT"`
+}
+
 function getCurrent() {
-	local iCURRENT=`cat "$TMPDIR"/FVE.$$.html | grep -A2 'current' | head -3 | tail -1 `
+	local iCURRENT=0
+	iCURRENT=$(awk -F'"' '/var webdata_now_p = /{print $2}' "$TMPDIR"/FVE.$$.html)
 	echo `cleanLine "$iCURRENT"`
 }
 
 function getCurrentLs() {
-	local iCURRENT=`cat "$TMPDIR"/FVE.$$.html | grep -B1 '<td width="30">&nbsp W</td>' | grep -v '<td width="30">&nbsp W</td>' | grep -v '-' | tail -"$1" | head -1`
+	local iCURRENT=0
+	iCURRENT=`cat "$TMPDIR"/FVE.$$.html | grep -B1 '<td width="30">&nbsp W</td>' | grep -v '<td width="30">&nbsp W</td>' | grep -v '-' | tail -"$1" | head -1`
 	echo `cleanLine "$iCURRENT"`
 }
 
