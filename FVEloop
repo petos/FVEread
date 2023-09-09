@@ -1,8 +1,8 @@
 #!/bin/bash
 
 while true; do
-	echo "running FVEread"	
-	FVEread
-	echo "sleep"
+	#echo "running FVEread"	
+	/home/fve/FVEread/FVEread
+	#echo "sleep"
 	sleep 5
 done
