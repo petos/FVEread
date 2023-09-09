@@ -198,7 +198,8 @@ function getData() {
 		while [ "$i" -lt 3 ]; do
 			CURRENT="`getCurrent`"
 			if [ "$CURRENT" = 0 ]; then
-				verbPrint "Zero from FVE, one more try"
+				debugPrint "Zero from FVE, one more try"
+				sleep 5
 				getFileFromFVE
 			else
 				break;
