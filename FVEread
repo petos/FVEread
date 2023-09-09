@@ -193,7 +193,17 @@ function getData() {
 		todayProductionLastReset="$(cat "$FVEDATADIR"/lastreset.date)"
 		LASTRESET="$(cat "$FVEDATADIR"/lastreset.date)"
 	else
-		CURRENT="`getCurrent`"
+		local i=0
+		CURRENT=0
+		while [ "$i" -lt 3 ]; do
+			CURRENT="`getCurrent`"
+			if [ "$CURRENT" = 0 ]; then
+				getFileFromFVE
+			else
+				break;
+			fi
+			i=$i+1
+		done
 		debugPrint "Current=$CURRENT"
 		L1="`getCurrentLs 1`"
 		L2="`getCurrentLs 2`"
