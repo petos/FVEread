@@ -198,6 +198,7 @@ function getData() {
 		while [ "$i" -lt 3 ]; do
 			CURRENT="`getCurrent`"
 			if [ "$CURRENT" = 0 ]; then
+				debugPrint "Zero from FVE, one more try"
 				getFileFromFVE
 			else
 				break;
@@ -216,6 +217,7 @@ function getData() {
 	[ "$L1" ] || L1=0
 	[ "$L2" ] || L2=0
 	[ "$L3" ] || L3=0
+	[ "$TODAY" ] || TODAY=0
 	[ "$rawTOTALPRODUCED" ] || rawTOTALPRODUCED=0
 	[ "$totalProduction" ] || totalProduction=0
 	[ "$todayProduction" ] || todayProduction=0
