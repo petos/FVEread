@@ -1,0 +1,13 @@
+[Unit]
+Description=FVEread tool for FVE
+After=network.target
+
+[Service]
+ExecStart=/home/fve/FVEread/FVEloop
+ExecStop=/usr/bin/pkill FVEloop
+User=fve
+Group=fve
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

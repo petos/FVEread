@@ -33,7 +33,7 @@ function getAvrg() {
 
 function getFileFromFVE() {
 	debugPrint "FNC: getFileFromFVE"
-	curl -u $FVEUSERNAME:$FVEPWD http://stridac > "$TMPDIR"/FVE.$$.html 2>/dev/null 
+	curl -u $FVEUSERNAME:$FVEPWD $FVEURL > "$TMPDIR"/FVE.$$.html 2>/dev/null 
 	if [ $? != 0 ]; then
 		errorPrint "Stridac neni dostupny"
 		return 1
@@ -48,14 +48,26 @@ function cleanLine() {
 	sed 's/xxx/0/g' | tr -dc '[:print:]'
 }
 
+function getCurrentPiko() {
+	local iCURRENT=0
+	iCURRENT=`cat "$TMPDIR"/FVE.$$.html | grep -A2 'current' | head -3 | tail -1 `
+	echo `cleanLine "$iCURRENT"`
+}
+
 function getCurrent() {
-	local iCURRENT=`cat "$TMPDIR"/FVE.$$.html | grep -A2 'current' | head -3 | tail -1 `
+	local iCURRENT=$(awk -F'"' '/var webdata_now_p = /{print $2}' "$TMPDIR"/FVE.$$.html)
+	[ "$iCURRENT" ] || iCURRENT=0
+	echo `cleanLine "$iCURRENT"`
+}
+
+function getCurrentLsPiko() {
+	local iCURRENT=`cat "$TMPDIR"/FVE.$$.html | grep -B1 '<td width="30">&nbsp W</td>' | grep -v '<td width="30">&nbsp W</td>' | grep -v '-' | tail -"$1" | head -1`
+	[ "$iCURRENT" ] || iCURRENT=0
 	echo `cleanLine "$iCURRENT"`
 }
 
 function getCurrentLs() {
-	local iCURRENT=`cat "$TMPDIR"/FVE.$$.html | grep -B1 '<td width="30">&nbsp W</td>' | grep -v '<td width="30">&nbsp W</td>' | grep -v '-' | tail -"$1" | head -1`
-	echo `cleanLine "$iCURRENT"`
+	echo 0
 }
 
 function getToday() {
@@ -137,6 +149,7 @@ function checkFileExist() {
 function uploadDataFTP() {
 	debugPrint "FNC: uploadDataFTP"
 	#usage: uploadDataFTP
+	cp "$FVEAPIFILE" "$FVEAPIFILE".bckp
 	jq -c . "$FVEAPIFILE" > "$FVEAPIFILE"1
 	sed -si -e's/True/on/g' -e's/False/off/g' "$FVEAPIFILE"1
 	mv "$FVEAPIFILE"1 "$FVEAPIFILE"
@@ -180,14 +193,35 @@ function getData() {
 		todayProductionLastReset="$(cat "$FVEDATADIR"/lastreset.date)"
 		LASTRESET="$(cat "$FVEDATADIR"/lastreset.date)"
 	else
-		CURRENT="`getCurrent`"
+		local i=0
+		CURRENT=0
+		while [ "$i" -lt 3 ]; do
+			CURRENT="`getCurrent`"
+			if [ "$CURRENT" = 0 ]; then
+				debugPrint "Zero from FVE, one more try"
+				sleep 5
+				getFileFromFVE
+			else
+				break;
+			fi
+			i=$(( $i+1 ))
+		done
+		debugPrint "Current=$CURRENT"
 		L1="`getCurrentLs 1`"
 		L2="`getCurrentLs 2`"
 		L3="`getCurrentLs 3`"
-		getToday
+		#getToday
 		FVESTATUS="Running"
 	fi
 	getAvrg
+	[ "$CURRENT" ] || CURRENT=0
+	[ "$L1" ] || L1=0
+	[ "$L2" ] || L2=0
+	[ "$L3" ] || L3=0
+	[ "$TODAY" ] || TODAY=0
+	[ "$rawTOTALPRODUCED" ] || rawTOTALPRODUCED=0
+	[ "$totalProduction" ] || totalProduction=0
+	[ "$todayProduction" ] || todayProduction=0
 	debugPrint "getData() Done"
 }
 
@@ -217,6 +251,7 @@ function genFiles() {
 	#usage: genFiles
 		echo $TIMEDATE_YYYYMMDDHHmm $CURRENT $TODAY $AVRG $L1 $L2 $L3 $rawTOTALPRODUCED >> "$HISTORYFILE"
 
+		debugPrint "Running: FVEgenPage  --powerpage --current $CURRENT --L1 $L1 --L2 $L2 --L3 $L3 --today $TODAY --fvestatus $FVESTATUS --avrg $AVRG"
 		FVEgenPage  --powerpage --current $CURRENT --L1 $L1 --L2 $L2 --L3 $L3 --today $TODAY --fvestatus $FVESTATUS --avrg $AVRG
 		
 		updateProductionFile
