@@ -197,7 +197,7 @@ function getData() {
 		CURRENT=0
 		while [ "$i" -lt 3 ]; do
 			CURRENT="`getCurrent`"
-			if [ "$CURRENT" = 0 ]; then
+			if [ "$CURRENT" = 0 ] || [ "$CURRENT" -gt "$INSTALLEDPOWER" ]; then
 				debugPrint "Zero from FVE, one more try"
 				sleep 5
 				getFileFromFVE
@@ -215,6 +215,7 @@ function getData() {
 	fi
 	getAvrg
 	[ "$CURRENT" ] || CURRENT=0
+	[ "$CURRENT" -gt "$INSTALLEDPOWER" ] && CURRENT=0
 	[ "$L1" ] || L1=0
 	[ "$L2" ] || L2=0
 	[ "$L3" ] || L3=0
