@@ -147,8 +147,8 @@ function parseThermalDevice() {
 			STARTTEMP["$THERMALDEVICES"]=$(( LNSTARTTEMP - 10 ))
 		else
 			if [ "$(LANG=en  date +%a)" == 'Sun' ]; then
-				debugPrint "Setting temp +8C because it's Sunday"
-				STARTTEMP["$THERMALDEVICES"]=$(( LNSTARTTEMP + 8 ))
+				debugPrint "Setting temp +{$SUNDAYBOOST}C because it's Sunday"
+				STARTTEMP["$THERMALDEVICES"]=$(( LNSTARTTEMP + SUNDAYBOOST ))
 			else
 				STARTTEMP["$THERMALDEVICES"]=$LNSTARTTEMP
 			fi
