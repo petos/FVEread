@@ -217,8 +217,13 @@ function callHAAPI() {
 	local ARRTIBUTETOGET="$2"
 	local RETVAL=''
 	debugPrint "curl -H \"Authorization: Bearer HAAPIKEY\" -H \"Content-Type: application/json\"  https://$HAURL:$HAPORT/api/states/$HAENDPOINT 2>/dev/null | jq -cj \".$ARRTIBUTETOGET\" | tr ',' '.' " >&2
-	RETVAL="$( curl -H "Authorization: Bearer $HAAPIKEY" -H "Content-Type: application/json"  https://$HAURL:$HAPORT/api/states/$HAENDPOINT 2>/dev/null | jq -cj ".$ARRTIBUTETOGET" | tr ',' '.' )"
+	curl -H "Authorization: Bearer $HAAPIKEY" -H "Content-Type: application/json"  https://$HAURL:$HAPORT/api/states/$HAENDPOINT -o /tmp/HAAPI.json 2>/dev/null 
 	debugPrint "Call ended with: $?" >&2
+	RETVAL="$(cat /tmp/HAAPI.json | jq -cj \".$ARRTIBUTETOGET\" | tr ',' '.')"
+	if [ $( cat /tmp/HAAPI.json | jq -cj ".attributes.unit_of_measurement" ) = "kWh" ]; then
+		RETVAL="$(calc $RETVAL * 1000)"
+	fi
+	RETVAL="$(echo $RETVAL | cut -d'.' -f1)"
 	debugPrint "For \"$HAENDPOINT\" attribute \"$ARRTIBUTETOGET\" is value: \"$RETVAL\"" >&2
 	echo "$RETVAL"
 }
