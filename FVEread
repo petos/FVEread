@@ -176,10 +176,7 @@ function printDataStdout() {
 	return 0
 }
 
-
-function getData() {
-	debugPrint "FNC: getData"
-	getFileFromFVE 
+function getDataViaFile() {
 	if [ $? = 1 ]; then
 		CURRENT="0"
 		TODAY="0"
@@ -212,6 +209,37 @@ function getData() {
 		L3="`getCurrentLs 3`"
 		#getToday
 		FVESTATUS="Running"
+	fi
+}
+
+function callHAAPI() {
+	local HAENDPOINT="$1"
+	local ARRTIBUTETOGET="$2"
+	local RETVAL=''
+	debugPrint "curl -H \"Authorization: Bearer HAAPIKEY\" -H \"Content-Type: application/json\"  https://$HAURL:$HAPORT/api/states/$HAENDPOINT 2>/dev/null | jq -cj \".$ARRTIBUTETOGET\" | tr ',' '.' " >&2
+	RETVAL="$( curl -H "Authorization: Bearer $HAAPIKEY" -H "Content-Type: application/json"  https://$HAURL:$HAPORT/api/states/$HAENDPOINT 2>/dev/null | jq -cj ".$ARRTIBUTETOGET" | tr ',' '.' )"
+	debugPrint "Call ended with: $?" >&2
+	debugPrint "For \"$HAENDPOINT\" attribute \"$ARRTIBUTETOGET\" is value: \"$RETVAL\"" >&2
+	echo "$RETVAL"
+}
+
+function getDataViaAPI() {
+	[ "$HAPORT" ] || HAPORT=8123
+	while read -r VAR HAENDPOINT ARRTIBUTETOGET; do
+		local RESULT=''
+		debugPrint "calling $VAR $HAENDPOINT $ARRTIBUTETOGET"
+		RESULT="$(callHAAPI "$HAENDPOINT" "$ARRTIBUTETOGET" )"
+		eval $VAR=$RESULT
+	done < <( grep -v '^#' "$HAAPICFG" )
+	todayProduction=$TODAY
+}
+
+function getData() {
+	debugPrint "FNC: getData"
+	if [ "$USEHAAPI" ] &&  ( "$USEHAAPI" ); then
+		getDataViaAPI
+	else
+		getDataViaFile
 	fi
 	getAvrg
 	[ "$CURRENT" ] || CURRENT=0
