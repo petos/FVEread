@@ -241,6 +241,7 @@ function getData() {
 	else
 		getDataViaFile
 	fi
+	CURRENT="$( echo $CURRENT | cut -d'.' -f1)"
 	getAvrg
 	[ "$CURRENT" ] || CURRENT=0
 	[ "$CURRENT" -gt "$INSTALLEDPOWER" ] && CURRENT=0
