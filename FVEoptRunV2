@@ -69,11 +69,26 @@ function checkUptime() {
     fi
 }
 
+function getTempViaHAAPI() {
+	[ "$HAPORT" ] || HAPORT=8123
+	while read -r VAR HAENDPOINT ARRTIBUTETOGET; do
+		local RESULT=''
+		debugPrint "calling $VAR $HAENDPOINT $ARRTIBUTETOGET"
+		RESULT="$( callHAAPI "$HAENDPOINT" "$ARRTIBUTETOGET" | tr ',' '.' )"
+		eval $VAR=$RESULT
+	done < <( grep -v '^#' "$HAAPICFGTEMP" )
+}
+
 function getTemperature() {
     TEMPERATURE="0.0"
-    TEMPERATURE=$(/home/fve/FVEread/FVEgetTemp.py --ID $TOPTEMPID)
-    [ $TOPTEMPID1 ] && TEMPERATURE1=$(/home/fve/FVEread/FVEgetTemp.py --ID $TOPTEMPID1 )
-    
+	if [ "$USEHAAPITEMP" ] && ( "$USEHAAPITEMP" ); then
+		getTempViaHAAPI
+	else
+		TEMPERATURE=$(/home/fve/FVEread/FVEgetTemp.py --ID $TOPTEMPID)
+		[ $TOPTEMPID1 ] && TEMPERATURE1=$(/home/fve/FVEread/FVEgetTemp.py --ID $TOPTEMPID1 )
+	fi
+   
+  
     echo ", \"temperatures\":
 {
 " >> "$FVEAPIFILE"

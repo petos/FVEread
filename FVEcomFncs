@@ -1,3 +1,4 @@
+#!/bin/bash
 TIMEDATE_YYYY=$(date +%Y)
 TIMEDATE_YYYYMM=$(date +%Y%m)
 TIMEDATE_YYYYMMDD=$(date +%Y%m%d)
@@ -22,3 +23,22 @@ function errorPrint() {
 }
 
 calc(){ echo "scale=2;$@" | bc;}
+
+function callHAAPI() {
+	#Jakykoli vystup MUSI byt do &2, do stdout jde jen vysledek nakonci
+	local HAENDPOINT="$1"
+	local ARRTIBUTETOGET="$2"
+	local RETVAL=''
+	debugPrint "curl -H \"Authorization: Bearer HAAPIKEY\" -H \"Content-Type: application/json\"  https://$HAURL:$HAPORT/api/states/$HAENDPOINT -o /tmp/HAAPI.json 2>/dev/null "
+	curl -H "Authorization: Bearer $HAAPIKEY" -H "Content-Type: application/json"  https://$HAURL:$HAPORT/api/states/$HAENDPOINT -o /tmp/HAAPI.json 2>/dev/null 
+	local exitval=$?
+	debugPrint "Call ended with: $exitval"
+	RETVAL="$(cat /tmp/HAAPI.json | jq -cj ".$ARRTIBUTETOGET" )"
+	debugPrint "RETVAL=$RETVAL"
+	if [ "$( cat /tmp/HAAPI.json | jq -cj ".attributes.unit_of_measurement" )" = "kWh" ]; then
+		debugPrint "Multiply by 1000 to convert kW to W"
+		RETVAL="$(calc $RETVAL*1000)"
+	fi
+	debugPrint "For \"$HAENDPOINT\" attribute \"$ARRTIBUTETOGET\" is value: \"$RETVAL\""
+	echo "$RETVAL"
+}
