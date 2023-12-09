@@ -1,6 +1,14 @@
 #!/bin/bash
 
-source ~/.FVErc
+if [ -e ~/.FVErc ]; then 
+	source ~/.FVErc
+elif [ -e /etc/FVErc ]; then
+	source /etc/FVErc
+else
+	echo "FVErc not found!"
+	exit 99
+fi
+
 source "$FVEBINDIR"/FVEcomFncs
 
 OPTCFGFILE=$OPTCFGFILE
