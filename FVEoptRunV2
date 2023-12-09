@@ -85,7 +85,7 @@ function getTemperature() {
 		getTempViaHAAPI
 	else
 		TEMPERATURE=$(/home/fve/FVEread/FVEgetTemp.py --ID $TOPTEMPID)
-		[ $TOPTEMPID1 ] && TEMPERATURE1=$(/home/fve/FVEread/FVEgetTemp.py --ID $TOPTEMPID1 )
+		[ "$TOPTEMPID1" ] && TEMPERATURE1=$(/home/fve/FVEread/FVEgetTemp.py --ID $TOPTEMPID1 )
 	fi
    
   

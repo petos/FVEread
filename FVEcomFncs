@@ -33,7 +33,7 @@ function callHAAPI() {
 	curl -H "Authorization: Bearer $HAAPIKEY" -H "Content-Type: application/json"  https://$HAURL:$HAPORT/api/states/$HAENDPOINT -o /tmp/HAAPI.json 2>/dev/null 
 	local exitval=$?
 	debugPrint "Call ended with: $exitval"
-	RETVAL="$(cat /tmp/HAAPI.json | jq -cj ".$ARRTIBUTETOGET" )"
+	RETVAL="$(cat /tmp/HAAPI.json | jq -cj ".$ARRTIBUTETOGET" | tr ' ' '_' )"
 	debugPrint "RETVAL=$RETVAL"
 	if [ "$( cat /tmp/HAAPI.json | jq -cj ".attributes.unit_of_measurement" )" = "kWh" ]; then
 		debugPrint "Multiply by 1000 to convert kW to W"
