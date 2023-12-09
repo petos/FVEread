@@ -7,7 +7,7 @@ TIMEDATE_YYYYMMDDHHmm=$(date +%Y%m%d%H%M)
 
 function debugPrint() {
 	if [ $DEBUG ]; then
-		echo "$1"
+		echo "$1" >&2
 	fi
 }
 
