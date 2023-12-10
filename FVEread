@@ -1,7 +1,16 @@
 #!/bin/bash
+if [ -e $HOME/.FVErc ]; then 
+	source $HOME/.FVErc
+	FVErc="$HOME/.FVErc"
+	source "$FVEBINDIR"/FVEcomFncs
+elif [ -e /etc/FVErc ]; then
+	source /etc/FVErc
+	FVErc="/etc/FVErc"
+	source "$FVEBINDIR"/FVEcomFncs
+else
+	FVErc="ERROR"
+fi
 
-source ~/.FVErc
-source "$FVEBINDIR"/FVEcomFncs
 
 function printHelp() {
 	echo -e "usage: `basename $0` [OPTIONS]
@@ -20,6 +29,7 @@ function printHelp() {
   --reconfig  Reload all config files
   --vacation START STOP
 				Format: YYYY-MM-DD
+  --FVErc FILE Pass full path to FVErc file
 "
 exit 0
 }
@@ -136,13 +146,13 @@ function updateProductionFile() {
 function checkFileExist() {
 	debugPrint "FNC: checkFileExist"
 	if [ ! -e $HTMLFILE ]; then
-		FVEgenPage --defpage
+		FVEgenPage --defpage --FVErc "$FVErc"
 	fi
 	if [ ! -e "$HTMLOPTFILE" ]; then
-		FVEgenPage --optpage
+		FVEgenPage --optpage --FVErc "$FVErc"
 	fi
 	if [ `cat $HTMLOPTFILE | wc -l` -le 1 ]; then
-		FVEgenPage --optpage
+		FVEgenPage --optpage --FVErc "$FVErc"
 	fi
 }
 
@@ -270,14 +280,14 @@ function genFiles() {
 	#usage: genFiles
 		echo $TIMEDATE_YYYYMMDDHHmm $CURRENT $TODAY $AVRG $L1 $L2 $L3 $rawTOTALPRODUCED >> "$HISTORYFILE"
 
-		debugPrint "Running: FVEgenPage  --powerpage --current $CURRENT --L1 $L1 --L2 $L2 --L3 $L3 --today $TODAY --fvestatus $FVESTATUS --avrg $AVRG"
-		FVEgenPage  --powerpage --current $CURRENT --L1 $L1 --L2 $L2 --L3 $L3 --today $TODAY --fvestatus $FVESTATUS --avrg $AVRG
+		debugPrint "Running: FVEgenPage  --powerpage --current $CURRENT --L1 $L1 --L2 $L2 --L3 $L3 --today $TODAY --fvestatus $FVESTATUS --avrg $AVRG --FVErc $FVErc"
+		FVEgenPage  --powerpage --current $CURRENT --L1 $L1 --L2 $L2 --L3 $L3 --today $TODAY --fvestatus $FVESTATUS --avrg $AVRG  --FVErc "$FVErc"
 		
 		updateProductionFile
 		
-		FVEgenGraphs --all
+		FVEgenGraphs --all  --FVErc "$FVErc"
 		if [ "$DIRECTTEMP" = "ON" ]; then
-			FVEgenGraphs --temperature
+			FVEgenGraphs --temperature  --FVErc "$FVErc"
 		fi
 		createAPIfile
 }
@@ -291,11 +301,11 @@ function enableMe() {
 }
 
 function onMe() {
-        sed -i -e'/FVEOPTONOFF/s/"OFF"/"ON"/g' ~/.FVErc
+        sed -i -e'/FVEOPTONOFF/s/"OFF"/"ON"/g' $HOME/.FVErc
 }
 
 function offMe() {
-        sed -i -e'/FVEOPTONOFF/s/"ON"/"OFF"/g' ~/.FVErc
+        sed -i -e'/FVEOPTONOFF/s/"ON"/"OFF"/g' $HOME/.FVErc
 }
 
 function genHist() {
@@ -306,7 +316,7 @@ function genHist() {
 	fi
 	if [ $HISTORY ]; then
 		verbPrint "Generating history"
-		FVEhistPage $VERBPARM $DEBUGPARM
+		FVEhistPage $VERBPARM $DEBUGPARM --FVErc "$FVErc"
 	fi
 }
 
@@ -329,7 +339,7 @@ function mainLoop() {
 	else
 		genFiles
 		checkFileExist
-		FVEoptRunV2 $VERBPARM $DEBUGPARM
+		FVEoptRunV2 $VERBPARM $DEBUGPARM   --FVErc $FVErc 
 		#Close API json file
 		echo '}' >> "$FVEAPIFILE"
 		uploadDataFTP
@@ -351,7 +361,7 @@ while [ $# -gt 0 ]; do
 		--history) HISTORY=Y; shift ;;
 		--disable) 
 			disableMe 2>/dev/null
-			FVEoptRunV2 --off
+			FVEoptRunV2 --off --FVErc $FVErc 
 			shift
 			exit 0
 			;;
@@ -368,11 +378,11 @@ while [ $# -gt 0 ]; do
 			shift
 			;;
 		--vacstart)
-			sed -i -e'/FVEOPTVACATION/s/"OFF"/"ON"/g' ~/.FVErc
+			sed -i -e'/FVEOPTVACATION/s/"OFF"/"ON"/g' "$FVErc"
 			shift
 			;;
 		--vacstop) 
-			sed -i -e'/FVEOPTVACATION/s/"ON"/"OFF"/g' ~/.FVErc
+			sed -i -e'/FVEOPTVACATION/s/"ON"/"OFF"/g' "$FVErc"
 			shift
 			;;
 		--reconfig)
@@ -380,6 +390,21 @@ while [ $# -gt 0 ]; do
 			cleanFile
 			errorPrint "Done. Please re-run the FVEread."
 			exit 0
+			;;
+		--FVErc)
+			if [ $# -lt 2 ]; then
+				errorPrint "Not enough params passed for --FVErc"
+				exit 2
+			fi
+			eval FVErc="$2"
+			if [ -e "$FVErc" ]; then
+				source "$FVErc"
+				FVErc="$FVErc"
+				source "$FVEBINDIR"/FVEcomFncs
+			else
+				errorPrint "FVErc file was not found"
+			fi
+			shift 2;
 			;;
 		--vacation)
 			if [ $# -lt 3 ]; then 
@@ -407,5 +432,9 @@ while [ $# -gt 0 ]; do
 		*)  errorPrint "$0: error - unrecognized option $1" 1>&2; exit 1;;
 	esac
 done
+
+if [ "$FVErc" = "ERROR" ]; then errorPrint "FVErc not found!"; exit 99; fi
 debugPrint "SCRIPT: FVEread"
+debugPrint "Using FVErc from ${FVErc}"
+
 mainLoop
