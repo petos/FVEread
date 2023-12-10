@@ -2,7 +2,7 @@
 
 if [ -e ~/.FVErc ]; then 
 	source ~/.FVErc
-	FVErc="HOME"
+	FVErc="~/.FVErc"
 	source "$FVEBINDIR"/FVEcomFncs
 elif [ -e /etc/FVErc ]; then
 	source /etc/FVErc
