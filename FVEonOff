@@ -2,14 +2,15 @@
 
 if [ -e ~/.FVErc ]; then 
 	source ~/.FVErc
+	FVErc="HOME"
+	source "$FVEBINDIR"/FVEcomFncs
 elif [ -e /etc/FVErc ]; then
 	source /etc/FVErc
+	FVErc="/etc/FVErc"
+	source "$FVEBINDIR"/FVEcomFncs
 else
-	echo "FVErc not found!"
-	exit 99
+	FVErcMSG="ERROR"
 fi
-
-source "$FVEBINDIR"/FVEcomFncs
 
 function printHelp() {
 	echo -e "\nusage: `basename $0` [OPTIONS]
@@ -131,7 +132,7 @@ function opt() {
 		realStatus $COMPONENT $EXPECTEDSTATUS
 		local STATUS=$? 
 		if [ $STATUS = 0 -o "$FORCE" = "Y" ] ; then
-			FVEgenPage --update --device $COMPONENT $EXPECTEDSTATUS
+			FVEgenPage --FVErc $FVErc --update --device $COMPONENT $EXPECTEDSTATUS
 		fi
 	else
 		errorPrint "Unknown parametr for function opt(): $@"
@@ -197,9 +198,28 @@ while [ $# -gt 0 ]; do
 			;;
 		--init) initFVEonOff; exit 0;;
 		--destroy) uninitStatuses ;exit 0;;
+		--FVErc)
+			if [ $# -lt 2 ]; then 
+				errorPrint "Not enough params passed for --FVErc"
+				exit 2
+			fi
+			if [ -e "$2" ]; then
+				source "$2"
+				FVErc="$2"
+				source "$FVEBINDIR"/FVEcomFncs
+			else
+				errorPrint "FVErc file was not found"
+			fi
+			shift 2;
+			;;
 		*)  errorPrint "$0: error - unrecognized option $1" 1>&2; exit 1;;
 	esac
 done
+
+
+if [ "$FVErc" = "ERROR" ]; then errorPrint "FVErc not found!"; exit 99; fi
+debugPrint "SCRIPT: FVEonOff"
+debugPrint "Using FVErc from ${FVErc}"
 
 if [ "$ALWAYSFORCE" = 'Y' ]; then
     FORCE='Y'
