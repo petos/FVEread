@@ -1,7 +1,7 @@
 #!/bin/bash
-if [ -e ~/.FVErc ]; then 
-	source ~/.FVErc
-	FVErc="~/.FVErc"
+if [ -e $HOME/.FVErc ]; then 
+	source $HOME/.FVErc
+	FVErc="$HOME/.FVErc"
 	source "$FVEBINDIR"/FVEcomFncs
 elif [ -e /etc/FVErc ]; then
 	source /etc/FVErc
