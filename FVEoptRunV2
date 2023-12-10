@@ -27,6 +27,7 @@ function printHelp() {
 	-v         talky output
 	--debug    tells everything it knows
 	-f|--force force to send the on/off command despite of real status.
+	--FVErc FILE Pass full path to FVErc file
 "
 exit 0
 }
@@ -482,9 +483,10 @@ while [ $# -gt 0 ]; do
 				errorPrint "Not enough params passed for --FVErc"
 				exit 2
 			fi
-			if [ -e "$2" ]; then
-				source "$2"
-				FVErc="$2"
+			eval FVErc="$2"
+			if [ -e "$FVErc" ]; then
+				source "$FVErc"
+				FVErc="$FVErc"
 				source "$FVEBINDIR"/FVEcomFncs
 			else
 				errorPrint "FVErc file was not found"

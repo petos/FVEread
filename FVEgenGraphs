@@ -21,6 +21,7 @@ function printHelp() {
   --monthtotal Gen monthly production graph
   --onoff      Gen overview of ON/OFF all devices
   --temperature  Gen temperature overview for the day
+  --FVErc FILE Pass full path to FVErc file
 "
 exit 0
 }
@@ -184,9 +185,10 @@ while [ $# -gt 0 ]; do
 				errorPrint "Not enough params passed for --FVErc"
 				exit 2
 			fi
-			if [ -e "$2" ]; then
-				source "$2"
-				FVErc="$2"
+			eval FVErc="$2"
+			if [ -e "$FVErc" ]; then
+				source "$FVErc"
+				FVErc="$FVErc"
 				source "$FVEBINDIR"/FVEcomFncs
 			else
 				errorPrint "FVErc file was not found"
