@@ -8,7 +8,7 @@ elif [ -e /etc/FVErc ]; then
 	FVErc="/etc/FVErc"
 	source "$FVEBINDIR"/FVEcomFncs
 else
-	FVErcMSG="ERROR"
+	FVErc="ERROR"
 fi
 
 
