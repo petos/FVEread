@@ -224,13 +224,16 @@ function getDataViaFile() {
 
 function getDataViaAPI() {
 	[ "$HAPORT" ] || HAPORT=8123
+	callHAAPI
 	while read -r VAR HAENDPOINT ARRTIBUTETOGET; do
 		local RESULT=''
 		debugPrint "calling $VAR $HAENDPOINT $ARRTIBUTETOGET | tr ',' '.' | cut -d'.' -f1"
-		RESULT="$( callHAAPI "$HAENDPOINT" "$ARRTIBUTETOGET" | tr ',' '.' | cut -d'.' -f1 )"
+		RESULT="$( parseHAAPI "$HAENDPOINT" "$ARRTIBUTETOGET" | tr ',' '.' | cut -d'.' -f1 )"
 		eval $VAR=$RESULT
 	done < <( grep -v '^#' "$HAAPICFG" )
+	rm -f /tmp/HAAPI.json
 	todayProduction=$TODAY
+	rawTOTALPRODUCED=$totalProduction
 }
 
 function getData() {

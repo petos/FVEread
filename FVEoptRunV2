@@ -70,12 +70,14 @@ function checkUptime() {
 
 function getTempViaHAAPI() {
 	[ "$HAPORT" ] || HAPORT=8123
+	callHAAPI
 	while read -r VAR HAENDPOINT ARRTIBUTETOGET; do
 		local RESULT=''
-		debugPrint "calling $VAR $HAENDPOINT $ARRTIBUTETOGET"
-		RESULT="$( callHAAPI "$HAENDPOINT" "$ARRTIBUTETOGET" | tr ',' '.' )"
+		debugPrint "parsing $VAR $HAENDPOINT $ARRTIBUTETOGET"
+		RESULT="$( parseHAAPI "$HAENDPOINT" "$ARRTIBUTETOGET" | tr ',' '.' )"
 		eval $VAR=$RESULT
 	done < <( grep -v '^#' "$HAAPICFGTEMP" )
+	rm -f /tmp/HAAPI.json
 }
 
 function getTemperature() {
