@@ -177,6 +177,8 @@ while [ $# -gt 0 ]; do
 			genMonthlyPowerGraph
 			genMonthlyProductionGraph
 			genOnOffDevicesGraphs
+			shift
+			;;
 		--FVErc)
 			if [ $# -lt 2 ]; then 
 				errorPrint "Not enough params passed for --FVErc"
