@@ -37,7 +37,7 @@ function parseHAAPI() {
 	local HAENDPOINT="$1"
 	local ARRTIBUTETOGET="$2"
 	local RETVAL=''
-	RETVAL="$(jq --arg id $HAENDPOINT -c '.[] | select(.entity_id==$id )' /tmp/HAAPI.json | jq -cj ".$ARRTIBUTETOGET" | tr ' ' '_'  | tr ',' '.' | cut -d'.' -f1  )"
+	RETVAL="$(jq --arg id $HAENDPOINT -c '.[] | select(.entity_id==$id )' /tmp/HAAPI.json | jq -cj ".$ARRTIBUTETOGET" | tr ' ' '_'  )"
 	debugPrint "RETVAL=$RETVAL"
 	if [ "$( jq --arg id $HAENDPOINT -c '.[] | select(.entity_id==$id )' /tmp/HAAPI.json  | jq -cj ".attributes.unit_of_measurement" )" = "kWh" ]; then
 		debugPrint "Multiply by 1000 to convert kW to W"

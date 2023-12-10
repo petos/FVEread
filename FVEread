@@ -227,8 +227,8 @@ function getDataViaAPI() {
 	callHAAPI
 	while read -r VAR HAENDPOINT ARRTIBUTETOGET; do
 		local RESULT=''
-		debugPrint "calling $VAR $HAENDPOINT $ARRTIBUTETOGET "
-		RESULT="$( parseHAAPI "$HAENDPOINT" "$ARRTIBUTETOGET")"
+		debugPrint "calling $VAR $HAENDPOINT $ARRTIBUTETOGET | tr ',' '.' | cut -d'.' -f1"
+		RESULT="$( parseHAAPI "$HAENDPOINT" "$ARRTIBUTETOGET" | tr ',' '.' | cut -d'.' -f1 )"
 		eval $VAR=$RESULT
 		debugPrint "$VAR = RESULT"
 	done < <( grep -v '^#' "$HAAPICFG" )
