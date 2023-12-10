@@ -477,7 +477,6 @@ while [ $# -gt 0 ]; do
 		-v|--verbose) VERB=Y; VERBPARM='-v'; shift;;
 		-d|--debug) VERB=Y;  DEBUG=Y ; VERBPARAM='-v'; DEBUGPARAM='--debug'; shift;;
 		-f|--force) FORCE='Y'; shift;;
-		*)  errorPrint "$0: error - unrecognized option $1" 1>&2; exit 1;;
 		--FVErc)
 			if [ $# -lt 2 ]; then
 				errorPrint "Not enough params passed for --FVErc"
@@ -492,6 +491,7 @@ while [ $# -gt 0 ]; do
 			fi
 			shift 2;
 			;;
+		*)  errorPrint "$0: error - unrecognized option $1" 1>&2; exit 1;;
 	esac
 done
 
