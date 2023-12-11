@@ -99,7 +99,7 @@ cat > "$HTMLPOWERFILE" << EOF
 <h3>Current status/health: $FVESTATUS</h3>
 <h3>Power now: $FVECURRENT [W] (L1: $L1, L2: $L2, L3: $L3)</h3>
 <h3>Average (10m): $FVEAVRG [W]</h3>
-<h3>Production today: $FVETODAY [kWh]</h3>
+<h3>Production today: $FVETODAY [Wh]</h3>
 <h3>Devices uptime today:</h3>
 EOF
 grep -v ^\# "$OPTCFGFILE" | while read USELESS USELESS DEVICE USELESS ; do

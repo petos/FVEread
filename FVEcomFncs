@@ -25,17 +25,21 @@ function errorPrint() {
 calc(){ echo "scale=2;$@" | bc;}
 
 function callHAAPI() {
+	[ "$HAPORT" ] || HAPORT=8123
+	debugPrint "curl -H \"Authorization: Bearer HAAPIKEY\" -H \"Content-Type: application/json\"  https://$HAURL:$HAPORT/api/states -o /tmp/HAAPI.json 2>/dev/null "
+	curl -H "Authorization: Bearer $HAAPIKEY" -H "Content-Type: application/json"  https://$HAURL:$HAPORT/api/states -o /tmp/HAAPI.json 2>/dev/null 
+	local exitval=$?
+	debugPrint "Call ended with: $exitval"
+	return $exitval
+}
+
+function parseHAAPI() {
 	#Jakykoli vystup MUSI byt do &2, do stdout jde jen vysledek nakonci
 	local HAENDPOINT="$1"
 	local ARRTIBUTETOGET="$2"
 	local RETVAL=''
-	debugPrint "curl -H \"Authorization: Bearer HAAPIKEY\" -H \"Content-Type: application/json\"  https://$HAURL:$HAPORT/api/states/$HAENDPOINT -o /tmp/HAAPI.json 2>/dev/null "
-	curl -H "Authorization: Bearer $HAAPIKEY" -H "Content-Type: application/json"  https://$HAURL:$HAPORT/api/states/$HAENDPOINT -o /tmp/HAAPI.json 2>/dev/null 
-	local exitval=$?
-	debugPrint "Call ended with: $exitval"
-	RETVAL="$(cat /tmp/HAAPI.json | jq -cj ".$ARRTIBUTETOGET" | tr ' ' '_' )"
-	debugPrint "RETVAL=$RETVAL"
-	if [ "$( cat /tmp/HAAPI.json | jq -cj ".attributes.unit_of_measurement" )" = "kWh" ]; then
+	RETVAL="$(jq --arg id $HAENDPOINT -c '.[] | select(.entity_id==$id )' /tmp/HAAPI.json | jq -cj ".$ARRTIBUTETOGET" | tr ' ' '_'  )"
+	if [ "$( jq --arg id $HAENDPOINT -c '.[] | select(.entity_id==$id )' /tmp/HAAPI.json  | jq -cj ".attributes.unit_of_measurement" )" = "kWh" ]; then
 		debugPrint "Multiply by 1000 to convert kW to W"
 		RETVAL="$(calc $RETVAL*1000)"
 	fi

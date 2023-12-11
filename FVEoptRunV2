@@ -69,13 +69,15 @@ function checkUptime() {
 }
 
 function getTempViaHAAPI() {
-	[ "$HAPORT" ] || HAPORT=8123
+	callHAAPI
 	while read -r VAR HAENDPOINT ARRTIBUTETOGET; do
 		local RESULT=''
-		debugPrint "calling $VAR $HAENDPOINT $ARRTIBUTETOGET"
-		RESULT="$( callHAAPI "$HAENDPOINT" "$ARRTIBUTETOGET" | tr ',' '.' )"
+		debugPrint "parsing $VAR $HAENDPOINT $ARRTIBUTETOGET"
+		RESULT="$( parseHAAPI "$HAENDPOINT" "$ARRTIBUTETOGET" | tr ',' '.' )"
 		eval $VAR=$RESULT
+		debugPrint "$VAR = RESULT"
 	done < <( grep -v '^#' "$HAAPICFGTEMP" )
+	rm -f /tmp/HAAPI.json
 }
 
 function getTemperature() {
@@ -102,6 +104,21 @@ function getTemperature() {
     echo "}" >> "$FVEAPIFILE"
 }
 
+function getLowViaHAAPI() {
+	callHAAPI
+	[ $HALOWARRTIBUTE ] || HALOWARRTIBUTE=state
+	debugPrint "calling ISLOWTARIF $HALOWENDPOINT $HALOWARRTIBUTE | tr ',' '.' | cut -d'.' -f1"
+	ISLOWTARIF="$( parseHAAPI "$HALOWENDPOINT" "$HALOWARRTIBUTE" | tr ',' '.' | cut -d'.' -f1 )"
+	if [ "$ISLOWTARIF" = "$HALOWYES"]; then
+		ISLOWTARIF="Y"
+		debugPrint "Direct HA LOW was detected"
+	else
+		ISLOWTARIF="N"
+		debugPrint "Direct HA LOW was NOT detected"
+	fi
+	rm -f /tmp/HAAPI.json
+}
+
 function getLowTarifInfo() {
 	#returns if now we are in Low tarif or not and eventually what low tarif (1st part, 2nd part...)
 	
@@ -111,7 +128,10 @@ function getLowTarifInfo() {
 	local LOWTARIFN
 	local TIMEDATEHHmm=$(date +%H%M)
 	
-    if [ "$DIRECTLOW" ] && [ "$DIRECTLOW" = "ON" ]; then
+
+	if [ "$LOWHA" ] && ( "$LOWHA" ); then
+		getLowViaHAAPI
+    elif [ "$DIRECTLOW" ] && [ "$DIRECTLOW" = "ON" ]; then
         if [ "$(FVEGPIO --pin $DIRECTLOWPIN --mode get --type relay)" = "on" ]; then
             debugPrint "DirectLowTarif was detected"
             ISLOWTARIF=Y
