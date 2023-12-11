@@ -25,6 +25,7 @@ function errorPrint() {
 calc(){ echo "scale=2;$@" | bc;}
 
 function callHAAPI() {
+	[ "$HAPORT" ] || HAPORT=8123
 	debugPrint "curl -H \"Authorization: Bearer HAAPIKEY\" -H \"Content-Type: application/json\"  https://$HAURL:$HAPORT/api/states -o /tmp/HAAPI.json 2>/dev/null "
 	curl -H "Authorization: Bearer $HAAPIKEY" -H "Content-Type: application/json"  https://$HAURL:$HAPORT/api/states -o /tmp/HAAPI.json 2>/dev/null 
 	local exitval=$?

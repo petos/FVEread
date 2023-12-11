@@ -223,7 +223,6 @@ function getDataViaFile() {
 }
 
 function getDataViaAPI() {
-	[ "$HAPORT" ] || HAPORT=8123
 	callHAAPI
 	while read -r VAR HAENDPOINT ARRTIBUTETOGET; do
 		local RESULT=''
