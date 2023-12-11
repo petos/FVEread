@@ -75,7 +75,7 @@ function getTempViaHAAPI() {
 		debugPrint "parsing $VAR $HAENDPOINT $ARRTIBUTETOGET"
 		RESULT="$( parseHAAPI "$HAENDPOINT" "$ARRTIBUTETOGET" | tr ',' '.' )"
 		eval $VAR=$RESULT
-		debugPrint "$VAR = RESULT"
+		debugPrint "$VAR = $RESULT"
 	done < <( grep -v '^#' "$HAAPICFGTEMP" )
 	rm -f /tmp/HAAPI.json
 }
