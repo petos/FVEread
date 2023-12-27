@@ -326,7 +326,7 @@ function updateJSONforDevices() {
 
 function getTargetTempViaHAAPI() {
 	callHAAPI
-	debugPrint "calling ISLOWTARIF $LOCSTARTTEMP state | tr ',' '.' | cut -d'.' -f1"
+	debugPrint "calling: parseHAAPI $LOCSTARTTEMP state | tr ',' '.' | cut -d'.' -f1"
 	LOCSTARTTEMP="$( parseHAAPI "$LOCSTARTTEMP" "state" | tr ',' '.' | cut -d'.' -f1 )"
 	rm -f /tmp/HAAPI.json
 }
