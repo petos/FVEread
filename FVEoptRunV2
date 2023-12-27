@@ -170,7 +170,7 @@ function parseThermalDevice() {
 	while read LNDEVICEID LNTYPE LNDEVICE LNCONSUMPTION LNTIME0 LNTIME1 LNSTARTTEMP LNSTOPTEMP ; do 
 		((++THERMALDEVICES))
 		debugPrint "$LNDEVICEID $LNTYPE $LNDEVICE $LNCONSUMPTION $LNTIME0 $LNTIME1 $LNSTARTTEMP $LNSTOPTEMP"
-		if [ "$( echo "$LNSTARTTEMP" | sed -e's/0-9//g' )" ]; then
+		if [ "$( echo "$LNSTARTTEMP" | sed -e's/[0-9]//g' )" ]; then
 			debugPrint "LNSTARTTEMP is $LNSTARTTEMP contains non-numeric stuff. Expecting this to be the HA endpoint name"
 			getTargetTempViaHAAPI "$LNSTARTTEMP"
 	        debugPrint "LNSTARTTEMP=$LOCSTARTTEMP"
