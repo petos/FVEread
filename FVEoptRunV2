@@ -312,7 +312,9 @@ function updateJSONforDevices() {
 	local LOCSTOPTEMP="$6"
 
 	local DEVICESTATUS=False
+	local REALCONSUMPTION=0
 	[ "$7" = ON ] && DEVICESTATUS=True
+	[ "$7" = ON ] && REALCONSUMPTION="$LOCALCONSUMPTION"
 	[ $i -gt 0 ] && echo ',' >> "$FVEAPIFILE"
 	echo "
 	\"$LOCALDEVICE\":
@@ -323,7 +325,7 @@ function updateJSONforDevices() {
 		\"startTemp\": $LOCSTARTTEMP,
 		\"stopTemp\": $LOCSTOPTEMP,
 		\"deviceUp\": \"$DEVICESTATUS\",
-		\"deviceConsumption\": \"$LOCALCONSUMPTION\"
+		\"realConsumption\": \"$REALCONSUMPTION\"
 	}
 " >> "$FVEAPIFILE"
 
