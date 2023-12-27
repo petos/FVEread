@@ -170,6 +170,12 @@ function parseThermalDevice() {
 	while read LNDEVICEID LNTYPE LNDEVICE LNCONSUMPTION LNTIME0 LNTIME1 LNSTARTTEMP LNSTOPTEMP ; do 
 		((++THERMALDEVICES))
 		debugPrint "$LNDEVICEID $LNTYPE $LNDEVICE $LNCONSUMPTION $LNTIME0 $LNTIME1 $LNSTARTTEMP $LNSTOPTEMP"
+		if [ "$( echo "$LNSTARTTEMP" | sed -e's/0-9//g' )" ]; then
+			debugPrint "LNSTARTTEMP is $LNSTARTTEMP contains non-numeric stuff. Expecting this to be the HA endpoint name"
+			getTargetTempViaHAAPI
+	        debugPrint "LNSTARTTEMP=$LOCSTARTTEMP"
+	        LNSTARTTEMP="$LOCSTARTTEMP"
+		fi
 		DEVICEID[$THERMALDEVICES]=$LNDEVICEID
 		TYPE["$THERMALDEVICES"]=$LNTYPE
 		DEVICE["$THERMALDEVICES"]=$LNDEVICE
@@ -177,11 +183,6 @@ function parseThermalDevice() {
 		TIME0["$THERMALDEVICES"]=$LNTIME0
 		TIME1["$THERMALDEVICES"]=$LNTIME1
 
-		if [ "$( echo "$LNSTARTTEMP" | sed -e's/0-9//g' )" ]; then
-			debugPrint "LNSTARTTEMP is $LNSTARTTEMP contains non-numeric stuff. Expecting this to be the HA endpoint name"
-			getTargetTempViaHAAPI
-	        debugPrint "LNSTARTTEMP=$LOCSTARTTEMP"
-		fi
 
 		if [ "$( date +%H )" -lt 12 ]; then
 			debugPrint "Setting temp -10C because it's morning"
@@ -355,6 +356,7 @@ function decideOnOff() {
 			debugPrint "LOCSTARTTEMP is $LOCSTARTTEMP contains non-numeric stuff. Expecting this to be the HA endpoint name"
 			getTargetTempViaHAAPI
 	        debugPrint "LOCSTARTTEMP=$LOCSTARTTEMP"
+	        LOCSTARTTEMP="$LOCSTARTTEMP"
 		fi
 		
 		if [ $USEAVRGS = "YES" ] && [ $USEAVRGS != 'no' ] && [ $USEAVRGS != 'NO' ] && [ $USEAVRGS != 'N' ]; then
