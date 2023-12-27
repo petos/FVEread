@@ -172,7 +172,7 @@ function parseThermalDevice() {
 		debugPrint "$LNDEVICEID $LNTYPE $LNDEVICE $LNCONSUMPTION $LNTIME0 $LNTIME1 $LNSTARTTEMP $LNSTOPTEMP"
 		if [ "$( echo "$LNSTARTTEMP" | sed -e's/0-9//g' )" ]; then
 			debugPrint "LNSTARTTEMP is $LNSTARTTEMP contains non-numeric stuff. Expecting this to be the HA endpoint name"
-			getTargetTempViaHAAPI
+			getTargetTempViaHAAPI "$LNSTARTTEMP"
 	        debugPrint "LNSTARTTEMP=$LOCSTARTTEMP"
 	        LNSTARTTEMP="$LOCSTARTTEMP"
 		fi
@@ -327,8 +327,8 @@ function updateJSONforDevices() {
 
 function getTargetTempViaHAAPI() {
 	callHAAPI
-	debugPrint "calling: parseHAAPI $LOCSTARTTEMP state | tr ',' '.' | cut -d'.' -f1"
-	LOCSTARTTEMP="$( parseHAAPI "$LOCSTARTTEMP" "state" | tr ',' '.' | cut -d'.' -f1 )"
+	debugPrint "calling: parseHAAPI $1 state | tr ',' '.' | cut -d'.' -f1"
+	LOCSTARTTEMP="$( parseHAAPI "$1" "state" | tr ',' '.' | cut -d'.' -f1 )"
 	rm -f /tmp/HAAPI.json
 }
 
@@ -354,7 +354,7 @@ function decideOnOff() {
 		
 		if [ "$( echo "$LOCSTARTTEMP" | sed -e's/[0-9]//g' )" ]; then
 			debugPrint "LOCSTARTTEMP is $LOCSTARTTEMP contains non-numeric stuff. Expecting this to be the HA endpoint name"
-			getTargetTempViaHAAPI
+			getTargetTempViaHAAPI "$LOCSTARTTEMP"
 	        debugPrint "LOCSTARTTEMP=$LOCSTARTTEMP"
 	        LOCSTARTTEMP="$LOCSTARTTEMP"
 		fi
