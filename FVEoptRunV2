@@ -351,7 +351,7 @@ function decideOnOff() {
         debugPrint "LOCSTARTTEMP=$LOCSTARTTEMP"
         debugPrint "LOCSTOPTEMP=$LOCSTOPTEMP"
 		
-		if [ "$( echo "$LOCSTARTTEMP" | sed -e's/0-9//g' )" ]; then
+		if [ "$( echo "$LOCSTARTTEMP" | sed -e's/[0-9]//g' )" ]; then
 			debugPrint "LOCSTARTTEMP is $LOCSTARTTEMP contains non-numeric stuff. Expecting this to be the HA endpoint name"
 			getTargetTempViaHAAPI
 	        debugPrint "LOCSTARTTEMP=$LOCSTARTTEMP"
