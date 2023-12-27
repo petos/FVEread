@@ -214,26 +214,12 @@ function getUptimeOfDevice() {
 	return $DEVICEUPTIME
 }
 
-function checkLocalSetupDevice(){
-	local DEVICENAME="$1"
-	
-	#No local change
-	return 0
-	
-	#Expected to be ON
-	return 1
-	
-	
-	#expected to be OFF
-}
-
 function thermalLowTarifNODT() {
 	TIMETARIF="TIME$LOWTARIFNUM[@]"
 	local LOCALDEVICEID=-1
 	while read DESIREDUPTIME; do
 		((++LOCALDEVICEID))
 		
-		checkLocalSetupDevice ${DEVICE["$LOCALDEVICEID"]}
 		RETVAL=$?
 		if [ $RETVAL = 0 ]; then
 			debugPrint "Device ${DEVICE["$LOCALDEVICEID"]} was not localy changed"
@@ -312,7 +298,9 @@ function updateJSONforDevices() {
 	local LOCSTOPTEMP="$6"
 
 	local DEVICESTATUS=False
+	local REALCONSUMPTION=0
 	[ "$7" = ON ] && DEVICESTATUS=True
+	[ "$7" = ON ] && REALCONSUMPTION="$LOCALCONSUMPTION"
 	[ $i -gt 0 ] && echo ',' >> "$FVEAPIFILE"
 	echo "
 	\"$LOCALDEVICE\":
@@ -322,7 +310,8 @@ function updateJSONforDevices() {
 		\"deviceConsumption\": $LOCALCONSUMPTION,
 		\"startTemp\": $LOCSTARTTEMP,
 		\"stopTemp\": $LOCSTOPTEMP,
-		\"deviceUp\": \"$DEVICESTATUS\"
+		\"deviceUp\": \"$DEVICESTATUS\",
+		\"realConsumption\": \"$REALCONSUMPTION\"
 	}
 " >> "$FVEAPIFILE"
 
