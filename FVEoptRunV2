@@ -322,7 +322,8 @@ function updateJSONforDevices() {
 		\"deviceConsumption\": $LOCALCONSUMPTION,
 		\"startTemp\": $LOCSTARTTEMP,
 		\"stopTemp\": $LOCSTOPTEMP,
-		\"deviceUp\": \"$DEVICESTATUS\"
+		\"deviceUp\": \"$DEVICESTATUS\",
+		\"deviceConsumption\": \"$LOCALCONSUMPTION\"
 	}
 " >> "$FVEAPIFILE"
 
