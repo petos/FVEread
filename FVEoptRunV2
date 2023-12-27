@@ -176,6 +176,13 @@ function parseThermalDevice() {
 		CONSUMPTION["$THERMALDEVICES"]=$LNCONSUMPTION
 		TIME0["$THERMALDEVICES"]=$LNTIME0
 		TIME1["$THERMALDEVICES"]=$LNTIME1
+
+		if [ "$( echo "$LNSTARTTEMP" | sed -e's/0-9//g' )" ]; then
+			debugPrint "LNSTARTTEMP is $LNSTARTTEMP contains non-numeric stuff. Expecting this to be the HA endpoint name"
+			getTargetTempViaHAAPI
+	        debugPrint "LNSTARTTEMP=$LOCSTARTTEMP"
+		fi
+
 		if [ "$( date +%H )" -lt 12 ]; then
 			debugPrint "Setting temp -10C because it's morning"
 			STARTTEMP["$THERMALDEVICES"]=$(( LNSTARTTEMP - 10 ))
@@ -317,6 +324,13 @@ function updateJSONforDevices() {
 
 }
 
+function getTargetTempViaHAAPI() {
+	callHAAPI
+	debugPrint "calling: parseHAAPI $LOCSTARTTEMP state | tr ',' '.' | cut -d'.' -f1"
+	LOCSTARTTEMP="$( parseHAAPI "$LOCSTARTTEMP" "state" | tr ',' '.' | cut -d'.' -f1 )"
+	rm -f /tmp/HAAPI.json
+}
+
 function decideOnOff() {
 	debugPrint "FNC: decideOnOff"
 	local FILTER="$1"
@@ -336,7 +350,13 @@ function decideOnOff() {
         debugPrint "LOCALCONSUMPTION=$LOCALCONSUMPTION"
         debugPrint "LOCSTARTTEMP=$LOCSTARTTEMP"
         debugPrint "LOCSTOPTEMP=$LOCSTOPTEMP"
-
+		
+		if [ "$( echo "$LOCSTARTTEMP" | sed -e's/0-9//g' )" ]; then
+			debugPrint "LOCSTARTTEMP is $LOCSTARTTEMP contains non-numeric stuff. Expecting this to be the HA endpoint name"
+			getTargetTempViaHAAPI
+	        debugPrint "LOCSTARTTEMP=$LOCSTARTTEMP"
+		fi
+		
 		if [ $USEAVRGS = "YES" ] && [ $USEAVRGS != 'no' ] && [ $USEAVRGS != 'NO' ] && [ $USEAVRGS != 'N' ]; then
 			STARTLOCALCONSUMPTION=$(expr $LOCALCONSUMPTION + $(expr $LOCALCONSUMPTION / 10))
 		else
