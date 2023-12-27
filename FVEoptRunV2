@@ -214,26 +214,12 @@ function getUptimeOfDevice() {
 	return $DEVICEUPTIME
 }
 
-function checkLocalSetupDevice(){
-	local DEVICENAME="$1"
-	
-	#No local change
-	return 0
-	
-	#Expected to be ON
-	return 1
-	
-	
-	#expected to be OFF
-}
-
 function thermalLowTarifNODT() {
 	TIMETARIF="TIME$LOWTARIFNUM[@]"
 	local LOCALDEVICEID=-1
 	while read DESIREDUPTIME; do
 		((++LOCALDEVICEID))
 		
-		checkLocalSetupDevice ${DEVICE["$LOCALDEVICEID"]}
 		RETVAL=$?
 		if [ $RETVAL = 0 ]; then
 			debugPrint "Device ${DEVICE["$LOCALDEVICEID"]} was not localy changed"
