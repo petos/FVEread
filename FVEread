@@ -114,6 +114,7 @@ function cleanFile() {
 	rm -f "$TMPDIR"/fvel"$TIMEDATE_YYYYMMDD".png
 	rm -f "$TMPDIR"/fve.device.*.png
 	rm -f "$TMPDIR"/.fveread.lock
+	rm -f "$TMPDIR"/HAAPI.json
 }
 
 function checkRunningStatus() {
@@ -223,7 +224,6 @@ function getDataViaFile() {
 }
 
 function getDataViaAPI() {
-	callHAAPI
 	while read -r VAR HAENDPOINT ARRTIBUTETOGET; do
 		local RESULT=''
 		debugPrint "calling $VAR $HAENDPOINT $ARRTIBUTETOGET | tr ',' '.' | cut -d'.' -f1"
@@ -231,7 +231,6 @@ function getDataViaAPI() {
 		eval $VAR=$RESULT
 		debugPrint "$VAR = $RESULT"
 	done < <( grep -v '^#' "$HAAPICFG" )
-	rm -f /tmp/HAAPI.json
 	todayProduction=$TODAY
 	rawTOTALPRODUCED=$totalProduction
 }
@@ -335,8 +334,14 @@ function mainLoop() {
 	debugPrint "FNC: mainLoop"
     fixPerms
 	checkRunningStatus
+
+	if [ "$USEHAAPI" = "true" ] || [ "$LOWHA" = "true" ] || [ "$USEHAAPITEMP" = "true" ] || [ "$(grep -v \# "$OPTCFGFILE" | cut -d' ' -c3 | sed -e's/[0-9]//g' )" ]; then
+		debugPrint "USEHAAPI and/or LOWHA  and/or USEHAAPITEMP and/or FVEopt is using HA"
+		callHAAPI
+	fi
+
 	getData
-	
+
 	if [ "$STDOUT" ]; then
 		printDataStdout 
 	else
