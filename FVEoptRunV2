@@ -106,7 +106,7 @@ function getLowViaHAAPI() {
 	[ $HALOWARRTIBUTE ] || HALOWARRTIBUTE=state
 	debugPrint "calling ISLOWTARIF $HALOWENDPOINT $HALOWARRTIBUTE | tr ',' '.' | cut -d'.' -f1"
 	ISLOWTARIF="$( parseHAAPI "$HALOWENDPOINT" "$HALOWARRTIBUTE" | tr ',' '.' | cut -d'.' -f1 )"
-	if [ "$ISLOWTARIF" = "$HALOWYES"]; then
+	if [ "$ISLOWTARIF" = "$HALOWYES" ]; then
 		ISLOWTARIF="Y"
 		debugPrint "Direct HA LOW was detected"
 	else
