@@ -20,9 +20,6 @@ function printHelp() {
 	--debug    tells everything it knows
 	--force|-f Sends on/off even if the device is already in desired state
 	
-	--init     prepare list of devices (should be run as first command)
-	--destroy  destroy list of devices (should be run when finished)
-	
 	--getstatus DEVICE
         Returns the status of the device DEVICE
     
@@ -56,21 +53,6 @@ function getDeviceNumber() {
 		#~ sudo telldusd
 	#~ fi
 #~ }
-
-function getTDstatuses() {
-	> "$TMPDIR"/FVE.statuses
-	#tdtool -l > "$TMPDIR"/FVE.statuses 
-}
-
-function initFVEonOff() {
-	#checkTDstatus
-	getTDstatuses
-}
-
-function uninitStatuses() {
-	rm -f "$TMPDIR"/FVE.statuses
-	return $?
-}
 
 function getDeviceNumber() {
 	#usage: getDeviceNumber $COMPONENT
@@ -197,8 +179,6 @@ while [ $# -gt 0 ]; do
 			TYPE="GET"
 			shift 2
 			;;
-		--init) initFVEonOff; exit 0;;
-		--destroy) uninitStatuses ;exit 0;;
 		--FVErc)
 			if [ $# -lt 2 ]; then 
 				errorPrint "Not enough params passed for --FVErc"

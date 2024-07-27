@@ -532,8 +532,6 @@ fi
 checkUptime
 getBucket
 
-FVEonOff --init   --FVErc $FVErc 
-
 mainLoop
 
 FVEonOff --destroy   --FVErc $FVErc 
