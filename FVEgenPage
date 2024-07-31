@@ -62,6 +62,7 @@ cat > "$HTMLFILE" << EOF
 EOF
 
 if [ "$GENGRAPHS" = "Y" ] ||  [ -z "$GENGRAPHS"  ]; then
+
 cat > "$HTMLFILE" << EOF
 <h3>Graphs:</h3>
 <h4>Today power report:</h4>

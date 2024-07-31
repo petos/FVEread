@@ -107,6 +107,10 @@ function cleanFile() {
 	rm -f "$TMPDIR"/fve.device.*.png
 	rm -f "$TMPDIR"/.fveread.lock
 	rm -f "$TMPDIR"/HAAPI.json
+	rm -f "$TMPDIR"/fve.html
+	rm -f "$TMPDIR"/fveopts.html
+	rm -f "$TMPDIR"/fvepower.html
+	rm -f "$TMPDIR"/api.json
 }
 
 function checkRunningStatus() {
@@ -156,7 +160,7 @@ function uploadDataFTP() {
 	jq -c . "$FVEAPIFILE" > "$FVEAPIFILE"1
 	sed -si -e's/True/on/g' -e's/False/off/g' "$FVEAPIFILE"1
 	mv "$FVEAPIFILE"1 "$FVEAPIFILE"
-	if [ "$GENGRAPHS" = "Y" ] ||  [ -z "$GENGRAPHS"  ]; then
+	if [ "$GENGRAPHS" = "Y" ] || [ -z "$GENGRAPHS"  ]; then
 		( "$LOCALWEBSERVER" ) && sudo cp -f $TMPDIR/fvem.png $TMPDIR/fvel.png $TMPDIR/fve.device.*.png $TMPDIR/fved.png $TMPDIR/fvep.png "$LOCALWEBSERVERPATH"
 	fi
 	( "$LOCALWEBSERVER" ) && sudo cp -f $HTMLPOWERFILE $HTMLOPTFILE $HTMLFILE $TMPDIR/api.json "$LOCALWEBSERVERPATH"
@@ -164,7 +168,7 @@ function uploadDataFTP() {
 	( "$REMOTEFTPSERVER" ) && lftp -u "$FTPUSERNAME",$FTPPASSWD -e "set net:timeout 5; set net:max-retries 0; mput -O $HTMLDESTDIR $TMPDIR/fvem.png $TMPDIR/fvel.png $TMPDIR/fve.device.*.png $TMPDIR/fved.png $TMPDIR/fvep.png $HTMLPOWERFILE $HTMLOPTFILE $HTMLFILE && bye" $HTMLSERVER >> /dev/null
 
 	if [ "$DIRECTTEMP" = "ON" ]; then 
-		( "$LOCALWEBSERVER" ) && sudo cp $TMPDIR/fvet.png "$LOCALWEBSERVERPATH"
+		( "$LOCALWEBSERVER" ) && sudo cp -f $TMPDIR/fvet.png "$LOCALWEBSERVERPATH"
 		( "$REMOTEFTPSERVER" ) && lftp -u "$FTPUSERNAME",$FTPPASSWD -e "set net:timeout 5; set net:max-retries 0;  mput -O $HTMLDESTDIR $TMPDIR/fvet.png && bye" $HTMLSERVER >> /dev/null
 	fi
     debugPrint "upload data to FTP is done"
