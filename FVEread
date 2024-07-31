@@ -278,8 +278,10 @@ function genFiles() {
 		FVEgenPage  --powerpage --current $CURRENT --L1 $L1 --L2 $L2 --L3 $L3 --today $TODAY --fvestatus $FVESTATUS --avrg $AVRG  --FVErc "$FVErc"
 		
 		updateProductionFile
-		
-		FVEgenGraphs --all  --FVErc "$FVErc"
+
+		if [ "$GENGRAPHS" = "Y" ] ||  [ -z "$GENGRAPHS"  ]; then
+			FVEgenGraphs --all  --FVErc "$FVErc"
+		fi
 		if [ "$DIRECTTEMP" = "ON" ]; then
 			FVEgenGraphs --temperature  --FVErc "$FVErc"
 		fi

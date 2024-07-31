@@ -59,8 +59,10 @@ cat > "$HTMLFILE" << EOF
 <body>
 
 <iframe src="$FVEHTMLPOWERNAME" width="640" height="380"></iframe>
+EOF
 
-
+if [ "$GENGRAPHS" = "Y" ] ||  [ -z "$GENGRAPHS"  ]; then
+cat > "$HTMLFILE" << EOF
 <h3>Graphs:</h3>
 <h4>Today power report:</h4>
 <a href=fved.png><img src="fved.png" alt="Power today"></a>
@@ -72,20 +74,21 @@ cat > "$HTMLFILE" << EOF
 <a href=fvep.png><img src="fvep.png" alt="Produced this month"></a>
 EOF
 
-if [ "$DIRECTTEMP" = "ON" ]; then
-	echo "<h4>Today temperature:</h4>" >> "$HTMLFILE" 
-	echo '</br>' >> "$HTMLFILE"
-	echo '<a href=fvet.png><img src="fvet.png" alt="Today temperature flowchart"></a>' >> "$HTMLFILE" 
-	echo '</br>' >> "$HTMLFILE"
+
+	if [ "$DIRECTTEMP" = "ON" ]; then
+		echo "<h4>Today temperature:</h4>" >> "$HTMLFILE" 
+		echo '</br>' >> "$HTMLFILE"
+		echo '<a href=fvet.png><img src="fvet.png" alt="Today temperature flowchart"></a>' >> "$HTMLFILE" 
+		echo '</br>' >> "$HTMLFILE"
+	fi
+
+	echo '<h3>Optimalization of consumption</h3>' >> "$HTMLFILE" 
+
+	grep -v ^\# "$OPTCFGFILE" | while read USELESS USELESS DEVICE USELESS ; do
+		echo "<img src=\"fve.device.$DEVICE.png\" alt=\"Produced this month\"> " >> "$HTMLFILE"
+		echo '</br>' >> "$HTMLFILE"
+	done
 fi
-
-echo '<h3>Optimalization of consumption</h3>' >> "$HTMLFILE" 
-
-grep -v ^\# "$OPTCFGFILE" | while read USELESS USELESS DEVICE USELESS ; do
-	echo "<img src=\"fve.device.$DEVICE.png\" alt=\"Produced this month\"> " >> "$HTMLFILE"
-	echo '</br>' >> "$HTMLFILE"
-done
-
 cat >> "$HTMLFILE" << EOF
 <iframe src="$FVEHTMLOPTNAME" width="640" height="120"></iframe>
 </body>
