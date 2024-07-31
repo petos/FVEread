@@ -156,7 +156,10 @@ function uploadDataFTP() {
 	jq -c . "$FVEAPIFILE" > "$FVEAPIFILE"1
 	sed -si -e's/True/on/g' -e's/False/off/g' "$FVEAPIFILE"1
 	mv "$FVEAPIFILE"1 "$FVEAPIFILE"
-	( "$LOCALWEBSERVER" ) && sudo cp $TMPDIR/fvem.png $TMPDIR/fvel.png $TMPDIR/fve.device.*.png $TMPDIR/fved.png $TMPDIR/fvep.png $HTMLPOWERFILE $HTMLOPTFILE $HTMLFILE $TMPDIR/api.json "$LOCALWEBSERVERPATH"
+	if [ "$GENGRAPHS" = "Y" ] ||  [ -z "$GENGRAPHS"  ]; then
+		( "$LOCALWEBSERVER" ) && sudo cp $TMPDIR/fvem.png $TMPDIR/fvel.png $TMPDIR/fve.device.*.png $TMPDIR/fved.png $TMPDIR/fvep.png "$LOCALWEBSERVERPATH"
+	fi
+	( "$LOCALWEBSERVER" ) && sudo cp $HTMLPOWERFILE $HTMLOPTFILE $HTMLFILE $TMPDIR/api.json "$LOCALWEBSERVERPATH"
 	( "$LOCALWEBSERVER" ) && sudo mv "$LOCALWEBSERVERPATH"/"$FVEHTMLNAME" "$LOCALWEBSERVERPATH"/index.html
 	( "$REMOTEFTPSERVER" ) && lftp -u "$FTPUSERNAME",$FTPPASSWD -e "set net:timeout 5; set net:max-retries 0; mput -O $HTMLDESTDIR $TMPDIR/fvem.png $TMPDIR/fvel.png $TMPDIR/fve.device.*.png $TMPDIR/fved.png $TMPDIR/fvep.png $HTMLPOWERFILE $HTMLOPTFILE $HTMLFILE && bye" $HTMLSERVER >> /dev/null
 
