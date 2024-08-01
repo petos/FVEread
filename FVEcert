@@ -22,6 +22,7 @@ sudo certbot \
     --dns-cloudflare-credentials "$CLOUDFLARESECRETSFILE" \
     --preferred-challenges dns-01 \
     --server https://acme-v02.api.letsencrypt.org/directory \
+    --dns-cloudflare-propagation-seconds 120 \
     --agree-tos \
     --no-eff-email \
     --no-redirect \
