@@ -13,7 +13,7 @@ else
 fi
 
 if [ ! -e "$CLOUDFLARESECRETSFILE" ]; then
-    errPrint "CloudFlare cred file was not found"
+    errorPrint "CloudFlare cred file was not found"
     exit 1
 fi
 
