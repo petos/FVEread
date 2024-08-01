@@ -19,7 +19,7 @@ fi
 
 sudo certbot \
     -a dns-cloudflare \
-    --dns-cloudflare-credentials"$CLOUDFLARESECRETSFILE" \
+    --dns-cloudflare-credentials "$CLOUDFLARESECRETSFILE" \
     --preferred-challenges dns-01 \
     --server https://acme-v02.api.letsencrypt.org/directory \
     --agree-tos \
