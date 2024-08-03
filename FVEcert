@@ -1,5 +1,5 @@
 #!/bin/bash
-
+# shellcheck disable=SC1091
 if [ -e "$HOME"/.FVErc ]; then 
 	source "$HOME"/.FVErc
 	source "$FVEBINDIR"/FVEcomFncs
