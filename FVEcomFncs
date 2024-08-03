@@ -1,19 +1,20 @@
 #!/bin/bash
-TIMEDATE_YYYY=$(date +%Y)
-TIMEDATE_YYYYMM=$(date +%Y%m)
-TIMEDATE_YYYYMMDD=$(date +%Y%m%d)
+# shellcheck disable=SC2034  #Unused vars -- will be used somewhere else
+TIMEDATE_YYYY="$(date +%Y)"
+TIMEDATE_YYYYMM="$(date +%Y%m)"
+TIMEDATE_YYYYMMDD="$(date +%Y%m%d)"
 
 #TIMEDATE_YYYYMMDDHH=$(date +%Y%m%d%H)
-TIMEDATE_YYYYMMDDHHmm=$(date +%Y%m%d%H%M)
+TIMEDATE_YYYYMMDDHHmm="$(date +%Y%m%d%H%M)"
 
 function debugPrint() {
-	if [ $DEBUG ]; then
+	if [ "$DEBUG" ]; then
 		echo "$1" >&2
 	fi
 }
 
 function verbPrint() {
-	if [ $VERB ]; then
+	if [ "$VERB" ]; then
 		echo "$1"
 	fi
 }
@@ -22,12 +23,13 @@ function errorPrint() {
 	echo "$TIMEDATE_YYYYMMDDHHmm: $1"
 }
 
+# shellcheck disable=SC2145   # I know how fixed_"$@" behaves and it's correct!
 calc(){ echo "scale=2;$@" | bc;}
 
 function callHAAPI() {
 	[ "$HAPORT" ] || HAPORT=8123
 	debugPrint "curl -H \"Authorization: Bearer HAAPIKEY\" -H \"Content-Type: application/json\"  https://$HAURL:$HAPORT/api/states -o /tmp/HAAPI.json 2>/dev/null "
-	curl -H "Authorization: Bearer $HAAPIKEY" -H "Content-Type: application/json"  https://$HAURL:$HAPORT/api/states -o "$TMPDIR"/HAAPI.json 2>/dev/null 
+	curl -H "Authorization: Bearer $HAAPIKEY" -H "Content-Type: application/json"  https://"$HAURL":"$HAPORT"/api/states -o "$TMPDIR"/HAAPI.json 2>/dev/null 
 	local exitval=$?
 	debugPrint "Call ended with: $exitval"
 	return $exitval
@@ -38,10 +40,10 @@ function parseHAAPI() {
 	local HAENDPOINT="$1"
 	local ARRTIBUTETOGET="$2"
 	local RETVAL=''
-	RETVAL="$(jq --arg id $HAENDPOINT -c '.[] | select(.entity_id==$id )' $TMPDIR/HAAPI.json | jq -cj ".$ARRTIBUTETOGET" | tr ' ' '_'  )"
-	if [ "$( jq --arg id $HAENDPOINT -c '.[] | select(.entity_id==$id )' $TMPDIR/HAAPI.json  | jq -cj ".attributes.unit_of_measurement" )" = "kWh" ]; then
+	RETVAL="$(jq --arg id "$HAENDPOINT" -c '.[] | select(.entity_id==$id )' "$TMPDIR"/HAAPI.json | jq -cj ".$ARRTIBUTETOGET" | tr ' ' '_'  )"
+	if [ "$( jq --arg id "$HAENDPOINT" -c '.[] | select(.entity_id==$id )' "$TMPDIR"/HAAPI.json  | jq -cj ".attributes.unit_of_measurement" )" = "kWh" ]; then
 		debugPrint "Multiply by 1000 to convert kW to W"
-		RETVAL="$(calc $RETVAL*1000)"
+		RETVAL="$(calc "$RETVAL"*1000)"
 	fi
 	debugPrint "For \"$HAENDPOINT\" attribute \"$ARRTIBUTETOGET\" is value: \"$RETVAL\""
 	echo "$RETVAL"

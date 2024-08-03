@@ -1,6 +1,7 @@
 #!/bin/bash
-if [ -e $HOME/.FVErc ]; then 
-	source $HOME/.FVErc
+# shellcheck disable=SC1091
+if [ -e "$HOME"/.FVErc ]; then 
+	source "$HOME"/.FVErc
 	FVErc="$HOME/.FVErc"
 	source "$FVEBINDIR"/FVEcomFncs
 elif [ -e /etc/FVErc ]; then
@@ -13,12 +14,11 @@ fi
 
 
 function printHelp() {
-	echo -e "usage: `basename $0` [OPTIONS]
+	echo -e "usage: $(basename "$0") [OPTIONS]
  Opts:
   --help|-h   Print this help message
   -v          Talky version
   --stdout    Will not update webpage, but print just output to stdout
-  --history   Generate history page also out of schedule (scheduled time is 23:58)
   
   --reconfig  Reload all config files
   --FVErc FILE Pass full path to FVErc file
@@ -29,43 +29,44 @@ exit 0
 function getAvrg() {
 	debugPrint "FNC: getAvrg"
 	#Will make average production in last 10 minutes (last 10 lines)
-	AVRG=$(expr $(expr $(tail -10 $HISTORYFILE | awk '{print $2}' | sed '/^$/d' | sed ':a;N;$!ba;s/\n/ + /g')) / $(tail -10 $HISTORYFILE | awk '{print $2}' | sed '/^$/d' | wc -l) )	
+	AVRG=$(( $(( $(tail -10 "$HISTORYFILE" | awk '{print $2}' | sed '/^$/d' | sed ':a;N;$!ba;s/\n/ + /g') )) / $(tail -10 "$HISTORYFILE" | awk '{print $2}' | sed '/^$/d' | wc -l) ))	
 	verbPrint "Avrg is: $AVRG"
 }
 
 function getFileFromFVE() {
 	debugPrint "FNC: getFileFromFVE"
-	curl -u $FVEUSERNAME:$FVEPWD $FVEURL > "$TMPDIR"/FVE.$$.html 2>/dev/null 
-	if [ $? != 0 ]; then
+	if ( curl -u "$FVEUSERNAME":"$FVEPWD" "$FVEURL" > "$TMPDIR"/FVE.$$.html 2>/dev/null ) ; then
+		return 0
+	else
 		errorPrint "Stridac neni dostupny"
 		return 1
-	else
-		return 0
 	fi
 }
 
 function cleanLine() {
 	local LINE=$1
-	echo $LINE | sed 's/<\/td>//g' | sed 's/&nbsp//g' | tr -d ' ' | \
+	echo "$LINE" | sed 's/<\/td>//g' | sed 's/&nbsp//g' | tr -d ' ' | \
 	sed 's/xxx/0/g' | tr -dc '[:print:]'
 }
 
 function getCurrentPiko() {
 	local iCURRENT=0
-	iCURRENT=`cat "$TMPDIR"/FVE.$$.html | grep -A2 'current' | head -3 | tail -1 `
-	echo `cleanLine "$iCURRENT"`
+	iCURRENT=$(cat "$TMPDIR"/FVE.$$.html | grep -A2 'current' | head -3 | tail -1 )
+	cleanLine "$iCURRENT"
 }
 
 function getCurrent() {
-	local iCURRENT=$(awk -F'"' '/var webdata_now_p = /{print $2}' "$TMPDIR"/FVE.$$.html)
+	local iCURRENT=0
+	iCURRENT=$(awk -F'"' '/var webdata_now_p = /{print $2}' "$TMPDIR"/FVE.$$.html)
 	[ "$iCURRENT" ] || iCURRENT=0
-	echo `cleanLine "$iCURRENT"`
+	cleanLine "$iCURRENT"
 }
 
 function getCurrentLsPiko() {
-	local iCURRENT=`cat "$TMPDIR"/FVE.$$.html | grep -B1 '<td width="30">&nbsp W</td>' | grep -v '<td width="30">&nbsp W</td>' | grep -v '-' | tail -"$1" | head -1`
+	local iCURRENT=0
+	iCURRENT=$(cat "$TMPDIR"/FVE.$$.html | grep -B1 '<td width="30">&nbsp W</td>' | grep -v '<td width="30">&nbsp W</td>' | grep -v '-' | tail -"$1" | head -1)
 	[ "$iCURRENT" ] || iCURRENT=0
-	echo `cleanLine "$iCURRENT"`
+	cleanLine "$iCURRENT"
 }
 
 function getCurrentLs() {
@@ -73,11 +74,14 @@ function getCurrentLs() {
 }
 
 function getToday() {
+	# shellcheck disable=SC2145
 	debugPrint "Function getToday $@"
-	local iTOTALPRODUCED="$(cat "$TMPDIR"/FVE.$$.html | grep -A2 'total energy' | tail -1)"
-	rawTOTALPRODUCED="$(cleanLine $iTOTALPRODUCED)"
+	local iTOTALPRODUCED
+	iTOTALPRODUCED="$(cat "$TMPDIR"/FVE.$$.html | grep -A2 'total energy' | tail -1)"
+	rawTOTALPRODUCED="$(cleanLine "$iTOTALPRODUCED")"
 	debugPrint "rawTOTALPRODUCED=$rawTOTALPRODUCED"
-	local MIDNIGHTTOTAL="$( grep $TIMEDATE_YYYYMMDD $HISTORYFILE | head -1 | awk '{ print $8 }')"
+	local MIDNIGHTTOTAL
+	MIDNIGHTTOTAL="$( grep "$TIMEDATE_YYYYMMDD" "$HISTORYFILE" | head -1 | awk '{ print $8 }')"
 	debugPrint "MIDNIGHTTOTAL=$MIDNIGHTTOTAL"
 	[ "$MIDNIGHTTOTAL" ] || MIDNIGHTTOTAL=0
 	TODAY=$(( rawTOTALPRODUCED - MIDNIGHTTOTAL ))
@@ -86,7 +90,7 @@ function getToday() {
 		errPrint "$TMPDIR/FVE.$$.html is missing"
 		exit 1
 	fi
-	todayProduction="$(cleanLine $(cat "$TMPDIR"/FVE.$$.html | grep -A2 'daily energy' | tail -1)) "
+	todayProduction="$(cleanLine "$(cat "$TMPDIR"/FVE.$$.html | grep -A2 'daily energy' | tail -1)" ) "
 	debugPrint "todayProduction=$todayProduction"
 	[ -e "$FVEDATADIR"/lastreset.date ] || date -I'seconds' > "$FVEDATADIR"/lastreset.date
 	[ "$todayProduction" = 0 ] && date -I'seconds' > "$FVEDATADIR"/lastreset.date
@@ -134,21 +138,21 @@ function updateProductionFile() {
 	
 	#DATE="$TIMEDATE_YYYYMMDD"
 
-	sed -i /"$TIMEDATE_YYYYMMDD"/d $PRODUCTIONFILE
-	echo "$TIMEDATE_YYYYMMDD $TODAY" >> $PRODUCTIONFILE
+	sed -i /"$TIMEDATE_YYYYMMDD"/d "$PRODUCTIONFILE"
+	echo "$TIMEDATE_YYYYMMDD $TODAY" >> "$PRODUCTIONFILE"
 	
 	return 0
 }
  
 function checkFileExist() {
 	debugPrint "FNC: checkFileExist"
-	if [ ! -e $HTMLFILE ]; then
+	if [ ! -e "$HTMLFILE" ]; then
 		FVEgenPage --defpage --FVErc "$FVErc"
 	fi
 	if [ ! -e "$HTMLOPTFILE" ]; then
 		FVEgenPage --optpage --FVErc "$FVErc"
 	fi
-	if [ `cat $HTMLOPTFILE | wc -l` -le 1 ]; then
+	if [ "$(wc -l < "$HTMLOPTFILE" )" -le 1 ]; then
 		FVEgenPage --optpage --FVErc "$FVErc"
 	fi
 }
@@ -161,15 +165,15 @@ function uploadDataFTP() {
 	sed -si -e's/True/on/g' -e's/False/off/g' "$FVEAPIFILE"1
 	mv "$FVEAPIFILE"1 "$FVEAPIFILE"
 	if [ "$GENGRAPHS" = "Y" ] || [ -z "$GENGRAPHS"  ]; then
-		( "$LOCALWEBSERVER" ) && sudo cp -f $TMPDIR/fvem.png $TMPDIR/fvel.png $TMPDIR/fve.device.*.png $TMPDIR/fved.png $TMPDIR/fvep.png "$LOCALWEBSERVERPATH"
+		( "$LOCALWEBSERVER" ) && sudo cp -f "$TMPDIR"/fvem.png "$TMPDIR"/fvel.png "$TMPDIR"/fve.device.*.png "$TMPDIR"/fved.png "$TMPDIR"/fvep.png "$LOCALWEBSERVERPATH"
 	fi
-	( "$LOCALWEBSERVER" ) && sudo cp -f $HTMLPOWERFILE $HTMLOPTFILE $HTMLFILE $TMPDIR/api.json "$LOCALWEBSERVERPATH"
+	( "$LOCALWEBSERVER" ) && sudo cp -f "$HTMLPOWERFILE" "$HTMLOPTFILE" "$HTMLFILE" "$TMPDIR"/api.json "$LOCALWEBSERVERPATH"
 	( "$LOCALWEBSERVER" ) && sudo mv -f "$LOCALWEBSERVERPATH"/"$FVEHTMLNAME" "$LOCALWEBSERVERPATH"/index.html
-	( "$REMOTEFTPSERVER" ) && lftp -u "$FTPUSERNAME",$FTPPASSWD -e "set net:timeout 5; set net:max-retries 0; mput -O $HTMLDESTDIR $TMPDIR/fvem.png $TMPDIR/fvel.png $TMPDIR/fve.device.*.png $TMPDIR/fved.png $TMPDIR/fvep.png $HTMLPOWERFILE $HTMLOPTFILE $HTMLFILE && bye" $HTMLSERVER >> /dev/null
+	( "$REMOTEFTPSERVER" ) && lftp -u "$FTPUSERNAME","$FTPPASSWD" -e "set net:timeout 5; set net:max-retries 0; mput -O $HTMLDESTDIR $TMPDIR/fvem.png $TMPDIR/fvel.png $TMPDIR/fve.device.*.png $TMPDIR/fved.png $TMPDIR/fvep.png $HTMLPOWERFILE $HTMLOPTFILE $HTMLFILE && bye" "$HTMLSERVER" >> /dev/null
 
 	if [ "$DIRECTTEMP" = "ON" ]; then 
-		( "$LOCALWEBSERVER" ) && sudo cp -f $TMPDIR/fvet.png "$LOCALWEBSERVERPATH"
-		( "$REMOTEFTPSERVER" ) && lftp -u "$FTPUSERNAME",$FTPPASSWD -e "set net:timeout 5; set net:max-retries 0;  mput -O $HTMLDESTDIR $TMPDIR/fvet.png && bye" $HTMLSERVER >> /dev/null
+		( "$LOCALWEBSERVER" ) && sudo cp -f "$TMPDIR"/fvet.png "$LOCALWEBSERVERPATH"
+		( "$REMOTEFTPSERVER" ) && lftp -u "$FTPUSERNAME","$FTPPASSWD" -e "set net:timeout 5; set net:max-retries 0;  mput -O $HTMLDESTDIR $TMPDIR/fvet.png && bye" "$HTMLSERVER" >> /dev/null
 	fi
     debugPrint "upload data to FTP is done"
 	return 0
@@ -179,7 +183,7 @@ function printDataStdout() {
 	debugPrint "FNC: printDataStdout"
 	#usage: #printDataStdout 
 
-	echo "My FV: `date`:"
+	echo "My FV: $(date):"
 	echo "Current production [kW]  = $CURRENT  (L1: $L1, L2: $L2, L3: $L3)"
 	echo "Avarage production [kW]  = $AVRG "
 	echo "Today was produced [kWh] = $TODAY"
@@ -197,13 +201,14 @@ function getDataViaFile() {
 		rawTOTALPRODUCED=0
 		totalProduction=0
 		todayProduction=0
+		# shellcheck disable=SC2034  #Unused vars -- will be used somewhere else
 		todayProductionLastReset="$(cat "$FVEDATADIR"/lastreset.date)"
 		LASTRESET="$(cat "$FVEDATADIR"/lastreset.date)"
 	else
 		local i=0
 		CURRENT=0
 		while [ "$i" -lt 3 ]; do
-			CURRENT="`getCurrent`"
+			CURRENT="$(getCurrent)"
 			if [ "$CURRENT" = 0 ] || [ "$CURRENT" -gt "$INSTALLEDPOWER" ]; then
 				debugPrint "Zero from FVE, one more try"
 				sleep 5
@@ -211,12 +216,12 @@ function getDataViaFile() {
 			else
 				break;
 			fi
-			i=$(( $i+1 ))
+			(( i++ ))
 		done
 		debugPrint "Current=$CURRENT"
-		L1="`getCurrentLs 1`"
-		L2="`getCurrentLs 2`"
-		L3="`getCurrentLs 3`"
+		L1="$(getCurrentLs 1)"
+		L2="$(getCurrentLs 2)"
+		L3="$(getCurrentLs 3)"
 		#getToday
 		FVESTATUS="Running"
 	fi
@@ -227,11 +232,11 @@ function getDataViaAPI() {
 		local RESULT=''
 		debugPrint "calling $VAR $HAENDPOINT $ARRTIBUTETOGET | tr ',' '.' | cut -d'.' -f1"
 		RESULT="$( parseHAAPI "$HAENDPOINT" "$ARRTIBUTETOGET" | tr ',' '.' | cut -d'.' -f1 )"
-		eval $VAR=$RESULT
+		eval "$VAR"="$RESULT"
 		debugPrint "$VAR = $RESULT"
 	done < <( grep -v '^#' "$HAAPICFG" )
-	todayProduction=$TODAY
-	rawTOTALPRODUCED=$totalProduction
+	todayProduction="$TODAY"
+	rawTOTALPRODUCED="$totalProduction"
 }
 
 function getData() {
@@ -241,7 +246,7 @@ function getData() {
 	else
 		getDataViaFile
 	fi
-	CURRENT="$( echo $CURRENT | cut -d'.' -f1)"
+	CURRENT="$( echo "$CURRENT" | cut -d'.' -f1)"
 	getAvrg
 	[ "$CURRENT" ] || CURRENT=0
 	[ "$CURRENT" -gt "$INSTALLEDPOWER" ] && CURRENT=0
@@ -256,7 +261,7 @@ function getData() {
 }
 
 function createAPIfile() {
-	> "$FVEAPIFILE"
+	cat /dev/null > "$FVEAPIFILE"
 	echo "
 {
 	\"time\": \"$(date --iso-8601=seconds)\",
@@ -279,10 +284,10 @@ function createAPIfile() {
 function genFiles() {
 	debugPrint "FNC: genFiles"
 	#usage: genFiles
-		echo $TIMEDATE_YYYYMMDDHHmm $CURRENT $TODAY $AVRG $L1 $L2 $L3 $rawTOTALPRODUCED >> "$HISTORYFILE"
+		echo "$TIMEDATE_YYYYMMDDHHmm" "$CURRENT" "$TODAY" "$AVRG" "$L1" "$L2" "$L3" "$rawTOTALPRODUCED" >> "$HISTORYFILE"
 
 		debugPrint "Running: FVEgenPage  --powerpage --current $CURRENT --L1 $L1 --L2 $L2 --L3 $L3 --today $TODAY --fvestatus $FVESTATUS --avrg $AVRG --FVErc $FVErc"
-		FVEgenPage  --powerpage --current $CURRENT --L1 $L1 --L2 $L2 --L3 $L3 --today $TODAY --fvestatus $FVESTATUS --avrg $AVRG  --FVErc "$FVErc"
+		FVEgenPage  --powerpage --current "$CURRENT" --L1 "$L1" --L2 "$L2" --L3 "$L3" --today "$TODAY" --fvestatus "$FVESTATUS" --avrg "$AVRG"  --FVErc "$FVErc"
 		
 		updateProductionFile
 
@@ -297,13 +302,10 @@ function genFiles() {
 
 function genHist() {
 	debugPrint "FNC: genHist"
-	if [ `date +%H%M` = '2358' ]; then
+	if [ "$(date +%H%M)" = '2358' ]; then
 		verbPrint "Time is 23:58, time to generate history page"
-		HISTORY=Y
-	fi
-	if [ $HISTORY ]; then
 		verbPrint "Generating history"
-		FVEhistPage $VERBPARM $DEBUGPARM --FVErc "$FVErc"
+		FVEhistPage "$VERBPARM" "$DEBUGPARM" --FVErc "$FVErc"
 	fi
 }
 
@@ -330,7 +332,7 @@ function mainLoop() {
 	else
 		genFiles
 		checkFileExist
-		FVEoptRunV2 $VERBPARM $DEBUGPARM   --FVErc $FVErc 
+		FVEoptRunV2 "$VERBPARM" "$DEBUGPARM"   --FVErc "$FVErc" 
 		#Close API json file
 		echo '}' >> "$FVEAPIFILE"
 		uploadDataFTP
@@ -342,15 +344,13 @@ function mainLoop() {
 
 VERBPARM=''
 VERB=''
-HISTORY=''
 
 while [ $# -gt 0 ]; do
 	case $1 in
-		-h|--help) printHelp; exit; shift;;
+		-h|--help) printHelp;;
 		--stdout) STDOUT="YES" ; shift;;
 		-v|--verbose) VERB=Y; VERBPARM="-v" ; shift;;
 		-d|--debug) VERB=Y; DEBUG=Y; DEBUGPARM="-d -v" ; shift;;
-		--history) HISTORY=Y; shift ;;
 		--reconfig)
 			rm -f "$TMPDIR"/fve*
 			cleanFile
@@ -364,8 +364,8 @@ while [ $# -gt 0 ]; do
 			fi
 			eval FVErc="$2"
 			if [ -e "$FVErc" ]; then
+				# shellcheck disable=SC1090
 				source "$FVErc"
-				FVErc="$FVErc"
 				source "$FVEBINDIR"/FVEcomFncs
 			else
 				errorPrint "FVErc file was not found"
