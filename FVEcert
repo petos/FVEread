@@ -1,15 +1,11 @@
 #!/bin/bash
 
-if [ -e $HOME/.FVErc ]; then 
-	source $HOME/.FVErc
-	FVErc="$HOME/.FVErc"
+if [ -e "$HOME"/.FVErc ]; then 
+	source "$HOME"/.FVErc
 	source "$FVEBINDIR"/FVEcomFncs
 elif [ -e /etc/FVErc ]; then
 	source /etc/FVErc
-	FVErc="/etc/FVErc"
 	source "$FVEBINDIR"/FVEcomFncs
-else
-	FVErc="ERROR"
 fi
 
 if [ ! -e "$CLOUDFLARESECRETSFILE" ]; then
@@ -27,6 +23,6 @@ sudo certbot \
     --no-eff-email \
     --no-redirect \
     -m "$CFMAIL" \
-    -d $(hostname -f)
+    -d "$(hostname -f)"
 
 sudo systemctl restart lighttpd.service 
