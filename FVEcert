@@ -17,11 +17,12 @@ if [ ! -e "$CLOUDFLARESECRETSFILE" ]; then
     exit 1
 fi
 
-sudo certbot \
+sudo certbot certonly \
     -a dns-cloudflare \
     --dns-cloudflare-credentials "$CLOUDFLARESECRETSFILE" \
     --preferred-challenges dns-01 \
     --server https://acme-v02.api.letsencrypt.org/directory \
+    --force-renewal \
     --dns-cloudflare-propagation-seconds 120 \
     --agree-tos \
     --no-eff-email \

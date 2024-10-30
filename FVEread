@@ -308,9 +308,9 @@ function genHist() {
 }
 
 function replaceCert() {
-	if [ "$(date +%d%H%M)" = "010101" ]; then
+	if [ "$(date +%D%d%H%M)" = "01010101" ]; then
 		echo "Replacing cert as it's 1st day in mth time 01:01 am"
-		replaceCert
+		FVEcert
 	fi
 }
 
