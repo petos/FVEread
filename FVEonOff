@@ -1,7 +1,7 @@
 #!/bin/bash
 
-if [ -e $HOME/.FVErc ]; then 
-	source $HOME/.FVErc
+if [ -e "$HOME"/.FVErc ]; then 
+	source "$HOME"/.FVErc
 	FVErc="$HOME/.FVErc"
 	source "$FVEBINDIR"/FVEcomFncs
 elif [ -e /etc/FVErc ]; then
@@ -13,7 +13,7 @@ else
 fi
 
 function printHelp() {
-	echo -e "\nusage: `basename $0` [OPTIONS]
+	echo -e "\nusage: $(basename "$0") [OPTIONS]
 	-h|--help  prints this help
 	-v         talky output
 	
@@ -126,7 +126,7 @@ function opt() {
 
 function mainSetLoop() {
 	for i in `seq 0 $DEVICESTOTALNUM`; do
-		opt ${DEVICENAME[$i]} ${DEVICESTATUS[$i]}
+		opt "${DEVICENAME[$i]}" "${DEVICESTATUS[$i]}"
 	done
 	return 0
 }
@@ -135,14 +135,14 @@ function mainGetLoop() {
 	if [ ! -e "$TMPDIR"/FVE.statuses ]; then
 		getTDstatuses
 	fi
-	if [ $(grep "$DEVICENAMEGET" "$TMPDIR"/FVE.statuses | wc -l) -lt 1 ]; then
+	if [ "$(grep -c "$DEVICENAMEGET" "$TMPDIR"/FVE.statuses )" -lt 1 ]; then
 		verbPrint "Not albe to get status for device $DEVICENAME"
 		exit 99
-	elif [ $(grep "$DEVICENAMEGET" "$TMPDIR"/FVE.statuses | wc -l) -gt 1 ]; then
+	elif [ "$(grep -c "$DEVICENAMEGET" "$TMPDIR"/FVE.statuses )" -gt 1 ]; then
 		verbPrint "Not albe to get unique status for device $DEVICENAME"
 		exit 99
 	fi
-	echo $( awk /$DEVICENAMEGET/'{print $NF}' "$TMPDIR"/FVE.statuses | tr '[:upper:]' '[:lower:]' )
+	awk /"$DEVICENAMEGET"/'{print $NF}' "$TMPDIR"/FVE.statuses | tr '[:upper:]' '[:lower:]'
 	return 0
 }
 
@@ -151,7 +151,7 @@ VERBOUT="2>/dev/null"
 DEVICESTOTALNUM=-1
 while [ $# -gt 0 ]; do
 	case $1 in
-		-h|--help) printHelp; shift;;
+		-h|--help) printHelp;;
 		-v|--verbose) VERB=Y; VERBOUT='' ; shift;;
 		-d|--debug) VERB=Y; VERBOUT=''; DEBUG=Y ; shift;;
 		-f|--force) FORCE='Y'; shift;;
@@ -160,7 +160,7 @@ while [ $# -gt 0 ]; do
 				errorPrint "Not enough params passed for --device $2"
 				exit 2
 			fi
-			if [ "${3,,}" != 'on' -a "${3,,}" != 'off' -a "${3,,}" != 'notd' ] ; then
+			if [ "${3,,}" != 'on' ] && [ "${3,,}" != 'off' ] && [ "${3,,}" != 'notd' ] ; then
 				errorPrint "3rd parametr may be only 'on/ON' or 'off/OFF'. Passed '$3' for device $2"
 				exit 3
 			fi
@@ -187,7 +187,6 @@ while [ $# -gt 0 ]; do
 			eval FVErc="$2"
 			if [ -e "$FVErc" ]; then
 				source "$FVErc"
-				FVErc="$FVErc"
 				source "$FVEBINDIR"/FVEcomFncs
 			else
 				errorPrint "FVErc file was not found"
