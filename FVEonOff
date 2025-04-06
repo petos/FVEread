@@ -39,28 +39,6 @@ function getDeviceNumber() {
 	DEVICENUM=$( grep -B1 $COMPONENT /etc/tellstick.conf | head -1 | awk '{print $NF}')
 }
 
-#~ function checkTDstatus() {
-#~ #	local TDSTATUS=`sudo service telldusd status | tr -d '!' `
-#~ #	if [  "$TDSTATUS" = "telldusd is not running ... failed" ]; then
-#~ #		echo "`date +%Y/%M/%d-%H:%M:%S` - Seems telldusd is down? Restarting"
-#~ #		sudo service telldusd start 
-#~ #		sudo service telldusd status
-#~ #		echo ====
-#~ #	fi
-	#~ local TDPID=`ps -ef | grep -v bash | grep -v grep |  grep telldusd | awk '{print $2}'`
-	#~ if [ ! "$TDPID" ]; then
-		#~ errorPrint "Seems telldusd is down? Restarting"
-		#~ sudo telldusd
-	#~ fi
-#~ }
-
-function getDeviceNumber() {
-	#usage: getDeviceNumber $COMPONENT
-	local COMPONENT=$1
-	debugPrint "Getting device number for: $COMPONENT"
-	DEVICENUM=$( grep -B1 $COMPONENT /etc/tellstick.conf | head -1 | awk '{print $NF}')
-}
-
 function realStatus(){
 	#usage: getStatus $COMPONENT $STATUS
 	#retval: 0 -- the status was changed
