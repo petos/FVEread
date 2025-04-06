@@ -305,7 +305,7 @@ function genHist() {
 	if [ "$(date +%H%M)" = '2358' ]; then
 		verbPrint "Time is 23:58, time to generate history page"
 		verbPrint "Generating history"
-		FVEhistPage "$VERBPARM" "$DEBUGPARM" --FVErc "$FVErc"
+		FVEhistPage $VERBPARM $DEBUGPARM --FVErc "$FVErc"
 	fi
 }
 
@@ -332,7 +332,7 @@ function mainLoop() {
 	else
 		genFiles
 		checkFileExist
-		FVEoptRunV2 "$VERBPARM" "$DEBUGPARM"   --FVErc "$FVErc" 
+		FVEoptRunV2 $VERBPARM $DEBUGPARM   --FVErc "$FVErc" 
 		#Close API json file
 		echo '}' >> "$FVEAPIFILE"
 		uploadDataFTP
