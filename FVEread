@@ -175,7 +175,7 @@ function uploadDataFTP() {
 	( "$REMOTEFTPSERVER" ) && lftp -u "$FTPUSERNAME","$FTPPASSWD" -e "set net:timeout 5; set net:max-retries 0; mput -O $HTMLDESTDIR $TMPDIR/fvem.png $TMPDIR/fvel.png $TMPDIR/fve.device.*.png $TMPDIR/fved.png $TMPDIR/fvep.png $HTMLPOWERFILE $HTMLOPTFILE $HTMLFILE && bye" "$HTMLSERVER" >> /dev/null
 
 	if [ "$DIRECTTEMP" = "ON" ]; then 
-		( "$LOCALWEBSERVER" ) && cp -f "$TMPDIR"/fvet.png "$LOCALWEBSERVERPATH"
+		( "$LOCALWEBSERVER" ) && [ "$TMPDIR"/fvet.png ] && cp -f "$TMPDIR"/fvet.png "$LOCALWEBSERVERPATH"
 		( "$REMOTEFTPSERVER" ) && lftp -u "$FTPUSERNAME","$FTPPASSWD" -e "set net:timeout 5; set net:max-retries 0;  mput -O $HTMLDESTDIR $TMPDIR/fvet.png && bye" "$HTMLSERVER" >> /dev/null
 	fi
     debugPrint "upload data to FTP is done"
