@@ -350,7 +350,7 @@ while [ $# -gt 0 ]; do
 		-h|--help) printHelp;;
 		--stdout) STDOUT="YES" ; shift;;
 		-v|--verbose) VERB=Y; VERBPARM="-v" ; shift;;
-		-d|--debug) VERB=Y; DEBUG=Y; DEBUGPARM="-d -v" ; shift;;
+		-d|--debug) VERB=Y; DEBUG=Y; DEBUGPARM="-d"; VERBPARM="-v" ; shift;;
 		--reconfig)
 			rm -f "$TMPDIR"/fve*
 			cleanFile
