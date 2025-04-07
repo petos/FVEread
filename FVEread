@@ -312,13 +312,6 @@ function genHist() {
 	fi
 }
 
-function replaceCert() {
-	if [ "$(date +%D%d%H%M)" = "01010101" ]; then
-		echo "Replacing cert as it's 1st day in mth time 01:01 am"
-		FVEcert
-	fi
-}
-
 function mainLoop() {
 	debugPrint "FNC: mainLoop"
 	checkRunningStatus
@@ -341,7 +334,6 @@ function mainLoop() {
 		uploadDataFTP
 	fi
 	genHist
-	replaceCert
 	cleanFile
 }
 
