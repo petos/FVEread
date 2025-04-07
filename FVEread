@@ -139,18 +139,7 @@ function updateProductionFile() {
 	return 0
 }
  
-function checkFileExist() {
-	debugPrint "FNC: checkFileExist"
-	if [ ! -e "$HTMLFILE" ]; then
-		FVEgenPage --defpage
-	fi
-	if [ ! -e "$HTMLOPTFILE" ]; then
-		FVEgenPage --optpage
-	fi
-	if [ "$(wc -l < "$HTMLOPTFILE" )" -le 1 ]; then
-		FVEgenPage --optpage
-	fi
-}
+
 
 function uploadDataFTP() {
 	#usage: uploadDataFTP
@@ -283,7 +272,6 @@ function mainLoop() {
 		printDataStdout 
 	else
 		createAPIfile
-		checkFileExist
 		FVEoptRunV2 $VERBPARM $DEBUGPARM
 		#Close API json file
 		echo '}' >> "$FVEAPIFILE"
