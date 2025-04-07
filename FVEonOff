@@ -34,48 +34,6 @@ function getDeviceNumber() {
 	DEVICENUM=$( grep -B1 $COMPONENT /etc/tellstick.conf | head -1 | awk '{print $NF}')
 }
 
-function realStatus(){
-	#usage: getStatus $COMPONENT $STATUS
-	#retval: 0 -- the status was changed
-	#        1 -- OK, but status was not changed
-	#        2 -- OK, but device was not recognized as part of config
-	#        9 -- ERROR with telldusd
-
-	local COMPONENT="$1"
-	local EXPECTEDSTATUS="$2"
-	local DEVICENUM=''
-	getDeviceNumber $COMPONENT
-	debugPrint "$COMPONENT has been found with device number $DEVICENUM"
-
-	if [ -z $DEVICENUM ]; then
-		debugPrint "Device not recognized, skipping"
-		return 2
-	fi
-
-	local STATUS=$( awk /$COMPONENT/'{print $NF}' "$TMPDIR"/FVE.statuses | tr '[:upper:]' '[:lower:]' )
-	if [ -z "$STATUS" ] && [ "$FORCE" != 'Y' ]; then
-		verbPrint "Error in getting real status, skipping"
-		return 9
-	fi
-	debugPrint "$COMPONENT [$DEVICENUM] = should be: $EXPECTEDSTATUS, is $STATUS"
-	if [ "$STATUS" = "$EXPECTEDSTATUS" -a "$EXPECTEDSTATUS" != 'off' -a "$FORCE" != 'Y' ]; then
-		verbPrint "OK, nothing to change"
-		return 1
-	else
-		verbPrint "Device $COMPONENT with id $DEVICENUM is being turned $EXPECTEDSTATUS"
-		FVEGPIO --pin 1"$DEVICENUM" --value "$EXPECTEDSTATUS" --mode set --type relay
-		#~ ERRMSG=$(tdtool --${EXPECTEDSTATUS,,} $DEVICENUM $VERBOUT )
-		#~ if [ "$?" != "0" ]; then
-			#~ errorPrint "Problem with tdtool. Failed with message:"
-			#~ errorPrint "\"$ERRMSG\""
-			#~ return 9
-		#~ else
-			#~ verbPrint "$ERRMSG"
-			#~ return 0
-		#~ fi
-	fi
-}
-
 function opt() {
 	#usage opt $COMPONENT $EXPECTEDSTATUS
 	local COMPONENT=$1
@@ -83,18 +41,15 @@ function opt() {
 	
 	debugPrint "$COMPONENT: should be $EXPECTEDSTATUS"
 	if [ "$EXPECTEDSTATUS" = "on" -o  "$EXPECTEDSTATUS" = "off" ]; then
-		debugPrint "Turning $EXPECTEDSTATUS"
-
-		realStatus $COMPONENT $EXPECTEDSTATUS
-		local STATUS=$? 
-		if [ $STATUS = 0 -o "$FORCE" = "Y" ] ; then
-			FVEgenPage --FVErc $FVErc --update --device $COMPONENT $EXPECTEDSTATUS
+		if [ "$EXPECTEDSTATUS" = "on" ]; then 
+			EXPECTEDSTATUSBINARY=1; 
+		else 
+			EXPECTEDSTATUSBINARY=0; 
 		fi
+		echo $TIMEDATE_YYYYMMDDHHmm $EXPECTEDSTATUSBINARY >> $FVEDATADIR/$COMPONENT."$TIMEDATE_YYYYMM"
 	else
 		errorPrint "Unknown parametr for function opt(): $@"
 	fi
-	if [ "$EXPECTEDSTATUS" = "on" ]; then EXPECTEDSTATUSBINARY=1; else EXPECTEDSTATUSBINARY=0; fi
-	echo $TIMEDATE_YYYYMMDDHHmm $EXPECTEDSTATUSBINARY >> $FVEDATADIR/$COMPONENT."$TIMEDATE_YYYYMM"
 }
 
 function mainSetLoop() {
