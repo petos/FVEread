@@ -1,11 +1,7 @@
 #!/bin/bash
 
 # shellcheck disable=SC1091
-if [ -e "$HOME"/.FVErc ]; then 
-	source "$HOME"/.FVErc
-	FVErc="$HOME/.FVErc"
-	source "$FVEBINDIR"/FVEcomFncs
-elif [ -e /etc/FVErc ]; then
+if [ -e /etc/FVErc ]; then
 	source /etc/FVErc
 	FVErc="/etc/FVErc"
 	source "$FVEBINDIR"/FVEcomFncs

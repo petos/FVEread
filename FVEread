@@ -1,10 +1,6 @@
 #!/bin/bash
 # shellcheck disable=SC1091
-if [ -e "$HOME"/.FVErc ]; then 
-	source "$HOME"/.FVErc
-	FVErc="$HOME/.FVErc"
-	source "$FVEBINDIR"/FVEcomFncs
-elif [ -e /etc/FVErc ]; then
+if [ -e /etc/FVErc ]; then
 	source /etc/FVErc
 	FVErc="/etc/FVErc"
 	source "$FVEBINDIR"/FVEcomFncs
@@ -21,7 +17,6 @@ function printHelp() {
   --stdout    Will not update webpage, but print just output to stdout
   
   --reconfig  Reload all config files
-  --FVErc FILE Pass full path to FVErc file
 "
 exit 0
 }
@@ -147,13 +142,13 @@ function updateProductionFile() {
 function checkFileExist() {
 	debugPrint "FNC: checkFileExist"
 	if [ ! -e "$HTMLFILE" ]; then
-		FVEgenPage --defpage --FVErc "$FVErc"
+		FVEgenPage --defpage
 	fi
 	if [ ! -e "$HTMLOPTFILE" ]; then
-		FVEgenPage --optpage --FVErc "$FVErc"
+		FVEgenPage --optpage
 	fi
 	if [ "$(wc -l < "$HTMLOPTFILE" )" -le 1 ]; then
-		FVEgenPage --optpage --FVErc "$FVErc"
+		FVEgenPage --optpage
 	fi
 }
 
@@ -289,16 +284,16 @@ function genFiles() {
 	#usage: genFiles
 		echo "$TIMEDATE_YYYYMMDDHHmm" "$CURRENT" "$TODAY" "$AVRG" "$L1" "$L2" "$L3" "$rawTOTALPRODUCED" >> "$HISTORYFILE"
 
-		debugPrint "Running: FVEgenPage  --powerpage --current $CURRENT --L1 $L1 --L2 $L2 --L3 $L3 --today $TODAY --fvestatus $FVESTATUS --avrg $AVRG --FVErc $FVErc"
-		FVEgenPage  --powerpage --current "$CURRENT" --L1 "$L1" --L2 "$L2" --L3 "$L3" --today "$TODAY" --fvestatus "$FVESTATUS" --avrg "$AVRG"  --FVErc "$FVErc"
+		debugPrint "Running: FVEgenPage  --powerpage --current $CURRENT --L1 $L1 --L2 $L2 --L3 $L3 --today $TODAY --fvestatus $FVESTATUS --avrg $AVRG"
+		FVEgenPage  --powerpage --current "$CURRENT" --L1 "$L1" --L2 "$L2" --L3 "$L3" --today "$TODAY" --fvestatus "$FVESTATUS" --avrg "$AVRG"
 		
 		updateProductionFile
 
 		if [ "$GENGRAPHS" = "Y" ] ||  [ -z "$GENGRAPHS"  ]; then
-			FVEgenGraphs --all  --FVErc "$FVErc"
+			FVEgenGraphs --all
 		fi
 		if [ "$DIRECTTEMP" = "ON" ]; then
-			FVEgenGraphs --temperature  --FVErc "$FVErc"
+			FVEgenGraphs --temperature
 		fi
 		createAPIfile
 }
@@ -308,7 +303,7 @@ function genHist() {
 	if [ "$(date +%H%M)" = '2358' ]; then
 		verbPrint "Time is 23:58, time to generate history page"
 		verbPrint "Generating history"
-		FVEhistPage $VERBPARM $DEBUGPARM --FVErc "$FVErc"
+		FVEhistPage $VERBPARM $DEBUGPARM
 	fi
 }
 
@@ -335,7 +330,7 @@ function mainLoop() {
 	else
 		genFiles
 		checkFileExist
-		FVEoptRunV2 $VERBPARM $DEBUGPARM   --FVErc "$FVErc" 
+		FVEoptRunV2 $VERBPARM $DEBUGPARM
 		#Close API json file
 		echo '}' >> "$FVEAPIFILE"
 		uploadDataFTP
@@ -359,21 +354,6 @@ while [ $# -gt 0 ]; do
 			cleanFile
 			errorPrint "Done. Please re-run the FVEread."
 			exit 0
-			;;
-		--FVErc)
-			if [ $# -lt 2 ]; then
-				errorPrint "Not enough params passed for --FVErc"
-				exit 2
-			fi
-			eval FVErc="$2"
-			if [ -e "$FVErc" ]; then
-				# shellcheck disable=SC1090
-				source "$FVErc"
-				source "$FVEBINDIR"/FVEcomFncs
-			else
-				errorPrint "FVErc file was not found"
-			fi
-			shift 2;
 			;;
 		*)  errorPrint "$0: error - unrecognized option $1" 1>&2; exit 1;;
 	esac
