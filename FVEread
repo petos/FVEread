@@ -158,7 +158,6 @@ function checkFileExist() {
 }
 
 function uploadDataFTP() {
-	debugPrint "FNC: uploadDataFTP"
 	#usage: uploadDataFTP
 	if ( ! touch "$LOCALWEBSERVERPATH"/api.json ); then
 		sudo chmod o+rwx "$LOCALWEBSERVERPATH"
@@ -167,18 +166,8 @@ function uploadDataFTP() {
 	jq -c . "$FVEAPIFILE" > "$FVEAPIFILE"1
 	sed -si -e's/True/on/g' -e's/False/off/g' "$FVEAPIFILE"1
 	mv "$FVEAPIFILE"1 "$FVEAPIFILE"
-	if [ "$GENGRAPHS" = "Y" ] || [ -z "$GENGRAPHS"  ]; then
-		( "$LOCALWEBSERVER" ) && cp -f "$TMPDIR"/fvem.png "$TMPDIR"/fvel.png "$TMPDIR"/fve.device.*.png "$TMPDIR"/fved.png "$TMPDIR"/fvep.png "$LOCALWEBSERVERPATH"
-	fi
-	( "$LOCALWEBSERVER" ) && cp -f "$HTMLPOWERFILE" "$HTMLOPTFILE" "$HTMLFILE" "$TMPDIR"/api.json "$LOCALWEBSERVERPATH"
-	( "$LOCALWEBSERVER" ) && mv -f "$LOCALWEBSERVERPATH"/"$FVEHTMLNAME" "$LOCALWEBSERVERPATH"/index.html
-	( "$REMOTEFTPSERVER" ) && lftp -u "$FTPUSERNAME","$FTPPASSWD" -e "set net:timeout 5; set net:max-retries 0; mput -O $HTMLDESTDIR $TMPDIR/fvem.png $TMPDIR/fvel.png $TMPDIR/fve.device.*.png $TMPDIR/fved.png $TMPDIR/fvep.png $HTMLPOWERFILE $HTMLOPTFILE $HTMLFILE && bye" "$HTMLSERVER" >> /dev/null
 
-	if [ "$DIRECTTEMP" = "ON" ]; then 
-		( "$LOCALWEBSERVER" ) && [ -e "$TMPDIR"/fvet.png ] && cp -f "$TMPDIR"/fvet.png "$LOCALWEBSERVERPATH"
-		( "$REMOTEFTPSERVER" ) && lftp -u "$FTPUSERNAME","$FTPPASSWD" -e "set net:timeout 5; set net:max-retries 0;  mput -O $HTMLDESTDIR $TMPDIR/fvet.png && bye" "$HTMLSERVER" >> /dev/null
-	fi
-    debugPrint "upload data to FTP is done"
+	cp -f "$TMPDIR"/api.json "$LOCALWEBSERVERPATH" #TOHLE NECHAT
 	return 0
 }
 
@@ -284,34 +273,6 @@ function createAPIfile() {
 " >> "$FVEAPIFILE"
 }
 
-function genFiles() {
-	debugPrint "FNC: genFiles"
-	#usage: genFiles
-		echo "$TIMEDATE_YYYYMMDDHHmm" "$CURRENT" "$TODAY" "$AVRG" "$L1" "$L2" "$L3" "$rawTOTALPRODUCED" >> "$HISTORYFILE"
-
-		debugPrint "Running: FVEgenPage  --powerpage --current $CURRENT --L1 $L1 --L2 $L2 --L3 $L3 --today $TODAY --fvestatus $FVESTATUS --avrg $AVRG --FVErc $FVErc"
-		FVEgenPage  --powerpage --current "$CURRENT" --L1 "$L1" --L2 "$L2" --L3 "$L3" --today "$TODAY" --fvestatus "$FVESTATUS" --avrg "$AVRG"  --FVErc "$FVErc"
-		
-		updateProductionFile
-
-		if [ "$GENGRAPHS" = "Y" ] ||  [ -z "$GENGRAPHS"  ]; then
-			FVEgenGraphs --all  --FVErc "$FVErc"
-		fi
-		if [ "$DIRECTTEMP" = "ON" ]; then
-			FVEgenGraphs --temperature  --FVErc "$FVErc"
-		fi
-		createAPIfile
-}
-
-function genHist() {
-	debugPrint "FNC: genHist"
-	if [ "$(date +%H%M)" = '2358' ]; then
-		verbPrint "Time is 23:58, time to generate history page"
-		verbPrint "Generating history"
-		FVEhistPage $VERBPARM $DEBUGPARM --FVErc "$FVErc"
-	fi
-}
-
 function mainLoop() {
 	debugPrint "FNC: mainLoop"
 	checkRunningStatus
@@ -326,14 +287,13 @@ function mainLoop() {
 	if [ "$STDOUT" ]; then
 		printDataStdout 
 	else
-		genFiles
+		createAPIfile
 		checkFileExist
 		FVEoptRunV2 $VERBPARM $DEBUGPARM   --FVErc "$FVErc" 
 		#Close API json file
 		echo '}' >> "$FVEAPIFILE"
 		uploadDataFTP
 	fi
-	genHist
 	cleanFile
 }
 
