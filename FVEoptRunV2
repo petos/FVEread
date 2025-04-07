@@ -119,32 +119,8 @@ function getLowTarifInfo() {
 	local LOWTARIFN
 	local TIMEDATEHHmm=$(date +%H%M)
 	
-
-	if [ "$LOWHA" ] && ( "$LOWHA" ); then
-		getLowViaHAAPI
-    elif [ "$DIRECTLOW" ] && [ "$DIRECTLOW" = "ON" ]; then
-        if [ "$(FVEGPIO --pin $DIRECTLOWPIN --mode get --type relay)" = "on" ]; then
-            debugPrint "DirectLowTarif was detected"
-            ISLOWTARIF=Y
-            if [ $(date +%H) -lt 12 ]; then
-                LOWTARIFNUM=0
-            else
-                LOWTARIFNUM=1
-            fi
-        else
-            debugPrint "DirectLowTarif was NOT detected"
-        fi
-    else
-        #Parse lowtarif config
-        for LOWTARIFN in $(seq 0 $(expr $VALLOWTARIFS - 1)); do
-            if [ ${VALLOWTARIF_STARTS[$LOWTARIFN]} -lt $TIMEDATEHHmm -a $TIMEDATEHHmm -lt ${VALLOWTARIF_STOPS[$LOWTARIFN]} ]; then
-                verbPrint "Now we are in Low Tarif time: ${VALLOWTARIF_STARTS[$LOWTARIFN]} < $TIMEDATEHHmm < ${VALLOWTARIF_STOPS[$LOWTARIFN]} "
-                ISLOWTARIF=Y
-                LOWTARIFNUM=$LOWTARIFN
-                break
-            fi
-        done
-    fi
+	getLowViaHAAPI
+   
     debugPrint "LowTarif ID: $LOWTARIFNUM: LowTarif=$ISLOWTARIF"
     [ "$ISLOWTARIF" = "Y" ] && LTTFVAL=True
     echo ",
