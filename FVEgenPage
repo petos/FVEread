@@ -1,10 +1,6 @@
 #!/bin/bash
 
-if [ -e $HOME/.FVErc ]; then 
-	source $HOME/.FVErc
-	FVErc="$HOME/.FVErc"
-	source "$FVEBINDIR"/FVEcomFncs
-elif [ -e /etc/FVErc ]; then
+if [ -e /etc/FVErc ]; then
 	source /etc/FVErc
 	FVErc="/etc/FVErc"
 	source "$FVEBINDIR"/FVEcomFncs
@@ -32,7 +28,6 @@ function printHelp() {
 	--update
 		updates only row with device. Not going to re-generate 
 		the whole page.
-    --FVErc FILE Pass full path to FVErc file
 	"
 	
 }
@@ -149,7 +144,7 @@ echo '  </tr>' >> "$HTMLOPTFILE"
 echo '</table>' >> "$HTMLOPTFILE"
 
 #Run to update statusses, since the page is generated from scratch. Usually only --update is run.
-FVEoptRunV2 -f --FVErc $FVErc
+FVEoptRunV2 -f
 
 }
 
@@ -267,21 +262,6 @@ while [ $# -gt 0 ]; do
 			shift 3
 			;;
 		--update) UPDATE=Y; shift;;
-		--FVErc)
-			if [ $# -lt 2 ]; then
-				errorPrint "Not enough params passed for --FVErc"
-				exit 2
-			fi
-			eval FVErc="$2"
-			if [ -e "$FVErc" ]; then
-				source "$FVErc"
-				FVErc="$FVErc"
-				source "$FVEBINDIR"/FVEcomFncs
-			else
-				errorPrint "FVErc file was not found"
-			fi
-			shift 2;
-			;;
 		*)  echo "$0: error - unrecognized option $1" 1>&2; exit 1;;
 	esac
 done
