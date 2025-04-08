@@ -8,107 +8,11 @@ else
 	FVErc="ERROR"
 fi
 
-
-function printHelp() {
-	echo -e "usage: $(basename "$0") [OPTIONS]
- Opts:
-  --help|-h   Print this help message
-  -v          Talky version
-  --stdout    Will not update webpage, but print just output to stdout
-  
-  --reconfig  Reload all config files
-"
-exit 0
-}
-
-function getAvrg() {
-	debugPrint "FNC: getAvrg"
-	#Will make average production in last 10 minutes (last 10 lines)
-	AVRG=$(( $(( $(tail -10 "$HISTORYFILE" | awk '{print $2}' | sed '/^$/d' | sed ':a;N;$!ba;s/\n/ + /g') )) / $(tail -10 "$HISTORYFILE" | awk '{print $2}' | sed '/^$/d' | wc -l) ))	
-	verbPrint "Avrg is: $AVRG"
-}
-
-function getFileFromFVE() {
-	debugPrint "FNC: getFileFromFVE"
-	if ( curl -u "$FVEUSERNAME":"$FVEPWD" "$FVEURL" > "$TMPDIR"/FVE.$$.html 2>/dev/null ) ; then
-		return 0
-	else
-		errorPrint "Stridac neni dostupny"
-		return 1
-	fi
-}
-
-function cleanLine() {
-	local LINE=$1
-	echo "$LINE" | sed 's/<\/td>//g' | sed 's/&nbsp//g' | tr -d ' ' | \
-	sed 's/xxx/0/g' | tr -dc '[:print:]'
-}
-
-function getCurrentPiko() {
-	local iCURRENT=0
-	iCURRENT=$(cat "$TMPDIR"/FVE.$$.html | grep -A2 'current' | head -3 | tail -1 )
-	cleanLine "$iCURRENT"
-}
-
-function getCurrent() {
-	local iCURRENT=0
-	iCURRENT=$(awk -F'"' '/var webdata_now_p = /{print $2}' "$TMPDIR"/FVE.$$.html)
-	[ "$iCURRENT" ] || iCURRENT=0
-	cleanLine "$iCURRENT"
-}
-
-function getCurrentLsPiko() {
-	local iCURRENT=0
-	iCURRENT=$(cat "$TMPDIR"/FVE.$$.html | grep -B1 '<td width="30">&nbsp W</td>' | grep -v '<td width="30">&nbsp W</td>' | grep -v '-' | tail -"$1" | head -1)
-	[ "$iCURRENT" ] || iCURRENT=0
-	cleanLine "$iCURRENT"
-}
-
-function getCurrentLs() {
-	echo 0
-}
-
-function getToday() {
-	# shellcheck disable=SC2145
-	debugPrint "Function getToday $@"
-	local iTOTALPRODUCED
-	iTOTALPRODUCED="$(cat "$TMPDIR"/FVE.$$.html | grep -A2 'total energy' | tail -1)"
-	rawTOTALPRODUCED="$(cleanLine "$iTOTALPRODUCED")"
-	debugPrint "rawTOTALPRODUCED=$rawTOTALPRODUCED"
-	local MIDNIGHTTOTAL
-	MIDNIGHTTOTAL="$( grep "$TIMEDATE_YYYYMMDD" "$HISTORYFILE" | head -1 | awk '{ print $8 }')"
-	debugPrint "MIDNIGHTTOTAL=$MIDNIGHTTOTAL"
-	[ "$MIDNIGHTTOTAL" ] || MIDNIGHTTOTAL=0
-	TODAY=$(( rawTOTALPRODUCED - MIDNIGHTTOTAL ))
-	verbPrint "TODAY was count as $TODAY"
-	if [ ! -e "$TMPDIR"/FVE.$$.html ]; then
-		errPrint "$TMPDIR/FVE.$$.html is missing"
-		exit 1
-	fi
-	todayProduction="$(cleanLine "$(cat "$TMPDIR"/FVE.$$.html | grep -A2 'daily energy' | tail -1)" ) "
-	debugPrint "todayProduction=$todayProduction"
-	[ -e "$FVEDATADIR"/lastreset.date ] || date -I'seconds' > "$FVEDATADIR"/lastreset.date
-	[ "$todayProduction" = 0 ] && date -I'seconds' > "$FVEDATADIR"/lastreset.date
-	LASTRESET="$(cat "$FVEDATADIR"/lastreset.date)"
-}
-
 function cleanFile() {
 	debugPrint "FNC: cleanFile"
-	rm -f "$TMPDIR"/FVE.$$.html
 	#rm -f "$TMPDIR"/FVE.gn
-	rm -f "$TMPDIR"/fved.png
-	rm -f "$TMPDIR"/fvem.png
-	rm -f "$TMPDIR"/fvep.png
-	rm -f "$TMPDIR"/fved"$TIMEDATE_YYYYMMDD".png
-	rm -f "$TMPDIR"/fvem"$TIMEDATE_YYYYMM".png
-	rm -f "$TMPDIR"/fvep"$TIMEDATE_YYYYMM".png
-	rm -f "$TMPDIR"/fvel"$TIMEDATE_YYYYMMDD".png
-	rm -f "$TMPDIR"/fve.device.*.png
 	rm -f "$TMPDIR"/.fveread.lock
 	rm -f "$TMPDIR"/HAAPI.json
-	rm -f "$TMPDIR"/fve.html
-	rm -f "$TMPDIR"/fveopts.html
-	rm -f "$TMPDIR"/fvepower.html
 	rm -f "$TMPDIR"/api.json
 }
 
@@ -126,21 +30,6 @@ function checkRunningStatus() {
 	echo $$ > "$TMPDIR"/.fveread.lock
 }
 
-
-function updateProductionFile() {
-	#usage: genProductionFiles 
-	debugPrint "FNC: updateProductionFile"
-	
-	#DATE="$TIMEDATE_YYYYMMDD"
-
-	sed -i /"$TIMEDATE_YYYYMMDD"/d "$PRODUCTIONFILE"
-	echo "$TIMEDATE_YYYYMMDD $TODAY" >> "$PRODUCTIONFILE"
-	
-	return 0
-}
- 
-
-
 function uploadDataFTP() {
 	#usage: uploadDataFTP
 	if ( ! touch "$LOCALWEBSERVERPATH"/api.json ); then
@@ -153,54 +42,6 @@ function uploadDataFTP() {
 
 	cp -f "$TMPDIR"/api.json "$LOCALWEBSERVERPATH" #TOHLE NECHAT
 	return 0
-}
-
-function printDataStdout() {
-	debugPrint "FNC: printDataStdout"
-	#usage: #printDataStdout 
-
-	echo "My FV: $(date):"
-	echo "Current production [kW]  = $CURRENT  (L1: $L1, L2: $L2, L3: $L3)"
-	echo "Avarage production [kW]  = $AVRG "
-	echo "Today was produced [kWh] = $TODAY"
-	return 0
-}
-
-function getDataViaFile() {
-	if [ $? = 1 ]; then
-		CURRENT="0"
-		TODAY="0"
-		FVESTATUS="Down/stopped"
-		L1=0
-		L2=0
-		L3=0
-		rawTOTALPRODUCED=0
-		totalProduction=0
-		todayProduction=0
-		# shellcheck disable=SC2034  #Unused vars -- will be used somewhere else
-		todayProductionLastReset="$(cat "$FVEDATADIR"/lastreset.date)"
-		LASTRESET="$(cat "$FVEDATADIR"/lastreset.date)"
-	else
-		local i=0
-		CURRENT=0
-		while [ "$i" -lt 3 ]; do
-			CURRENT="$(getCurrent)"
-			if [ "$CURRENT" = 0 ] || [ "$CURRENT" -gt "$INSTALLEDPOWER" ]; then
-				debugPrint "Zero from FVE, one more try"
-				sleep 5
-				getFileFromFVE
-			else
-				break;
-			fi
-			(( i++ ))
-		done
-		debugPrint "Current=$CURRENT"
-		L1="$(getCurrentLs 1)"
-		L2="$(getCurrentLs 2)"
-		L3="$(getCurrentLs 3)"
-		#getToday
-		FVESTATUS="Running"
-	fi
 }
 
 function getDataViaAPI() {
@@ -217,13 +58,8 @@ function getDataViaAPI() {
 
 function getData() {
 	debugPrint "FNC: getData"
-	if [ "$USEHAAPI" ] &&  ( "$USEHAAPI" ); then
-		getDataViaAPI
-	else
-		getDataViaFile
-	fi
+	getDataViaAPI
 	CURRENT="$( echo "$CURRENT" | cut -d'.' -f1)"
-	getAvrg
 	[ "$CURRENT" ] || CURRENT=0
 	[ "$CURRENT" -gt "$INSTALLEDPOWER" ] && CURRENT=0
 	[ "$L1" ] || L1=0
@@ -261,43 +97,17 @@ function mainLoop() {
 	debugPrint "FNC: mainLoop"
 	checkRunningStatus
 
-	if [ "$USEHAAPI" = "true" ] || [ "$LOWHA" = "true" ] || [ "$USEHAAPITEMP" = "true" ] || [ "$(grep -v \# "$OPTCFGFILE" | cut -d' ' -c3 | sed -e's/[0-9]//g' )" ]; then
-		debugPrint "USEHAAPI and/or LOWHA  and/or USEHAAPITEMP and/or FVEopt is using HA"
-		callHAAPI
-	fi
-
+	debugPrint "USEHAAPI and/or LOWHA  and/or USEHAAPITEMP and/or FVEopt is using HA"
+	callHAAPI
 	getData
 
-	if [ "$STDOUT" ]; then
-		printDataStdout 
-	else
-		createAPIfile
-		FVEoptRunV2 $VERBPARM $DEBUGPARM
-		#Close API json file
-		echo '}' >> "$FVEAPIFILE"
-		uploadDataFTP
-	fi
+	createAPIfile
+	FVEoptRunV2 --current $CURRENT
+	#Close API json file
+	echo '}' >> "$FVEAPIFILE"
+	uploadDataFTP
 	cleanFile
 }
-
-VERBPARM=''
-VERB=''
-
-while [ $# -gt 0 ]; do
-	case $1 in
-		-h|--help) printHelp;;
-		--stdout) STDOUT="YES" ; shift;;
-		-v|--verbose) VERB=Y; VERBPARM="-v" ; shift;;
-		-d|--debug) VERB=Y; DEBUG=Y; DEBUGPARM="-d"; VERBPARM="-v" ; shift;;
-		--reconfig)
-			rm -f "$TMPDIR"/fve*
-			cleanFile
-			errorPrint "Done. Please re-run the FVEread."
-			exit 0
-			;;
-		*)  errorPrint "$0: error - unrecognized option $1" 1>&2; exit 1;;
-	esac
-done
 
 if [ "$FVErc" = "ERROR" ]; then errorPrint "FVErc not found!"; exit 99; fi
 debugPrint "SCRIPT: FVEread"

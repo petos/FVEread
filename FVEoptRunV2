@@ -16,53 +16,6 @@ function updateEnergy() {
 	verbPrint "Remaining energy = $ENERGYBUCKET"
 }
 
-
-
-function printHelp() {
-	echo -e "\nusage: `basename $0` [OPTIONS]
-	-v         talky output
-	--debug    tells everything it knows
-	-f|--force force to send the on/off command despite of real status.
-"
-exit 0
-}
-
-function getAvrg() {
-	#Will make average production in last 10 minutes (last 10 lines)	
-	AVRG=$(expr $(expr $(tail -10 $HISTORYFILE | awk '{print $2}' | sed '/^$/d' | sed ':a;N;$!ba;s/\n/ + /g')) / $(tail -10 $HISTORYFILE | awk '{print $2}' | sed '/^$/d' | wc -l) )
-	verbPrint "AVRG=$AVRG"
-	ENERGYBUCKET=$AVRG
-}
-
-function getBucket(){
-	if [ $OFF ]; then
-		ENERGYBUCKET=0
-		verbPrint "Power management disabled by OFF option"
-	else
-		if [ $USEAVRGS = "YES" ] && [ $USEAVRGS != 'no' ] && [ $USEAVRGS != 'NO' ] && [ $USEAVRGS != 'N' ]; then
-			getAvrg
-		else
-			ENERGYBUCKET=$(tail -1 $HISTORYFILE | awk '{print $2}' )
-			verbPrint "Working with direct power!"
-		fi
-	fi
-	verbPrint "There is $ENERGYBUCKET in Bucket"
-	return 0
-}
-
-function checkUptime() {
-    if [ $USEAVRGS = NO ]; then
-        return 0
-    else
-        UPTIME=$(cat /proc/uptime | awk -F '.' '{print $1}')
-        if [ $UPTIME -lt 660 ]; then
-            errorPrint "LOW uptime: disabled due to not enough of data"
-            OFF='Y'
-            FORCE='Y'
-        fi
-    fi
-}
-
 function getTempViaHAAPI() {
 	while read -r VAR HAENDPOINT ARRTIBUTETOGET; do
 		local RESULT=''
@@ -312,11 +265,7 @@ function decideOnOff() {
 	        debugPrint "LOCSTARTTEMP=$LOCSTARTTEMP"
 		fi
 		
-		if [ $USEAVRGS = "YES" ] && [ $USEAVRGS != 'no' ] && [ $USEAVRGS != 'NO' ] && [ $USEAVRGS != 'N' ]; then
-			STARTLOCALCONSUMPTION=$(expr $LOCALCONSUMPTION + $(expr $LOCALCONSUMPTION / 10))
-		else
-			STARTLOCALCONSUMPTION=$LOCALCONSUMPTION
-		fi
+		STARTLOCALCONSUMPTION=$LOCALCONSUMPTION
 		
 		if [ "${STARTSTOPDEVICES["$LOCALDEVICEID"]}" = "ON" ]; then
 			debugPrint "Device $LOCALDEVICE (id: $LOCALDEVICEID) is already setup to be on, skipping"
@@ -341,8 +290,6 @@ function decideOnOff() {
 				verbPrint "Device $LOCALDEVICE (ID:$LOCALDEVICEID) CONS: ${LOCALCONSUMPTION} > $ENERGYBUCKET"
 				updateJSONforDevices "$i" "$LOCALDEVICE" "$LOCALDEVICEID" "$LOCALCONSUMPTION" "$LOCSTARTTEMP" "$LOCSTOPTEMP" "OFF"
 				STARTSTOPDEVICES["$LOCALDEVICEID"]=OFF
-				
-				
 			elif [ $LOCALCONSUMPTION -le $ENERGYBUCKET ] && [ $ENERGYBUCKET -le $STARTLOCALCONSUMPTION ] ; then
 				verbPrint "Device $LOCALDEVICE (ID:$LOCALDEVICEID) CONS:  ${LOCALCONSUMPTION} < $ENERGYBUCKET < $STARTLOCALCONSUMPTION -- nochange" 
 				local STATUS
@@ -440,23 +387,26 @@ function mainLoop() {
 
 
 
-FORCE='N'
+
 OFF=''
-VERB=''
-VERBPARM=''
-DEBUG=''
+
 
 if [ "$FVEOPTONOFF" = "OFF" ]; then
 	OFF='Y'
 fi
 
+FORCE='Y'
+
 while [ $# -gt 0 ]; do
 	case $1 in
-		-h|--help) printHelp; shift;;
-		--off) OFF='Y' ; shift;;
-		-v|--verbose) VERB=Y; VERBPARM='-v'; shift;;
-		-d|--debug) VERB=Y;  DEBUG=Y ; VERBPARAM='-v'; DEBUGPARAM='--debug'; shift;;
-		-f|--force) FORCE='Y'; shift;;
+		--current)
+			if [ $# -lt 2 ]; then
+				errorPrint "Not passed device parametr --current"
+				exit 2
+			fi
+			ENERGYBUCKET="$2"
+			shift 2
+			;;
 		*)  errorPrint "$0: error - unrecognized option $1" 1>&2; exit 1;;
 	esac
 done
@@ -464,9 +414,6 @@ done
 if [ "$FVErc" = "ERROR" ]; then errorPrint "FVErc not found!"; exit 99; fi
 debugPrint "SCRIPT: FVEoptRunV2"
 debugPrint "Using FVErc from ${FVErc}"
-
-checkUptime
-getBucket
 
 mainLoop
 
