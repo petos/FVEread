@@ -26,24 +26,7 @@ function getTempViaHAAPI() {
 	done < <( grep -v '^#' "$HAAPICFGTEMP" )
 }
 
-function getTemperature() {
-    TEMPERATURE="0.0"
-	getTempViaHAAPI
-   
-  
-    echo ", \"temperatures\":
-{
-" >> "$FVEAPIFILE"
-    verbPrint "Temperature on thermal devices is $TEMPERATURE"
-    if [ TEMPERATURE1 ]; then
-        echo "$TIMEDATE_YYYYMMDDHHmm $TEMPERATURE $TEMPERATURE1" >> $TEMPERATUREFILE
-	echo "\"temperature_0\": $TEMPERATURE, \"temperature_1\": $TEMPERATURE1" >> "$FVEAPIFILE"
-    else
-        echo "$TIMEDATE_YYYYMMDDHHmm $TEMPERATURE" >> $TEMPERATUREFILE
-	echo "\"temperature_0\": $TEMPERATURE" >> "$FVEAPIFILE"
-    fi
-    echo "}" >> "$FVEAPIFILE"
-}
+
 
 function getLowViaHAAPI() {
 	[ $HALOWARRTIBUTE ] || HALOWARRTIBUTE=state
@@ -62,20 +45,11 @@ function getLowTarifInfo() {
 	#returns if now we are in Low tarif or not and eventually what low tarif (1st part, 2nd part...)
 	
 	ISLOWTARIF=N
-	local LTTFVAL=False
 	LOWTARIFNUM=''
 	local LOWTARIFN
 	local TIMEDATEHHmm=$(date +%H%M)
 	
 	getLowViaHAAPI
-   
-    debugPrint "LowTarif ID: $LOWTARIFNUM: LowTarif=$ISLOWTARIF"
-    [ "$ISLOWTARIF" = "Y" ] && LTTFVAL=True
-    echo ",
-	\"lowTarif\": {
-		\"lowTarifEnabled\": \"$LTTFVAL\"" >> "$FVEAPIFILE"
-    [ "$LOWTARIFNUM" ] && echo ",\"lowTarifID\": $LOWTARIFNUM" >> "$FVEAPIFILE"
-    echo '}' >> "$FVEAPIFILE"
 }
 
 
@@ -136,46 +110,6 @@ function getUptimeOfDevice() {
 	return $DEVICEUPTIME
 }
 
-function thermalLowTarifNODT() {
-	TIMETARIF="TIME$LOWTARIFNUM[@]"
-	local LOCALDEVICEID=-1
-	while read DESIREDUPTIME; do
-		((++LOCALDEVICEID))
-		
-		RETVAL=$?
-		if [ $RETVAL = 0 ]; then
-			debugPrint "Device ${DEVICE["$LOCALDEVICEID"]} was not localy changed"
-		elif [ $RETVAL = 1 ]; then
-			debugPrint "Device ${DEVICE["$LOCALDEVICEID"]} was localy changed to ON"
-			STARTSTOPDEVICES["${DEVICEID["$LOCALDEVICEID"]}"]=ON
-			updateEnergy ${CONSUMPTION["$LOCALDEVICEID"]}
-			continue
-		elif [ $RETVAL = 2 ]; then
-			debugPrint "Device ${DEVICE["$LOCALDEVICEID"]} was localy changed to ON"
-			STARTSTOPDEVICES["${DEVICEID["$LOCALDEVICEID"]}"]=OFF
-			continue
-		fi
-		
-		if [ $DESIREDUPTIME -gt 0 ]; then
-			debugPrint "Device ${DEVICE["$LOCALDEVICEID"]} in this lowtarif n.$LOWTARIFNUM should be up for $DESIREDUPTIME mins."
-			getUptimeOfDevice ${DEVICE["$LOCALDEVICEID"]}
-			local UPTIME="$?"
-			if [ "$UPTIME" -lt "$DESIREDUPTIME" ]; then
-				verbPrint "Device ${DEVICE["$LOCALDEVICEID"]} was up for $UPTIME mins, but required is $DESIREDUPTIME."				
-				STARTSTOPDEVICES["${DEVICEID["$LOCALDEVICEID"]}"]=ON
-				updateEnergy ${CONSUMPTION["$LOCALDEVICEID"]}
-			else
-				verbPrint "Device ${DEVICE["$LOCALDEVICEID"]} was up for $UPTIME, that is more than $DESIREDUPTIME mins, not starting now"
-				STARTSTOPDEVICES["${DEVICE["$LOCALDEVICEID"]}"]=OFF
-			fi
-		else
-			verbPrint "Device ${DEVICE["$LOCALDEVICEID"]} in this lowtarif n.$LOWTARIFNUM should not be up"
-			STARTSTOPDEVICES["${DEVICE["$LOCALDEVICEID"]}"]=OFF
-		fi
-	done < <(echo ${!TIMETARIF} | tr ' ' '\n')
-	return 0
-}
-
 function thermalLowTarifDT() {
     local LOCALDEVICEID=-1
     while read DEVICENAME; do
@@ -195,17 +129,8 @@ function thermalLowTarifDT() {
 function manageThermalDevicesLowTarif {
 	
 	if [ "$ISLOWTARIF" = "Y" ]; then
-	verbPrint "LowTarif time is enabled"
-		if [ "$DIRECTTEMP" = "ON" ]; then
-			verbPrint "DirectTemp is ON, enabling temperature-based configuration"
-			thermalLowTarifDT
-		elif [ "$DIRECTTEMP" = "OFF" ]; then
-			verbPrint "DirectTemp is OFF, enabling time-based configuration"
-			thermalLowTarifNODT
-		else
-			errorPrint "Not able parse configuration, quitting"
-			exit 1
-		fi
+		verbPrint "LowTarif time is enabled"
+		thermalLowTarifDT
 	else
 		verbPrint "Out of lowtarif"
 	fi
@@ -272,7 +197,7 @@ function decideOnOff() {
 			updateJSONforDevices "$i" "$LOCALDEVICE" "$LOCALDEVICEID" "$LOCALCONSUMPTION" "$LOCSTARTTEMP" "$LOCSTOPTEMP" "ON"
 		else
 			if [ $STARTLOCALCONSUMPTION -lt $ENERGYBUCKET ]; then
-				if [ "$DIRECTTEMP" = "ON" -a "$FILTER" = "thermal" ]; then
+				if [ "$FILTER" = "thermal" ]; then
 					if (( $( echo "$TEMPERATURE < $LOCSTOPTEMP" | bc -l ) )); then
 						verbPrint "Device $LOCALDEVICE (ID:$LOCALDEVICEID): $TEMPERATURE is lower than STOP level ($TEMPERATURE < $LOCSTOPTEMP)"
 					else
@@ -366,14 +291,10 @@ function enableDisableDevices() {
 function mainLoop() {
 	initDeviceTable
 	getLowTarifInfo
-	if [ $DIRECTTEMP = "ON" ]; then
-        TEMPERATURE=''
-		getTemperature
-        if [ -z $TEMPERATURE ]; then
-            DIRECTTEMP=OFF
-        fi
-	fi
-	
+
+	TEMPERATURE="0.0"
+	getTempViaHAAPI
+
 	echo ', "devices": { ' >> "$FVEAPIFILE"
 
 	manageThermalDevices
@@ -394,8 +315,6 @@ OFF=''
 if [ "$FVEOPTONOFF" = "OFF" ]; then
 	OFF='Y'
 fi
-
-FORCE='Y'
 
 while [ $# -gt 0 ]; do
 	case $1 in

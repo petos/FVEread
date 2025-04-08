@@ -55,7 +55,6 @@ function mainGetLoop() {
 	return 0
 }
 
-FORCE=''
 VERBOUT="2>/dev/null"
 DEVICESTOTALNUM=-1
 while [ $# -gt 0 ]; do
@@ -92,11 +91,6 @@ done
 if [ "$FVErc" = "ERROR" ]; then errorPrint "FVErc not found!"; exit 99; fi
 debugPrint "SCRIPT: FVEonOff"
 debugPrint "Using FVErc from ${FVErc}"
-
-if [ "$ALWAYSFORCE" = 'Y' ]; then
-    FORCE='Y'
-    debugPrint "Setting FORCE=Y since ALWAYSFORCE is set to true"
-fi
 
 if [ "$TYPE" = "SET" ]; then
 	mainSetLoop

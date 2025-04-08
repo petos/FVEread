@@ -13,7 +13,8 @@ function cleanFile() {
 	#rm -f "$TMPDIR"/FVE.gn
 	rm -f "$TMPDIR"/.fveread.lock
 	rm -f "$TMPDIR"/HAAPI.json
-	rm -f "$TMPDIR"/api.json
+	rm -f "$FVEAPIFILE" 
+	rm -f "$FVEAPIFILE"1
 }
 
 function checkRunningStatus() {
@@ -35,12 +36,11 @@ function uploadDataFTP() {
 	if ( ! touch "$LOCALWEBSERVERPATH"/api.json ); then
 		sudo chmod o+rwx "$LOCALWEBSERVERPATH"
 	fi
-	cp "$FVEAPIFILE" "$FVEAPIFILE".bckp
 	jq -c . "$FVEAPIFILE" > "$FVEAPIFILE"1
 	sed -si -e's/True/on/g' -e's/False/off/g' "$FVEAPIFILE"1
-	mv "$FVEAPIFILE"1 "$FVEAPIFILE"
+	#mv "$FVEAPIFILE"1 "$FVEAPIFILE"
 
-	cp -f "$TMPDIR"/api.json "$LOCALWEBSERVERPATH" #TOHLE NECHAT
+	cp -f "$FVEAPIFILE"1 "$LOCALWEBSERVERPATH" #TOHLE NECHAT
 	return 0
 }
 
@@ -52,8 +52,6 @@ function getDataViaAPI() {
 		eval "$VAR"="$RESULT"
 		debugPrint "$VAR = $RESULT"
 	done < <( grep -v '^#' "$HAAPICFG" )
-	todayProduction="$TODAY"
-	rawTOTALPRODUCED="$totalProduction"
 }
 
 function getData() {
@@ -62,13 +60,6 @@ function getData() {
 	CURRENT="$( echo "$CURRENT" | cut -d'.' -f1)"
 	[ "$CURRENT" ] || CURRENT=0
 	[ "$CURRENT" -gt "$INSTALLEDPOWER" ] && CURRENT=0
-	[ "$L1" ] || L1=0
-	[ "$L2" ] || L2=0
-	[ "$L3" ] || L3=0
-	[ "$TODAY" ] || TODAY=0
-	[ "$rawTOTALPRODUCED" ] || rawTOTALPRODUCED=0
-	[ "$totalProduction" ] || totalProduction=0
-	[ "$todayProduction" ] || todayProduction=0
 	debugPrint "getData() Done"
 }
 
@@ -77,19 +68,7 @@ function createAPIfile() {
 	echo "
 {
 	\"time\": \"$(date --iso-8601=seconds)\",
-	\"status\": \"$FVESTATUS\",
-	\"power\": {
-		\"current\": $CURRENT,
-		\"L\": {
-			\"L1\": $L1,
-			\"L2\": $L2,
-			\"L3\": $L3
-		},
-		\"today\": $TODAY,
-		\"totalProduction\": $rawTOTALPRODUCED,
-		\"todayProduction\": $todayProduction,
-		\"todayProductionLastReset\": \"$LASTRESET\"
-	}
+	\"status\": \"$FVESTATUS\"
 " >> "$FVEAPIFILE"
 }
 
