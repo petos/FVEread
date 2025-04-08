@@ -27,7 +27,6 @@ function opt() {
 		else 
 			EXPECTEDSTATUSBINARY=0; 
 		fi
-		echo $TIMEDATE_YYYYMMDDHHmm $EXPECTEDSTATUSBINARY >> $FVEDATADIR/$COMPONENT."$TIMEDATE_YYYYMM"
 	else
 		errorPrint "Unknown parametr for function opt(): $@"
 	fi

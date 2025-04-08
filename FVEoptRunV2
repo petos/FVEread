@@ -102,14 +102,6 @@ function parseThermalDevice() {
 	###ENDTEST
 }
 
-function getUptimeOfDevice() {
-	local DEVICE="$1"
-	local DEVICEDATAFILE="$FVEDATADIR"/"$DEVICE"."$TIMEDATE_YYYYMM"
-	local DEVICEUPTIME=$(grep "$TIMEDATE_YYYYMMDD".*1$ $DEVICEDATAFILE | sort -u | wc -l)
-	debugPrint "Device $DEVICE was up for $DEVICEUPTIME mins"
-	return $DEVICEUPTIME
-}
-
 function thermalLowTarifDT() {
     local LOCALDEVICEID=-1
     while read DEVICENAME; do
