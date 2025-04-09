@@ -236,16 +236,6 @@ function initDeviceTable() {
 	
 }
 
-function enableDisableDevices() {
-	local VOID
-	while read DEVICENUM VOID; do
-		verbPrint "Device ${STARTSTOPDEVICENAMES["$DEVICENUM"]} (ID=$DEVICENUM) is being turned ${STARTSTOPDEVICES["$DEVICENUM"]}"
-		FVEonOff --setstatus "${STARTSTOPDEVICENAMES["$DEVICENUM"]}" "${STARTSTOPDEVICES["$DEVICENUM"]}"
-		#sleep 2
-	done < <( cat "$OPTCFGFILE" | grep -v \# | sed /^$/d)
-	return 0
-}
-
 function mainLoop() {
 	initDeviceTable
 	ISLOWTARIF=N
@@ -260,8 +250,6 @@ function mainLoop() {
 	decideOnOff "generic"
 	
 	echo '}' >> "$FVEAPIFILE"
-
-	enableDisableDevices
 }
 
 debugPrint "SCRIPT: FVEoptRunV2"
