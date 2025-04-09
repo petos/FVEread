@@ -236,14 +236,6 @@ function initDeviceTable() {
 	
 }
 
-function checkDeviceTable() {
-	local VOID
-	verbPrint "Current status of table STARTSTOPDEVICES[]:"
-	while read ID VOID DEVICENAME VOID; do
-		verbPrint "$ID: $DEVICENAME = ${STARTSTOPDEVICES["$ID"]}"
-	done < <( cat "$OPTCFGFILE" | grep -v \# | sed /^$/d)
-}
-
 function enableDisableDevices() {
 	local VOID
 	while read DEVICENUM VOID; do
@@ -270,7 +262,6 @@ function mainLoop() {
 	echo '}' >> "$FVEAPIFILE"
 
 	enableDisableDevices
-	#checkDeviceTable
 }
 
 debugPrint "SCRIPT: FVEoptRunV2"
