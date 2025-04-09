@@ -166,14 +166,12 @@ function decideOnOff() {
 			LOCSTARTTEMP="$( parseHAAPI "$LOCSTARTTEMP" "state" | tr ',' '.' | cut -d'.' -f1 )"
 	        debugPrint "LOCSTARTTEMP=$LOCSTARTTEMP"
 		fi
-		
-		STARTLOCALCONSUMPTION=$LOCALCONSUMPTION
-		
+
 		if [ "${STARTSTOPDEVICES["$LOCALDEVICEID"]}" = "ON" ]; then
 			debugPrint "Device $LOCALDEVICE (id: $LOCALDEVICEID) is already setup to be on, skipping"
 			updateJSONforDevices "$i" "$LOCALDEVICE" "$LOCALDEVICEID" "$LOCALCONSUMPTION" "$LOCSTARTTEMP" "$LOCSTOPTEMP" "ON"
 		else
-			if [ $STARTLOCALCONSUMPTION -lt $ENERGYBUCKET ]; then
+			if [ $LOCALCONSUMPTION -lt $ENERGYBUCKET ]; then
 				if [ "$FILTER" = "thermal" ]; then
 					if (( $( echo "$TEMPERATURE < $LOCSTOPTEMP" | bc -l ) )); then
 						verbPrint "Device $LOCALDEVICE (ID:$LOCALDEVICEID): $TEMPERATURE is lower than STOP level ($TEMPERATURE < $LOCSTOPTEMP)"
@@ -192,24 +190,15 @@ function decideOnOff() {
 				verbPrint "Device $LOCALDEVICE (ID:$LOCALDEVICEID) CONS: ${LOCALCONSUMPTION} > $ENERGYBUCKET"
 				updateJSONforDevices "$i" "$LOCALDEVICE" "$LOCALDEVICEID" "$LOCALCONSUMPTION" "$LOCSTARTTEMP" "$LOCSTOPTEMP" "OFF"
 				STARTSTOPDEVICES["$LOCALDEVICEID"]=OFF
-			elif [ $LOCALCONSUMPTION -le $ENERGYBUCKET ] && [ $ENERGYBUCKET -le $STARTLOCALCONSUMPTION ] ; then
-				verbPrint "Device $LOCALDEVICE (ID:$LOCALDEVICEID) CONS:  ${LOCALCONSUMPTION} < $ENERGYBUCKET < $STARTLOCALCONSUMPTION -- nochange" 
-				local STATUS
-				STATUS=$(FVEonOff --getstatus $LOCALDEVICE)
-				if [ $? != 0 ]; then
-					errorPrint "$LOCALDEVICE (ID:$LOCALDEVICEID) was not recognized in TelDus configuration"
-					continue
-				fi
-				STARTSTOPDEVICES["$LOCALDEVICEID"]="$STATUS"
-				updateJSONforDevices "$i" "$LOCALDEVICE" "$LOCALDEVICEID" "$LOCALCONSUMPTION" "$LOCSTARTTEMP" "$LOCSTOPTEMP" "$STATUS"
-				if [ "${STARTSTOPDEVICES["$LOCALDEVICEID"]}" = ON ] || [ "${STARTSTOPDEVICES["$LOCALDEVICEID"]}" = on ]; then
-					updateEnergy $LOCALCONSUMPTION
-				fi
+			elif [ "$ENERGYBUCKET" -eq "$LOCALCONSUMPTION" ] ; then
+				verbPrint "Device $LOCALDEVICE (ID:$LOCALDEVICEID) CONS:  ${LOCALCONSUMPTION} = $ENERGYBUCKET" 
+				STARTSTOPDEVICES["$LOCALDEVICEID"]="ON"
+				updateJSONforDevices "$i" "$LOCALDEVICE" "$LOCALDEVICEID" "$LOCALCONSUMPTION" "$LOCSTARTTEMP" "$LOCSTOPTEMP" "ON"
+				updateEnergy $LOCALCONSUMPTION
 			else
 				errorPrint "ERR, not expected this to happens"
 				errorPrint "LOCALDEVICE=$LOCALDEVICE (ID:$LOCALDEVICEID)"
 				errorPrint "ENERGYBUCKET=$ENERGYBUCKET"
-				errorPrint "STARTLOCALCONSUMPTION=$STARTLOCALCONSUMPTION"
 				errorPrint "LOCALCONSUMPTION=$LOCALCONSUMPTION"
 				errorPrint "Stopping"
 				STARTSTOPDEVICES["$LOCALDEVICEID"]=OFF
