@@ -74,18 +74,16 @@ function parseThermalDevice() {
 	done < <( cat "$OPTCFGFILE" | grep -v \# | grep thermal)
 
 	###TEST
-	if [ $DEBUG ]; then
-		for i in `seq 0 $THERMALDEVICES`; do
-			debugPrint "ID$i: ${DEVICEID[$i]}"
-			debugPrint "TYPE$i: ${TYPE["$i"]}"
-			debugPrint "NAME$i: ${DEVICE["$i"]}"
-			debugPrint "CONS$i: ${CONSUMPTION["$i"]}"
-			debugPrint "TIM1$i: ${TIME0["$i"]}"
-			debugPrint "TIM2$i: ${TIME1["$i"]}"
-			debugPrint "RTTM$i: ${STARTTEMP["$i"]}"
-			debugPrint "TPTM$i: ${STOPTEMP["$i"]}"
-		done
-	fi
+	for i in `seq 0 $THERMALDEVICES`; do
+		debugPrint "ID$i: ${DEVICEID[$i]}"
+		debugPrint "TYPE$i: ${TYPE["$i"]}"
+		debugPrint "NAME$i: ${DEVICE["$i"]}"
+		debugPrint "CONS$i: ${CONSUMPTION["$i"]}"
+		debugPrint "TIM1$i: ${TIME0["$i"]}"
+		debugPrint "TIM2$i: ${TIME1["$i"]}"
+		debugPrint "RTTM$i: ${STARTTEMP["$i"]}"
+		debugPrint "TPTM$i: ${STOPTEMP["$i"]}"
+	done
 	###ENDTEST
 }
 
@@ -197,7 +195,7 @@ function decideOnOff() {
 			elif [ $LOCALCONSUMPTION -le $ENERGYBUCKET ] && [ $ENERGYBUCKET -le $STARTLOCALCONSUMPTION ] ; then
 				verbPrint "Device $LOCALDEVICE (ID:$LOCALDEVICEID) CONS:  ${LOCALCONSUMPTION} < $ENERGYBUCKET < $STARTLOCALCONSUMPTION -- nochange" 
 				local STATUS
-				STATUS=$(FVEonOff $VERBPARM $DEBUGPARAM --getstatus $LOCALDEVICE)
+				STATUS=$(FVEonOff --getstatus $LOCALDEVICE)
 				if [ $? != 0 ]; then
 					errorPrint "$LOCALDEVICE (ID:$LOCALDEVICEID) was not recognized in TelDus configuration"
 					continue
@@ -261,7 +259,7 @@ function enableDisableDevices() {
 	local VOID
 	while read DEVICENUM VOID; do
 		verbPrint "Device ${STARTSTOPDEVICENAMES["$DEVICENUM"]} (ID=$DEVICENUM) is being turned ${STARTSTOPDEVICES["$DEVICENUM"]}"
-		FVEonOff $DEBUGPARAM $VERBPARM --setstatus "${STARTSTOPDEVICENAMES["$DEVICENUM"]}" "${STARTSTOPDEVICES["$DEVICENUM"]}"
+		FVEonOff --setstatus "${STARTSTOPDEVICENAMES["$DEVICENUM"]}" "${STARTSTOPDEVICES["$DEVICENUM"]}"
 		#sleep 2
 	done < <( cat "$OPTCFGFILE" | grep -v \# | sed /^$/d)
 	return 0
@@ -286,6 +284,8 @@ function mainLoop() {
 	#checkDeviceTable
 }
 
+debugPrint "SCRIPT: FVEoptRunV2"
+
 while [ $# -gt 0 ]; do
 	case $1 in
 		--current)
@@ -306,4 +306,5 @@ debugPrint "Using FVErc from ${FVErc}"
 
 mainLoop
 
+debugPrint "SCRIPT: End of script: FVEoptRunV2"
 exit 0

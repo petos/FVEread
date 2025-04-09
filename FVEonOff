@@ -54,7 +54,10 @@ function mainGetLoop() {
 	return 0
 }
 
-VERBOUT="2>/dev/null"
+debugPrint "SCRIPT: FVEonOff"
+debugPrint "Using FVErc from ${FVErc}"
+
+
 DEVICESTOTALNUM=-1
 while [ $# -gt 0 ]; do
 	case $1 in
@@ -88,8 +91,7 @@ done
 
 
 if [ "$FVErc" = "ERROR" ]; then errorPrint "FVErc not found!"; exit 99; fi
-debugPrint "SCRIPT: FVEonOff"
-debugPrint "Using FVErc from ${FVErc}"
+
 
 if [ "$TYPE" = "SET" ]; then
 	mainSetLoop
@@ -99,5 +101,7 @@ else
 	errorPrint "No TYPE recognized"
 	exit 0
 fi
+debugPrint "SCRIPT: End of script: FVEonOff"
+
 
 

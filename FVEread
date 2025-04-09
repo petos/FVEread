@@ -75,8 +75,6 @@ function createAPIfile() {
 function mainLoop() {
 	debugPrint "FNC: mainLoop"
 	checkRunningStatus
-
-	debugPrint "USEHAAPI and/or LOWHA  and/or USEHAAPITEMP and/or FVEopt is using HA"
 	callHAAPI
 	getData
 
@@ -93,3 +91,4 @@ debugPrint "SCRIPT: FVEread"
 debugPrint "Using FVErc from ${FVErc}"
 
 mainLoop
+debugPrint "SCRIPT: End of script: FVEread"
