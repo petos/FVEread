@@ -1,26 +1,15 @@
 #!/bin/bash
-# shellcheck disable=SC2034  #Unused vars -- will be used somewhere else
-TIMEDATE_YYYY="$(date +%Y)"
-TIMEDATE_YYYYMM="$(date +%Y%m)"
-TIMEDATE_YYYYMMDD="$(date +%Y%m%d)"
-
-#TIMEDATE_YYYYMMDDHH=$(date +%Y%m%d%H)
-TIMEDATE_YYYYMMDDHHmm="$(date +%Y%m%d%H%M)"
 
 function debugPrint() {
-	if [ "$DEBUG" ]; then
-		echo "$1" >&2
-	fi
+	echo "DEBUG: $1" >&2
 }
 
 function verbPrint() {
-	if [ "$VERB" ]; then
-		echo "$1"
-	fi
+		echo "VERB:  $1"
 }
 
 function errorPrint() {
-	echo "$TIMEDATE_YYYYMMDDHHmm: $1"
+	echo "ERROR: $1"
 }
 
 # shellcheck disable=SC2145   # I know how fixed_"$@" behaves and it's correct!

@@ -41,19 +41,6 @@ function getLowViaHAAPI() {
 	fi
 }
 
-function getLowTarifInfo() {
-	#returns if now we are in Low tarif or not and eventually what low tarif (1st part, 2nd part...)
-	
-	ISLOWTARIF=N
-	LOWTARIFNUM=''
-	local LOWTARIFN
-	local TIMEDATEHHmm=$(date +%H%M)
-	
-	getLowViaHAAPI
-}
-
-
-
 function parseThermalDevice() {
 	THERMALDEVICES=-1
 	while read LNDEVICEID LNTYPE LNDEVICE LNCONSUMPTION LNTIME0 LNTIME1 LNSTARTTEMP LNSTOPTEMP ; do 
@@ -282,7 +269,8 @@ function enableDisableDevices() {
 
 function mainLoop() {
 	initDeviceTable
-	getLowTarifInfo
+	ISLOWTARIF=N
+	getLowViaHAAPI
 
 	TEMPERATURE="0.0"
 	getTempViaHAAPI
@@ -297,16 +285,6 @@ function mainLoop() {
 	enableDisableDevices
 	#checkDeviceTable
 }
-
-
-
-
-OFF=''
-
-
-if [ "$FVEOPTONOFF" = "OFF" ]; then
-	OFF='Y'
-fi
 
 while [ $# -gt 0 ]; do
 	case $1 in
