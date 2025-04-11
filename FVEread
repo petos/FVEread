@@ -75,7 +75,7 @@ function createAPIfile() {
 function mainLoop() {
 	debugPrint "FNC: mainLoop"
 	checkRunningStatus
-	callHAAPI
+	#callHAAPI
 	getData
 
 	createAPIfile
