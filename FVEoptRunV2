@@ -33,10 +33,10 @@ function getLowViaHAAPI() {
 	debugPrint "calling ISLOWTARIF $HALOWENDPOINT $HALOWARRTIBUTE | tr ',' '.' | cut -d'.' -f1"
 	ISLOWTARIF="$( parseHAAPI "$HALOWENDPOINT" "$HALOWARRTIBUTE" | tr ',' '.' | cut -d'.' -f1 )"
 	if [ "$ISLOWTARIF" = "$HALOWYES" ]; then
-		ISLOWTARIF="Y"
+		ISLOWTARIF=true
 		debugPrint "Direct HA LOW was detected"
 	else
-		ISLOWTARIF="N"
+		ISLOWTARIF=false
 		debugPrint "Direct HA LOW was NOT detected"
 	fi
 }
@@ -105,7 +105,7 @@ function thermalLowTarifDT() {
 
 function manageThermalDevicesLowTarif {
 	
-	if [ "$ISLOWTARIF" = "Y" ]; then
+	if ( "$ISLOWTARIF" ); then
 		verbPrint "LowTarif time is enabled"
 		thermalLowTarifDT
 	else
@@ -125,8 +125,10 @@ function updateJSONforDevices() {
 	local REALCONSUMPTION=0
 	[ "$7" = ON ] && DEVICESTATUS=True
 	[ "$7" = ON ] && REALCONSUMPTION="$LOCALCONSUMPTION"
-	[ $i -gt 0 ] && echo ',' >> "$FVEAPIFILE"
-	echo "
+	#[ $i -gt 0 ] && echo ',' >> "$FVEAPIFILE"
+	[ $i -gt 0 ] && APIVAR="${APIVAR},"
+	#echo "
+	APIVAR="${APIVAR} 
 	\"$LOCALDEVICE\":
 	{
 		\"deviceName\": \"$LOCALDEVICE\",
@@ -137,7 +139,8 @@ function updateJSONforDevices() {
 		\"deviceUp\": \"$DEVICESTATUS\",
 		\"realConsumption\": \"$REALCONSUMPTION\"
 	}
-" >> "$FVEAPIFILE"
+"
+#" >> "$FVEAPIFILE"
 
 }
 
@@ -210,17 +213,20 @@ function decideOnOff() {
 
 function manageThermalDevices() {
 	
-	parseThermalDevice
+	time parseThermalDevice
+	echo parseThermalDevice
 	
 	if [ "$THERMALDEVICES" = -1 ]; then
 			verbPrint "No thermal device recognized, skipping"
 			return 0
 	fi
-	manageThermalDevicesLowTarif
+	time manageThermalDevicesLowTarif
+	echo manageThermalDevicesLowTarif
 
 	
 	verbPrint "Processing thermal devices. After lowtarif actions the available energy is: $ENERGYBUCKET"
-	decideOnOff "thermal"
+	time decideOnOff "thermal"
+	echo decideOnOff "thermal"
 	
 	return 0
 }
@@ -238,18 +244,19 @@ function initDeviceTable() {
 
 function mainLoop() {
 	initDeviceTable
-	ISLOWTARIF=N
+	ISLOWTARIF=false
 	getLowViaHAAPI
 
 	TEMPERATURE="0.0"
 	getTempViaHAAPI
 
-	echo ', "devices": { ' >> "$FVEAPIFILE"
+	#echo ', "devices": { ' >> "$FVEAPIFILE"
+	APIVAR=', "devices": { '
 
 	manageThermalDevices
-	decideOnOff "generic"
+	#decideOnOff "generic"
 	
-	echo '}' >> "$FVEAPIFILE"
+	echo "$APIVAR }" >> "$FVEAPIFILE"
 }
 
 debugPrint "SCRIPT: FVEoptRunV2"

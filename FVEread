@@ -40,7 +40,7 @@ function uploadDataFTP() {
 	sed -si -e's/True/on/g' -e's/False/off/g' "$FVEAPIFILE"1
 	#mv "$FVEAPIFILE"1 "$FVEAPIFILE"
 
-	cp -f "$FVEAPIFILE"1 "$LOCALWEBSERVERPATH" #TOHLE NECHAT
+	cp -f "$FVEAPIFILE"1 "$LOCALWEBSERVERPATH"/api.json #TOHLE NECHAT
 	return 0
 }
 
@@ -59,7 +59,6 @@ function getData() {
 	getDataViaAPI
 	CURRENT="$( echo "$CURRENT" | cut -d'.' -f1)"
 	[ "$CURRENT" ] || CURRENT=0
-	[ "$CURRENT" -gt "$INSTALLEDPOWER" ] && CURRENT=0
 	debugPrint "getData() Done"
 }
 
@@ -79,7 +78,8 @@ function mainLoop() {
 	getData
 
 	createAPIfile
-	FVEoptRunV2 --current $CURRENT
+	#python3 "$FVEBINDIR"/FVEoptRunV2.py --current $CURRENT
+	"$FVEBINDIR"/FVEoptRunV2 --current $CURRENT
 	#Close API json file
 	echo '}' >> "$FVEAPIFILE"
 	uploadDataFTP
